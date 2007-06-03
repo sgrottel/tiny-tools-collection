@@ -73,12 +73,15 @@ namespace Dib {
 
         /** ListView Messages */
         const uint LVM_FIRST = 0x1000; // ListView messages
+        const uint LVM_GETIMAGELIST = (LVM_FIRST + 2);
         const uint LVM_GETITEMCOUNT = (LVM_FIRST + 4);
+        const uint LVM_GETITEMW = (LVM_FIRST + 75);
         const uint LVM_GETITEMTEXTW = (LVM_FIRST + 115);
         const uint LVM_GETITEMPOSITION = (LVM_FIRST + 16);
 
         /** GetWindowLong constants */
         const int GWL_STYLE = (-16);
+        const int LVSIL_SMALL = 1;
 
         /** ListView Style constants */
         const UInt32 LVS_AUTOARRANGE = 0x0100;
@@ -164,7 +167,7 @@ namespace Dib {
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesRead);
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-        static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out char[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesRead);
+        static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [MarshalAs(UnmanagedType.LPTStr)]StringBuilder buf, int nSize, out IntPtr lpNumberOfBytesRead);
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out POINT lpBuffer, uint nSize, out IntPtr lpNumberOfBytesRead);
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
@@ -195,10 +198,23 @@ namespace Dib {
             public int iIndent;
         }
 
+        ///** ImageList_GetImageCount */
+        //[DllImport("comctl32.dll")]
+        //static extern int ImageList_GetImageCount(IntPtr hImgL);
+
         /** Refresh the iconListView */
         private void refreshListButton_Click(object sender, EventArgs e) {
             this.iconListView.BeginUpdate();
-            this.iconListView.Items.Clear();
+
+            foreach (ListViewItem item in this.iconListView.Items) {
+                while (item.SubItems.Count < 3) {
+                    ListViewItem.ListViewSubItem si = item.SubItems.Add("Not Found");
+                    si.Tag = null;
+                }
+                item.SubItems[1].Text = "Not Found";
+                item.SubItems[1].Tag = null;
+                item.Checked = false;
+            }
 
             // enumerate all elements on the desktop including their position 
             IntPtr hWnd = IntPtr.Zero;
@@ -235,35 +251,61 @@ namespace Dib {
                     LVITEM lvItem = new LVITEM();
                     IntPtr outSize;
 
+                    // fetch icons
                     int count = SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
                     for (int idx = 0; idx < count; idx++) {
-                        ListViewItem item = this.iconListView.Items.Add(idx.ToString());
-                        item.SubItems.Add("Not Found");
-                        item.SubItems.Add("Not Found");
+                        String titleString = "Unknown Icon " + idx.ToString();
+                        int imgIdx; // TODO: This is currently not used, but would be cool
+                        ListViewItem item = null;
 
-                        // fetch icon title
+                        // fetch icon title and image id
                         for (int i = 0; i < titleRequestSize; i++) title[i] = '\0';
                         lvItem.iItem = idx;
                         lvItem.iSubItem = 0;
+                        lvItem.mask = ListViewItemFlags.LVIF_TEXT | ListViewItemFlags.LVIF_IMAGE;
                         lvItem.cchTextMax = (int)titleLength;
                         lvItem.pszText = (IntPtr)((int)sharedMem + Marshal.SizeOf(typeof(LVITEM)));
 
                         WriteProcessMemory(process, sharedMem, title, titleRequestSize, out outSize);
                         WriteProcessMemory(process, sharedMem, ref lvItem, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
-                        if (SendMessage(hWnd, LVM_GETITEMTEXTW, idx, sharedMem) != 0) {
+                        if (SendMessage(hWnd, LVM_GETITEMW, idx, sharedMem) != 0) {
                             ReadProcessMemory(process, sharedMem, out lvItem, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
-                            byte[] outdata = new byte[titleRequestSize];
-                            ReadProcessMemory(process, sharedMem, out outdata, titleRequestSize, out outSize); // Tut nicht ... :-/
-                            item.SubItems[0].Text = new String(title);
+                            imgIdx = lvItem.iImage;
+                            for (int i = 0; i < Marshal.SizeOf(typeof(LVITEM)); i++) title[i] = 'X';
+                            StringBuilder iconTitle = new StringBuilder((int)titleRequestSize);
+                            WriteProcessMemory(process, sharedMem, title, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
+                            ReadProcessMemory(process, sharedMem, iconTitle, (int)Math.Min(titleRequestSize, iconTitle.MaxCapacity), out outSize);
+                            titleString = iconTitle.ToString().Substring(Marshal.SizeOf(typeof(LVITEM)) / 2);
                         }
+
+                        item = null;
+                        foreach (ListViewItem i in this.iconListView.Items) {
+                            if (i.Text.Equals(titleString, StringComparison.InvariantCultureIgnoreCase)) {
+                                item = i;
+                                break;
+                            }
+                        }
+                        if (item == null) {
+                            item = this.iconListView.Items.Add(titleString);
+                        }
+
+                        while (item.SubItems.Count < 3) {
+                            ListViewItem.ListViewSubItem si = item.SubItems.Add("Not Found");
+                            si.Tag = null;
+                        }
+                        item.SubItems[1].Text = "Not Found";
+                        item.SubItems[1].Tag = null;
 
                         // fetch icon position
                         WriteProcessMemory(process, sharedMem, ref pt, pointSize, out outSize);
                         if (SendMessage(hWnd, LVM_GETITEMPOSITION, idx, sharedMem) != 0) {
                             ReadProcessMemory(process, sharedMem, out pt, pointSize, out outSize);
                             item.SubItems[1].Tag = (System.Drawing.Point)pt;
-                            item.SubItems[1].Text = pt.X.ToString() + "; " + pt.Y.ToString();
+                            item.SubItems[1].Text = ((System.Drawing.Point)pt).ToString();
                         }
+
+                        item.Checked = true;
+                        item.Tag = item.Checked;
 
                     }
 
@@ -283,5 +325,192 @@ namespace Dib {
 
             this.iconListView.EndUpdate();
         }
+
+        /** item check lock update flag */
+        private bool lockItemCheckedUpdates = false;
+
+        /** an item has been checked. */
+        private void iconListView_ItemChecked(object sender, ItemCheckedEventArgs e) {
+            if (this.lockItemCheckedUpdates) return;
+            this.lockItemCheckedUpdates = true;
+            
+            foreach (ListViewItem item in this.iconListView.Items) {
+                e.Item.Tag = e.Item.Checked;
+            }
+
+            int selCnt = this.iconListView.CheckedIndices.Count;
+            int allCnt = this.iconListView.Items.Count;
+
+            this.selectCheckBox.ThreeState = ((selCnt % allCnt) != 0);
+
+            if (selCnt == 0) {
+                this.selectCheckBox.CheckState = CheckState.Unchecked;
+            } else if (selCnt < allCnt) {
+                this.selectCheckBox.CheckState = CheckState.Indeterminate;
+            } else {
+                this.selectCheckBox.CheckState = CheckState.Checked;
+            }
+            this.lockItemCheckedUpdates = false;
+        }
+
+        /** selection checkbox clicked */
+        private void selectCheckBox_Click(object sender, EventArgs e) {
+            if (this.lockItemCheckedUpdates) return;
+            this.lockItemCheckedUpdates = true;
+
+            switch (this.selectCheckBox.CheckState) {
+                case CheckState.Checked:
+                    foreach (ListViewItem item in this.iconListView.Items) {
+                        item.Checked = true;
+                    }
+                    break;
+                case CheckState.Unchecked:
+                    foreach (ListViewItem item in this.iconListView.Items) {
+                        item.Checked = false;
+                    }
+                    break;
+                case CheckState.Indeterminate:
+                    foreach (ListViewItem item in this.iconListView.Items) {
+                        item.Checked = (bool)item.Tag;
+                    }
+                    break;
+            }
+
+            this.lockItemCheckedUpdates = false;
+        }
+
+        /** store button */
+        private void storeButton_Click(object sender, EventArgs e) {
+            foreach (ListViewItem item in this.iconListView.CheckedItems) {
+                try {
+                    Point pt = (Point)item.SubItems[1].Tag;
+                    item.SubItems[2].Tag = pt;
+                    item.SubItems[2].Text = pt.ToString();
+                } catch { }
+            }
+        }
+
+        /** store the icon positions as xml file */
+        private void saveButton_Click(object sender, EventArgs e) {
+            this.saveFileDialog.FileName = this.openFileDialog.FileName;
+            if (this.saveFileDialog.ShowDialog() == DialogResult.OK) {
+                this.openFileDialog.FileName = this.saveFileDialog.FileName;
+
+                using (System.IO.StreamWriter writer = new System.IO.StreamWriter(this.saveFileDialog.FileName)) {
+                    writer.WriteLine("<xml type=\"dib\">");
+                    foreach (ListViewItem item in this.iconListView.CheckedItems) {
+                        try {
+                            Point pt = (Point)item.SubItems[2].Tag;
+                            writer.Write("\t");
+                            writer.Write("<icon name=\"" + item.Text + "\" position=\"" + pt.X.ToString() + ";" + pt.Y.ToString() + "\"/>");
+                            writer.WriteLine();
+                        } catch { }
+                    }
+                    writer.WriteLine("</xml>");
+                }
+            }
+        }
+
+        /** load a desktop icon backup from xml file */
+        private void loadButton_Click(object sender, EventArgs e) {
+            if (this.openFileDialog.ShowDialog() == DialogResult.OK) {
+
+                String error = null;
+                System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^-?\d+;-?\d+$");
+                List<String> names = new List<String>();
+                List<Point> points = new List<Point>();
+
+                foreach (ListViewItem item in this.iconListView.Items) {
+                    while (item.SubItems.Count < 3) {
+                        ListViewItem.ListViewSubItem si = item.SubItems.Add("Not Found");
+                        si.Tag = null;
+                    }
+                    item.SubItems[2].Text = "Not Found";
+                    item.SubItems[2].Tag = null;
+                    item.Checked = false;
+                }
+
+                using (System.Xml.XmlTextReader reader = new System.Xml.XmlTextReader(this.openFileDialog.FileName)) {
+                    while (reader.Read()) {
+                        if (reader.NodeType != System.Xml.XmlNodeType.Element) continue; // only element nodes are considdered useful
+                        if (!reader.HasAttributes) continue; // elements without attributes are ignored
+                        if (reader.Depth == 0) {
+                            if (!reader.Name.Equals("xml", StringComparison.InvariantCultureIgnoreCase)) {
+                                error = "Invalid File: Base tag must be \"xml\"";
+                                break;
+                            }
+                            String type = reader.GetAttribute("type");
+                            if (type == null || !type.Equals("dib", StringComparison.InvariantCultureIgnoreCase)) {
+                                error = "Invalid File: Xml-File must be of type \"dib\"";
+                                break;
+                            }
+                        } else if (reader.Depth == 1) {
+                            if (!reader.Name.Equals("icon", StringComparison.InvariantCultureIgnoreCase)) continue; // only icon elements are considdered useful
+                            String name = reader.GetAttribute("name");
+                            String pos = reader.GetAttribute("position");
+                            if (name == null || pos == null) {
+                                error = "Invalid File: Invalid Icon Tag found";
+                                break;
+                            }
+
+                            Point pt = new Point();
+                            try {
+                                if (regex.IsMatch(pos)) {
+                                    String[] strings = pos.Split(';');
+                                    pt.X = int.Parse(strings[0]);
+                                    pt.Y = int.Parse(strings[1]);
+                                }
+                            } catch { 
+                                continue; // unable to parse icon position
+                            }
+
+                            names.Add(name);
+                            points.Add(pt);
+
+                        }
+                    }
+
+                    if (error != null) {
+                        error = "Error [Line " + reader.LineNumber.ToString() + "]: " + error;
+                        MessageBox.Show(error, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+
+                // no error so now set the loaded icon positions 
+                if (error == null) {
+                    int len = names.Count;
+                    for (int i = 0; i < len; i++) {
+                        String name = names[i];
+                        Point pt = points[i];
+                        ListViewItem item = null;
+
+                        item = null;
+                        foreach (ListViewItem tlvi in this.iconListView.Items) {
+                            if (tlvi.Text.Equals(name, StringComparison.InvariantCultureIgnoreCase)) {
+                                item = tlvi;
+                                break;
+                            }
+                        }
+                        if (item == null) {
+                            item = this.iconListView.Items.Add(name);
+                        }
+
+                        while (item.SubItems.Count < 3) {
+                            ListViewItem.ListViewSubItem si = item.SubItems.Add("Not Found");
+                            si.Tag = null;
+                        }
+                        item.SubItems[2].Text = pt.ToString();
+                        item.SubItems[2].Tag = pt;
+
+                        item.Checked = true;
+                        item.Tag = true;
+                    }
+
+                }
+
+            }
+        }
+
+
     }
 }

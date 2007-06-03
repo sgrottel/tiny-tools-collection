@@ -36,6 +36,8 @@ namespace Dib {
             this.selectCheckBox = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
+            this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.SuspendLayout();
             // 
             // iconListView
@@ -54,9 +56,11 @@ namespace Dib {
             this.iconListView.Location = new System.Drawing.Point(12, 12);
             this.iconListView.Name = "iconListView";
             this.iconListView.Size = new System.Drawing.Size(570, 292);
+            this.iconListView.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.iconListView.TabIndex = 0;
             this.iconListView.UseCompatibleStateImageBehavior = false;
             this.iconListView.View = System.Windows.Forms.View.Details;
+            this.iconListView.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.iconListView_ItemChecked);
             // 
             // columnHeader1
             // 
@@ -87,24 +91,24 @@ namespace Dib {
             // loadButton
             // 
             this.loadButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.loadButton.Enabled = false;
             this.loadButton.Location = new System.Drawing.Point(93, 333);
             this.loadButton.Name = "loadButton";
             this.loadButton.Size = new System.Drawing.Size(75, 23);
             this.loadButton.TabIndex = 2;
             this.loadButton.Text = "Load";
             this.loadButton.UseVisualStyleBackColor = true;
+            this.loadButton.Click += new System.EventHandler(this.loadButton_Click);
             // 
             // saveButton
             // 
             this.saveButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.saveButton.Enabled = false;
             this.saveButton.Location = new System.Drawing.Point(174, 333);
             this.saveButton.Name = "saveButton";
             this.saveButton.Size = new System.Drawing.Size(75, 23);
             this.saveButton.TabIndex = 3;
             this.saveButton.Text = "Save";
             this.saveButton.UseVisualStyleBackColor = true;
+            this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
             // 
             // exitButton
             // 
@@ -131,26 +135,26 @@ namespace Dib {
             // storeButton
             // 
             this.storeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.storeButton.Enabled = false;
             this.storeButton.Location = new System.Drawing.Point(255, 333);
             this.storeButton.Name = "storeButton";
             this.storeButton.Size = new System.Drawing.Size(75, 23);
             this.storeButton.TabIndex = 6;
             this.storeButton.Text = "Store";
             this.storeButton.UseVisualStyleBackColor = true;
+            this.storeButton.Click += new System.EventHandler(this.storeButton_Click);
             // 
             // selectCheckBox
             // 
             this.selectCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.selectCheckBox.AutoSize = true;
-            this.selectCheckBox.Enabled = false;
             this.selectCheckBox.Location = new System.Drawing.Point(13, 310);
             this.selectCheckBox.Name = "selectCheckBox";
-            this.selectCheckBox.Size = new System.Drawing.Size(68, 17);
+            this.selectCheckBox.Size = new System.Drawing.Size(70, 17);
             this.selectCheckBox.TabIndex = 7;
-            this.selectCheckBox.Text = "Select ...";
+            this.selectCheckBox.Text = "Selection";
             this.selectCheckBox.ThreeState = true;
             this.selectCheckBox.UseVisualStyleBackColor = true;
+            this.selectCheckBox.Click += new System.EventHandler(this.selectCheckBox_Click);
             // 
             // label1
             // 
@@ -176,6 +180,17 @@ namespace Dib {
             this.linkLabel1.TextAlign = System.Drawing.ContentAlignment.TopRight;
             this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 
+            // openFileDialog
+            // 
+            this.openFileDialog.Filter = "Desktop Icon Backups (*.dibxml)|*.dibxml|All Files (*.*)|*.*";
+            this.openFileDialog.Title = "Load Desktop Icon Backup";
+            // 
+            // saveFileDialog
+            // 
+            this.saveFileDialog.DefaultExt = "dibxml";
+            this.saveFileDialog.Filter = "Desktop Icon Backups (*.dibxml)|*.dibxml|All Files (*.*)|*.*";
+            this.saveFileDialog.Title = "Save Desktop Icon Positions";
+            // 
             // DIBForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -194,7 +209,7 @@ namespace Dib {
             this.Controls.Add(this.iconListView);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "DIBForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultBounds;
             this.Text = "Desktop Icon Backup";
             this.Shown += new System.EventHandler(this.DIBForm_Shown);
             this.ResumeLayout(false);
@@ -217,6 +232,8 @@ namespace Dib {
         private System.Windows.Forms.CheckBox selectCheckBox;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.LinkLabel linkLabel1;
+        private System.Windows.Forms.OpenFileDialog openFileDialog;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog;
     }
 }
 

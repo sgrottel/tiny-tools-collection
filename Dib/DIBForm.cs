@@ -90,7 +90,8 @@ namespace Dib {
         const uint WM_COMMAND = 0x0111;
 
         /** special command message id */
-        const int IDM_TOGGLEAUTOARRANGE = 0x7041;
+        // const int IDM_TOGGLEAUTOARRANGE = 0x7041;
+        const int IDM_TOGGLEAUTOARRANGE = 0x7051; /** TODO: I DON'T LIKE THIS !!!
 
         /** ProcessAccessFlags */
         [Flags] enum ProcessAccessFlags : uint {
@@ -198,29 +199,29 @@ namespace Dib {
             public int iIndent;
         }
 
-        ///** ImageList_GetImageCount */
-        //[DllImport("comctl32.dll")]
-        //static extern int ImageList_GetImageCount(IntPtr hImgL);
+        /** MyIconInfo */
+        struct MyIconInfo {
+            public String title;
+            public Point position;
+            public int imageId;
+        }
 
-        /** Refresh the iconListView */
-        private void refreshListButton_Click(object sender, EventArgs e) {
-            this.iconListView.BeginUpdate();
-
-            foreach (ListViewItem item in this.iconListView.Items) {
-                while (item.SubItems.Count < 3) {
-                    ListViewItem.ListViewSubItem si = item.SubItems.Add("Not Found");
-                    si.Tag = null;
-                }
-                item.SubItems[1].Text = "Not Found";
-                item.SubItems[1].Tag = null;
-                item.Checked = false;
-            }
-
-            // enumerate all elements on the desktop including their position 
+        /** GetDesktopListViewHandle */
+        static private IntPtr GetDesktopListViewHandle() {
             IntPtr hWnd = IntPtr.Zero;
             hWnd = FindWindow("Progman", IntPtr.Zero);
             if (hWnd != IntPtr.Zero) hWnd = FindWindowEx(hWnd, IntPtr.Zero, "SHELLDLL_DefView", IntPtr.Zero);
             if (hWnd != IntPtr.Zero) hWnd = FindWindowEx(hWnd, IntPtr.Zero, "SysListView32", IntPtr.Zero);
+            return hWnd;
+        }
+
+        /** GetDesktopIcons */
+        static private List<MyIconInfo> GetDesktopIcons() {
+            List<MyIconInfo> retval = new List<MyIconInfo>();
+            MyIconInfo iconinfo;
+
+            // enumerate all elements on the desktop including their position 
+            IntPtr hWnd = GetDesktopListViewHandle();
             if (hWnd != IntPtr.Zero) {
                 bool autoArrange = false;
 
@@ -235,11 +236,11 @@ namespace Dib {
 
                 uint processID = 0;
                 uint threadID = GetWindowThreadProcessId(hWnd, out processID);
-                
+
                 uint pointSize = 8;
                 uint titleLength = 1024;
                 uint titleRequestSize = titleLength + (uint)Marshal.SizeOf(typeof(LVITEM));
-                
+
                 uint maxMemorySize = Math.Max(pointSize, titleRequestSize);
 
                 IntPtr process = OpenProcess(ProcessAccessFlags.VMOperation | ProcessAccessFlags.VMRead | ProcessAccessFlags.VMWrite, false, processID);
@@ -255,8 +256,9 @@ namespace Dib {
                     int count = SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
                     for (int idx = 0; idx < count; idx++) {
                         String titleString = "Unknown Icon " + idx.ToString();
-                        int imgIdx; // TODO: This is currently not used, but would be cool
-                        ListViewItem item = null;
+                        iconinfo.title = titleString;
+                        iconinfo.position = Point.Empty;
+                        iconinfo.imageId = 0;
 
                         // fetch icon title and image id
                         for (int i = 0; i < titleRequestSize; i++) title[i] = '\0';
@@ -270,7 +272,7 @@ namespace Dib {
                         WriteProcessMemory(process, sharedMem, ref lvItem, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
                         if (SendMessage(hWnd, LVM_GETITEMW, idx, sharedMem) != 0) {
                             ReadProcessMemory(process, sharedMem, out lvItem, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
-                            imgIdx = lvItem.iImage;
+                            iconinfo.imageId = lvItem.iImage;
                             for (int i = 0; i < Marshal.SizeOf(typeof(LVITEM)); i++) title[i] = 'X';
                             StringBuilder iconTitle = new StringBuilder((int)titleRequestSize);
                             WriteProcessMemory(process, sharedMem, title, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
@@ -278,35 +280,18 @@ namespace Dib {
                             titleString = iconTitle.ToString().Substring(Marshal.SizeOf(typeof(LVITEM)) / 2);
                         }
 
-                        item = null;
-                        foreach (ListViewItem i in this.iconListView.Items) {
-                            if (i.Text.Equals(titleString, StringComparison.InvariantCultureIgnoreCase)) {
-                                item = i;
-                                break;
-                            }
-                        }
-                        if (item == null) {
-                            item = this.iconListView.Items.Add(titleString);
-                        }
-
-                        while (item.SubItems.Count < 3) {
-                            ListViewItem.ListViewSubItem si = item.SubItems.Add("Not Found");
-                            si.Tag = null;
-                        }
-                        item.SubItems[1].Text = "Not Found";
-                        item.SubItems[1].Tag = null;
+                        iconinfo.title = titleString;
 
                         // fetch icon position
                         WriteProcessMemory(process, sharedMem, ref pt, pointSize, out outSize);
                         if (SendMessage(hWnd, LVM_GETITEMPOSITION, idx, sharedMem) != 0) {
                             ReadProcessMemory(process, sharedMem, out pt, pointSize, out outSize);
-                            item.SubItems[1].Tag = (System.Drawing.Point)pt;
-                            item.SubItems[1].Text = ((System.Drawing.Point)pt).ToString();
+                            iconinfo.position = (System.Drawing.Point)pt;
                         }
 
-                        item.Checked = true;
-                        item.Tag = item.Checked;
-
+                        if (iconinfo.position != Point.Empty) {
+                            retval.Add(iconinfo);
+                        }
                     }
 
                     // free the foreign process memory 
@@ -314,13 +299,54 @@ namespace Dib {
                     CloseHandle(process);
 
                 } else {
-                    MessageBox.Show("Unable to allocate virtual memory.", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Unable to allocate virtual memory.", "Desktop Icon Backup", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
                 if (autoArrange) {
                     IntPtr parent = GetParent(hWnd);
                     SendMessage(parent, WM_COMMAND, IDM_TOGGLEAUTOARRANGE, 0);
                 }
+            }
+
+            return retval;
+        }
+
+        /** Refresh the iconListView */
+        private void refreshListButton_Click(object sender, EventArgs e) {
+            this.iconListView.BeginUpdate();
+
+            foreach (ListViewItem item in this.iconListView.Items) {
+                while (item.SubItems.Count < 3) {
+                    ListViewItem.ListViewSubItem si = item.SubItems.Add("Not Found");
+                    si.Tag = null;
+                }
+                item.SubItems[1].Text = "Not Found";
+                item.SubItems[1].Tag = null;
+                item.Checked = false;
+            }
+
+            List<MyIconInfo> icons = DIBForm.GetDesktopIcons();
+            foreach (MyIconInfo icon in icons) {
+                ListViewItem item = null;
+                foreach (ListViewItem i in this.iconListView.Items) {
+                    if (i.Text.Equals(icon.title, StringComparison.InvariantCultureIgnoreCase)) {
+                        item = i;
+                        break;
+                    }
+                }
+                if (item == null) {
+                    item = this.iconListView.Items.Add(icon.title);
+                }
+
+                while (item.SubItems.Count < 3) {
+                    ListViewItem.ListViewSubItem si = item.SubItems.Add("Not Found");
+                    si.Tag = null;
+                }
+                item.SubItems[1].Text = icon.position.ToString();
+                item.SubItems[1].Tag = icon.position;
+
+                item.Checked = true;
+                item.Tag = item.Checked;
             }
 
             this.iconListView.EndUpdate();
@@ -511,6 +537,87 @@ namespace Dib {
             }
         }
 
+        /** restore the positions of the selected icons */
+        private void restoreButton_Click(object sender, EventArgs e) {
+            IntPtr hWnd = GetDesktopListViewHandle();
+            if (hWnd == IntPtr.Zero) {
+                MessageBox.Show("Unable to access Desktop", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (this.iconListView.CheckedItems.Count == 0) {
+                MessageBox.Show("You must select (check) the Icons you want to restore.", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            /** get current desktop icons */
+            List<MyIconInfo> icons = DIBForm.GetDesktopIcons();
+
+            /** get the info whether to use the icon grid! */
+            bool useGrid = false;
+            int gridHSpacing = 0;
+            int gridVSpacing = 0;
+
+//            LVM_GETEXTENDEDLISTVIEWSTYLE
+//            LVS_EX_SNAPTOGRID
+            // TODO: How?
+
+            /** check the selected icons and unselect those without restorable position (warn! deselect) */
+            int goodcount = 0;
+            int badcount = 0;
+            foreach (ListViewItem i in this.iconListView.CheckedItems) {
+                try {
+                    Point p = (Point)i.SubItems[2].Tag;
+                    goodcount++;
+                } catch {
+                    badcount++;
+                }
+            }
+            if (badcount > 0) {
+                if (goodcount == 0) {
+                    MessageBox.Show("None of the selected Icons has a restorable position.", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                } else {
+                    if (MessageBox.Show("Some of the selected Icons do not have a restorable position.\nDo you want to deselect these icons and continue restoring the positions of the remaining selection?",
+                        this.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
+                        foreach (ListViewItem i in this.iconListView.CheckedItems) {
+                            try {
+                                Point p = (Point)i.SubItems[2].Tag;
+                            } catch {
+                                i.Checked = false;
+                            }
+                        }
+
+                    } else {
+                        return;
+                    }
+                }
+            }
+
+            /** check that the targeted positions are visible one a monitor (warn! deselect) */
+
+            /** check if targeted positions are must be changed due to the grid option (warn! continue) */
+
+            /** check that none of the selected icons overlap (error! return) */
+
+            /** precheck: disable auto align (warn! change) */
+            UInt32 style = GetWindowLong(hWnd, GWL_STYLE);
+            if ((style & LVS_AUTOARRANGE) == LVS_AUTOARRANGE) {
+                if (MessageBox.Show("Problem: Desktop Icon Auto Arrange is activated. If you continue DIB will deactivate this option.\n" +
+                        "Do You want to deactivate Auto Arrange and continue?", this.Text,
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
+                    IntPtr parent = GetParent(hWnd);
+                    SendMessage(parent, WM_COMMAND, IDM_TOGGLEAUTOARRANGE, 0);
+                } else {
+                    return;
+                }
+            }
+
+            /** check if it is necessary to move a not selected icon (warn! continue) */
+
+
+
+            // TODO: Implement further
+        }
 
     }
 }

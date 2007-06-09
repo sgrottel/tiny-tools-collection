@@ -124,13 +124,13 @@ namespace Dib {
             // restoreButton
             // 
             this.restoreButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.restoreButton.Enabled = false;
             this.restoreButton.Location = new System.Drawing.Point(336, 333);
             this.restoreButton.Name = "restoreButton";
             this.restoreButton.Size = new System.Drawing.Size(75, 23);
             this.restoreButton.TabIndex = 5;
             this.restoreButton.Text = "Restore";
             this.restoreButton.UseVisualStyleBackColor = true;
+            this.restoreButton.Click += new System.EventHandler(this.restoreButton_Click);
             // 
             // storeButton
             // 

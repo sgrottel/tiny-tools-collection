@@ -18,6 +18,7 @@ namespace Dib {
         public DIBForm() {
             InitializeComponent();
             this.Icon = global::Dib.Properties.Resources.DibIcon;
+            // TODO: Find value of IDM_TOGGLEAUTOARRANGE
         }
 
         /** exit button click event handler */
@@ -77,7 +78,12 @@ namespace Dib {
         const uint LVM_GETITEMCOUNT = (LVM_FIRST + 4);
         const uint LVM_GETITEMW = (LVM_FIRST + 75);
         const uint LVM_GETITEMTEXTW = (LVM_FIRST + 115);
+        const uint LVM_SETITEMPOSITION = (LVM_FIRST + 15);
         const uint LVM_GETITEMPOSITION = (LVM_FIRST + 16);
+        const uint LVM_SETEXTENDEDLISTVIEWSTYLE = (LVM_FIRST + 54);
+        const uint LVM_GETEXTENDEDLISTVIEWSTYLE = (LVM_FIRST + 55);
+
+        const int LVS_EX_SNAPTOGRID = 0x00080000;
 
         /** GetWindowLong constants */
         const int GWL_STYLE = (-16);
@@ -91,7 +97,7 @@ namespace Dib {
 
         /** special command message id */
         // const int IDM_TOGGLEAUTOARRANGE = 0x7041;
-        const int IDM_TOGGLEAUTOARRANGE = 0x7051; /** TODO: I DON'T LIKE THIS !!!
+        const int IDM_TOGGLEAUTOARRANGE = 0x7051;
 
         /** ProcessAccessFlags */
         [Flags] enum ProcessAccessFlags : uint {
@@ -554,12 +560,10 @@ namespace Dib {
 
             /** get the info whether to use the icon grid! */
             bool useGrid = false;
-            int gridHSpacing = 0;
-            int gridVSpacing = 0;
-
-//            LVM_GETEXTENDEDLISTVIEWSTYLE
-//            LVS_EX_SNAPTOGRID
-            // TODO: How?
+            int extStyle = SendMessage(hWnd, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
+            if ((extStyle & LVS_EX_SNAPTOGRID) != 0) {
+                useGrid = true;
+            }
 
             /** check the selected icons and unselect those without restorable position (warn! deselect) */
             int goodcount = 0;
@@ -594,10 +598,13 @@ namespace Dib {
             }
 
             /** check that the targeted positions are visible one a monitor (warn! deselect) */
+            // TODO: Implement
 
             /** check if targeted positions are must be changed due to the grid option (warn! continue) */
+            // TODO: Implement
 
             /** check that none of the selected icons overlap (error! return) */
+            // TODO: Implement
 
             /** precheck: disable auto align (warn! change) */
             UInt32 style = GetWindowLong(hWnd, GWL_STYLE);
@@ -613,11 +620,85 @@ namespace Dib {
             }
 
             /** check if it is necessary to move a not selected icon (warn! continue) */
+            // TODO: Implement
 
+            /** deactivate raster */
+            if (useGrid) {
+                SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_SNAPTOGRID, 0);
+            }
 
+            /** move icons */
+            uint processID = 0;
+            uint threadID = GetWindowThreadProcessId(hWnd, out processID);
 
-            // TODO: Implement further
+            uint pointSize = 8;
+            uint titleLength = 1024;
+            uint titleRequestSize = titleLength + (uint)Marshal.SizeOf(typeof(LVITEM));
+
+            uint maxMemorySize = Math.Max(pointSize, titleRequestSize);
+
+            IntPtr process = OpenProcess(ProcessAccessFlags.VMOperation | ProcessAccessFlags.VMRead | ProcessAccessFlags.VMWrite, false, processID);
+            IntPtr sharedMem = VirtualAllocEx(process, IntPtr.Zero, maxMemorySize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+            int count = SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
+            if (sharedMem != IntPtr.Zero) {
+                MyIconInfo iconinfo;
+                foreach (ListViewItem i in this.iconListView.CheckedItems) {
+                    //POINT pt = new POINT();
+                    char[] title = new char[titleRequestSize];
+                    LVITEM lvItem = new LVITEM();
+                    IntPtr outSize;
+
+                    // fetch icons
+                    for (int idx = 0; idx < count; idx++) {
+                        String titleString = "Unknown Icon " + idx.ToString();
+                        iconinfo.title = titleString;
+                        iconinfo.position = Point.Empty;
+                        iconinfo.imageId = 0;
+
+                        // fetch icon title and image id
+                        for (int id = 0; id < titleRequestSize; id++) title[id] = '\0';
+                        lvItem.iItem = idx;
+                        lvItem.iSubItem = 0;
+                        lvItem.mask = ListViewItemFlags.LVIF_TEXT | ListViewItemFlags.LVIF_IMAGE;
+                        lvItem.cchTextMax = (int)titleLength;
+                        lvItem.pszText = (IntPtr)((int)sharedMem + Marshal.SizeOf(typeof(LVITEM)));
+
+                        WriteProcessMemory(process, sharedMem, title, titleRequestSize, out outSize);
+                        WriteProcessMemory(process, sharedMem, ref lvItem, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
+                        if (SendMessage(hWnd, LVM_GETITEMW, idx, sharedMem) != 0) {
+                            ReadProcessMemory(process, sharedMem, out lvItem, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
+                            iconinfo.imageId = lvItem.iImage;
+                            for (int id = 0; id < Marshal.SizeOf(typeof(LVITEM)); id++) title[id] = 'X';
+                            StringBuilder iconTitle = new StringBuilder((int)titleRequestSize);
+                            WriteProcessMemory(process, sharedMem, title, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
+                            ReadProcessMemory(process, sharedMem, iconTitle, (int)Math.Min(titleRequestSize, iconTitle.MaxCapacity), out outSize);
+                            titleString = iconTitle.ToString().Substring(Marshal.SizeOf(typeof(LVITEM)) / 2);
+                        }
+
+                        if (titleString.Equals(i.SubItems[0].Text, StringComparison.InvariantCultureIgnoreCase)) {
+                            /** found! */
+                            Point p = (Point)i.SubItems[2].Tag;
+                            IntPtr lparam = (IntPtr)((p.Y << 16) | (p.X & 0xffff));
+                            SendMessage(hWnd, LVM_SETITEMPOSITION, idx, lparam);
+                            break;
+                        }
+                    }
+                }
+
+                // free the foreign process memory 
+                VirtualFreeEx(process, sharedMem, maxMemorySize, MEM_RELEASE);
+                CloseHandle(process);
+            } else {
+                MessageBox.Show("Unable to allocate virtual memory.", "Desktop Icon Backup", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            /** reactivate icon grid */
+            if (useGrid) {
+                SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_SNAPTOGRID, LVS_EX_SNAPTOGRID);
+            }
+
+            /** refresh screen coordinates */
+            this.refreshListButton_Click(null, null);
         }
-
     }
 }

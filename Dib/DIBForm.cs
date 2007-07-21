@@ -18,7 +18,14 @@ namespace Dib {
         public DIBForm() {
             InitializeComponent();
             this.Icon = global::Dib.Properties.Resources.DibIcon;
+
             // TODO: Find value of IDM_TOGGLEAUTOARRANGE
+            IDM_TOGGLEAUTOARRANGE = 0;
+            try {
+                this.FindToggleAutoArrangeID();
+            } catch {
+                IDM_TOGGLEAUTOARRANGE = 0;
+            }
         }
 
         /** exit button click event handler */
@@ -96,8 +103,7 @@ namespace Dib {
         const uint WM_COMMAND = 0x0111;
 
         /** special command message id */
-        // const int IDM_TOGGLEAUTOARRANGE = 0x7041;
-        const int IDM_TOGGLEAUTOARRANGE = 0x7051;
+        static int IDM_TOGGLEAUTOARRANGE = 0;
 
         /** ProcessAccessFlags */
         [Flags] enum ProcessAccessFlags : uint {
@@ -235,9 +241,11 @@ namespace Dib {
 
                 UInt32 style = GetWindowLong(hWnd, GWL_STYLE);
                 if ((style & LVS_AUTOARRANGE) == LVS_AUTOARRANGE) {
-                    autoArrange = true;
-                    IntPtr parent = GetParent(hWnd);
-                    SendMessage(parent, WM_COMMAND, IDM_TOGGLEAUTOARRANGE, 0);
+                    if (IDM_TOGGLEAUTOARRANGE != 0) {
+                        autoArrange = true;
+                        IntPtr parent = GetParent(hWnd);
+                        SendMessage(parent, WM_COMMAND, IDM_TOGGLEAUTOARRANGE, 0);
+                    }
                 }
 
                 uint processID = 0;
@@ -598,33 +606,117 @@ namespace Dib {
             }
 
             /** check that the targeted positions are visible one a monitor (warn! deselect) */
-            // TODO: Implement
+            {
+                bool allVisible = true;
+                List<MyIconInfo> after = icons;
+                int i;
+                foreach (ListViewItem it in this.iconListView.CheckedItems) {
+                    for (i = 0; i < after.Count; i++) {
+                        if (after[i].title.Equals(it.SubItems[0].Text, StringComparison.InvariantCultureIgnoreCase)) {
+                            MyIconInfo tmp = after[i];
+                            tmp.position = (Point)it.SubItems[2].Tag;
+                            after[i] = tmp;
+                            break;
+                        }
+                    }
+                }
+
+                foreach (MyIconInfo ic in after) {
+                    bool vis = false;
+                    foreach (Screen s in Screen.AllScreens) {
+                        if (s.Bounds.Contains(ic.position)) {
+                            vis = true;
+                            break;
+                        }
+                    }
+                    if (!vis) allVisible = false;
+                }
+
+                if (!allVisible) {
+                    if (MessageBox.Show("Warning: The targeted position for at least one icon is not placed on the visible desktop.\nDo you want to continue?",
+                           this.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes) {
+                        return;
+                    }
+                }
+            }
 
             /** check if targeted positions are must be changed due to the grid option (warn! continue) */
-            // TODO: Implement
-
-            /** check that none of the selected icons overlap (error! return) */
-            // TODO: Implement
-
-            /** precheck: disable auto align (warn! change) */
-            UInt32 style = GetWindowLong(hWnd, GWL_STYLE);
-            if ((style & LVS_AUTOARRANGE) == LVS_AUTOARRANGE) {
-                if (MessageBox.Show("Problem: Desktop Icon Auto Arrange is activated. If you continue DIB will deactivate this option.\n" +
-                        "Do You want to deactivate Auto Arrange and continue?", this.Text,
-                        MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
-                    IntPtr parent = GetParent(hWnd);
-                    SendMessage(parent, WM_COMMAND, IDM_TOGGLEAUTOARRANGE, 0);
+            if (useGrid) {
+                DialogResult rs = MessageBox.Show("Warning: The snap to grid option is activated. This may be incompatible with the icon positions to be restored.\nDo you want to deactivate the snap to grid option?",
+                    this.Text, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button3);
+                if (rs == DialogResult.Yes) {
+                    SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_SNAPTOGRID, 0);
+                    rs = MessageBox.Show("Do you want to reactivate the grid option after the icon positions are restored? (This may alter the icon positions in an unwanted way.)",
+                        this.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                    if (rs != DialogResult.Yes) {
+                        useGrid = false;
+                    }
+                } else if (rs == DialogResult.No) {
+                    useGrid = false; // continue without action
                 } else {
                     return;
                 }
             }
 
-            /** check if it is necessary to move a not selected icon (warn! continue) */
-            // TODO: Implement
+            /** check that none of the icons overlap (error! return) */
+            {
+                List<MyIconInfo> after = icons;
+                bool overlapp = false;
 
-            /** deactivate raster */
-            if (useGrid) {
-                SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_SNAPTOGRID, 0);
+                int i, j, c;
+                float dx, dy, minD;
+                c = after.Count;
+                minD = (float)Math.Max(SystemInformation.IconSize.Width, SystemInformation.IconSize.Height);
+                minD *= minD * 2.0f;
+
+                foreach (ListViewItem it in this.iconListView.CheckedItems) {
+                    for (i = 0; i < c; i++) {
+                        if (after[i].title.Equals(it.SubItems[0].Text, StringComparison.InvariantCultureIgnoreCase)) {
+                            MyIconInfo tmp = after[i];
+                            tmp.position = (Point)it.SubItems[2].Tag;
+                            after[i] = tmp;
+                            break;
+                        }
+                    }
+                }
+
+                for (i = 0; i < c; i++) {
+                    for (j = i + 1; j < c; j++) {
+                        dx = (float)after[i].position.X - (float)after[j].position.X;
+                        dy = (float)after[i].position.Y - (float)after[j].position.Y;
+                        dx = dx * dx + dy * dy;
+                        if (dx < minD) {
+                            overlapp = true;
+                        }
+                    }
+                }
+
+                if (overlapp) {
+                    if (MessageBox.Show("Warning: If you continue some icons may overlap each other.\nDo you want to continue?",
+                           this.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes) {
+                        return;
+                    }
+                }
+
+            }
+
+            /** precheck: disable auto align (warn! change) */
+            UInt32 style = GetWindowLong(hWnd, GWL_STYLE);
+            if ((style & LVS_AUTOARRANGE) == LVS_AUTOARRANGE) {
+                if (IDM_TOGGLEAUTOARRANGE != 0) {
+                    if (MessageBox.Show("Problem: Desktop icon auto arrange is activated. If you continue DIB will deactivate this option.\n" +
+                            "Do you want to deactivate auto arrange and continue?", this.Text,
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
+                        IntPtr parent = GetParent(hWnd);
+                        SendMessage(parent, WM_COMMAND, IDM_TOGGLEAUTOARRANGE, 0);
+                    } else {
+                        return;
+                    }
+                } else {
+                    MessageBox.Show("Auto arrange is activated for the desktop icons. You must deactivate this option to proceed",
+                        this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
             }
 
             /** move icons */
@@ -699,6 +791,24 @@ namespace Dib {
 
             /** refresh screen coordinates */
             this.refreshListButton_Click(null, null);
+
+            /** inform the windows system about the changes */
+            // TODO: how?
+
+        }
+
+        /** finds the correct value for IDM_TOGGLEAUTOARRANGE */
+        private void FindToggleAutoArrangeID() {
+            IntPtr hWnd = GetDesktopListViewHandle();
+            if (hWnd == IntPtr.Zero) {
+                return;
+            }
+
+
+
+            //IDM_TOGGLEAUTOARRANGE = 0x7051; // Got per Spy++
+            //IDM_TOGGLEAUTOARRANGE = 0x7041; // Websites (US-Versions ???)
+            throw new Exception("The method or operation is not implemented.");
         }
     }
 }

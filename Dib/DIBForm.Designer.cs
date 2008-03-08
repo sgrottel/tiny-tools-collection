@@ -34,7 +34,7 @@ namespace Dib {
             this.restoreButton = new System.Windows.Forms.Button();
             this.storeButton = new System.Windows.Forms.Button();
             this.selectCheckBox = new System.Windows.Forms.CheckBox();
-            this.label1 = new System.Windows.Forms.Label();
+            this.labelCopyright = new System.Windows.Forms.Label();
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
@@ -156,16 +156,16 @@ namespace Dib {
             this.selectCheckBox.UseVisualStyleBackColor = true;
             this.selectCheckBox.Click += new System.EventHandler(this.selectCheckBox_Click);
             // 
-            // label1
+            // labelCopyright
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(343, 311);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(119, 13);
-            this.label1.TabIndex = 8;
-            this.label1.Text = "Copyright 2007 SGrottel";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.labelCopyright.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelCopyright.AutoSize = true;
+            this.labelCopyright.Location = new System.Drawing.Point(343, 311);
+            this.labelCopyright.Name = "labelCopyright";
+            this.labelCopyright.Size = new System.Drawing.Size(119, 13);
+            this.labelCopyright.TabIndex = 8;
+            this.labelCopyright.Text = "Copyright 2007 SGrottel";
+            this.labelCopyright.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // linkLabel1
             // 
@@ -198,7 +198,7 @@ namespace Dib {
             this.BackColor = System.Drawing.SystemColors.Window;
             this.ClientSize = new System.Drawing.Size(594, 368);
             this.Controls.Add(this.linkLabel1);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.labelCopyright);
             this.Controls.Add(this.selectCheckBox);
             this.Controls.Add(this.storeButton);
             this.Controls.Add(this.restoreButton);
@@ -230,7 +230,7 @@ namespace Dib {
         private System.Windows.Forms.Button restoreButton;
         private System.Windows.Forms.Button storeButton;
         private System.Windows.Forms.CheckBox selectCheckBox;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labelCopyright;
         private System.Windows.Forms.LinkLabel linkLabel1;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;

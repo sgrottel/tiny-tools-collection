@@ -9,78 +9,128 @@ using System.Runtime.InteropServices;
 
 namespace Dib {
 
-    /**
-     * The DIB main form
-     */
+    /// <summary>
+    /// The DIB main form
+    /// </summary>
     public partial class DIBForm : Form {
 
-        /** ctor */
+        /// <summary>
+        /// Ctor.
+        /// </summary>
         public DIBForm() {
             InitializeComponent();
             this.Icon = global::Dib.Properties.Resources.DibIcon;
 
-            // TODO: Find value of IDM_TOGGLEAUTOARRANGE
             IDM_TOGGLEAUTOARRANGE = 0;
             try {
                 this.FindToggleAutoArrangeID();
             } catch {
                 IDM_TOGGLEAUTOARRANGE = 0;
             }
+
+            int r = this.labelCopyright.Right;
+            System.Reflection.Assembly i = System.Reflection.Assembly.GetAssembly(this.GetType());
+            foreach (Object obj in i.GetCustomAttributes(
+                    typeof(System.Reflection.AssemblyCopyrightAttribute), true)) {
+                System.Reflection.AssemblyCopyrightAttribute copyright 
+                    = obj as System.Reflection.AssemblyCopyrightAttribute;
+                if (copyright != null) {
+                    this.labelCopyright.Text = "Version: " + Application.ProductVersion 
+                        + "  -  " + copyright.ToString();
+                }
+            }
+            this.labelCopyright.Left = r - this.labelCopyright.Width;
         }
 
-        /** exit button click event handler */
+        /// <summary>
+        /// exit button click event handler.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The arguments of the event</param>
         private void exitButton_Click(object sender, EventArgs e) {
             this.Close();
         }
 
-        /** my home website link has been clicked => open link! */
+        /// <summary>
+        /// my home website link has been clicked => open link!
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The arguments of the event</param>
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
             Label l = sender as Label;
             System.Diagnostics.Process.Start(l.Text);
         }
 
-        /** auto-refresh on first shown */
+        /// <summary>
+        /// auto-refresh on first shown
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The arguments of the event</param>
         private void DIBForm_Shown(object sender, EventArgs e) {
             this.refreshListButton_Click(sender, e);
         }
 
-        /** FindWindow Signatur 1/2 */
-        // For Windows Mobile, replace user32.dll with coredll.dll
+        #region Interop definitions
+
+        /// <summary>
+        /// FindWindow Signatur 1/2
+        /// </summary>
         [DllImport("user32.dll", SetLastError = true)]
         static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
-        /** FindWindow Signatur 2/2 */
+        /// <summary>
+        /// FindWindow Signatur 2/2
+        /// </summary>
         [DllImport("user32.dll", SetLastError = true)]
         static extern IntPtr FindWindow(string lpClassName, IntPtr lpWindowName);
 
-        /** FindWindowEx Signatur 1/2 */
+        /// <summary>
+        /// FindWindowEx Signatur 1/2
+        /// </summary>
         [DllImport("user32.dll", SetLastError = true)]
         static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string lpszWindow);
 
-        /** FindWindowEx Signatur 2/2 */
+        /// <summary>
+        /// FindWindowEx Signatur 2/2
+        /// </summary>
         [DllImport("user32.dll", SetLastError = true)]
         static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string className,  IntPtr windowTitle);
 
-        /** SendMessage Signature 1/2 */
+        /// <summary>
+        /// GetWindowLong Signatur
+        /// </summary>
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern UInt32 GetWindowLong(IntPtr hWnd, int nIndex);
+
+        /// <summary>
+        /// SendMessage Signatur 1/3
+        /// </summary>
         [DllImport("user32.dll")]
         static extern int SendMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
 
-        /** GetWindowLong */
-        [DllImport("user32.dll", SetLastError = true)]
-        static extern UInt32 GetWindowLong(IntPtr hWnd, int nIndex);
-        
-        /** SendMessage Signature 2/2 */
+        /// <summary>
+        /// SendMessage Signatur 2/3
+        /// </summary>
         [DllImport("user32.dll")]
         static extern int SendMessage(IntPtr hWnd, uint Msg, int wParam, IntPtr lParam);
+
+        /// <summary>
+        /// SendMessage Signatur 3/3
+        /// </summary>
         [DllImport("user32.dll")]
         static extern int SendMessage(IntPtr hWnd, uint Msg, int wParam, ref LVITEM lParam);
 
-        /** GetParent */
+        /// <summary>
+        /// GetParent Signatur
+        /// </summary>
         [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
         static extern IntPtr GetParent(IntPtr hWnd);
 
-        /** ListView Messages */
-        const uint LVM_FIRST = 0x1000; // ListView messages
+        #region ListView Messages
+        /// <summary>
+        /// ListView Messages
+        /// </summary>
+        const uint LVM_FIRST = 0x1000;
         const uint LVM_GETIMAGELIST = (LVM_FIRST + 2);
         const uint LVM_GETITEMCOUNT = (LVM_FIRST + 4);
         const uint LVM_GETITEMW = (LVM_FIRST + 75);
@@ -92,20 +142,32 @@ namespace Dib {
 
         const int LVS_EX_SNAPTOGRID = 0x00080000;
 
-        /** GetWindowLong constants */
+        #endregion
+
+        /// <summary>
+        /// GetWindowLong constants
+        /// </summary>
         const int GWL_STYLE = (-16);
         const int LVSIL_SMALL = 1;
 
-        /** ListView Style constants */
+        /// <summary>
+        /// ListView Style constants
+        /// </summary>
         const UInt32 LVS_AUTOARRANGE = 0x0100;
 
-        /** windows messages */
+        /// <summary>
+        /// windows messages
+        /// </summary>
         const uint WM_COMMAND = 0x0111;
 
-        /** special command message id */
+        /// <summary>
+        /// special command message id
+        /// </summary>
         static int IDM_TOGGLEAUTOARRANGE = 0;
 
-        /** ProcessAccessFlags */
+        /// <summary>
+        /// ProcessAccessFlags
+        /// </summary>
         [Flags] enum ProcessAccessFlags : uint {
             All = 0x001F0FFF,
             Terminate = 0x00000001,
@@ -119,23 +181,33 @@ namespace Dib {
             Synchronize = 0x00100000
         }
 
-        /** OpenProcess */
+        /// <summary>
+        /// OpenProcess Signatur
+        /// </summary>
         [DllImport("kernel32.dll")]
         static extern IntPtr OpenProcess(ProcessAccessFlags dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
 
-        /** GetWindowThreadProcessId */
+        /// <summary>
+        /// GetWindowThreadProcessId Signatur
+        /// </summary>
         [DllImport("user32.dll", SetLastError = true)]
         static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-        /** VirtualAllocEx */
+        /// <summary>
+        /// VirtualAllocEx Signatur
+        /// </summary>
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
 
-        /** VirtualFreeEx */
+        /// <summary>
+        /// VirtualFreeEx Signatur
+        /// </summary>
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress, uint dwSize, uint dwFreeType);
 
-        /** POINT */
+        /// <summary>
+        /// POINT
+        /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct POINT {
             public int X;
@@ -155,38 +227,72 @@ namespace Dib {
             }
         }
 
-        /** virtual memory constants */
+        /// <summary>
+        /// virtual memory constants
+        /// </summary>
         const uint MEM_COMMIT = 0x1000;
         const uint MEM_RESERVE = 0x2000;
         const uint MEM_RELEASE = 0x8000;
 
         const uint PAGE_READWRITE = 0x4;
 
-        /** CloseHandle */
+        /// <summary>
+        /// CloseHandle Signatur
+        /// </summary>
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool CloseHandle(IntPtr hHandle);
 
-        /** WriteProcessMemory */
+        /// <summary>
+        /// WriteProcessMemory Signatur 1/4
+        /// </summary>
         [DllImport("kernel32.dll")]
         static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesWritten);
+
+        /// <summary>
+        /// WriteProcessMemory Signatur 2/4
+        /// </summary>
         [DllImport("kernel32.dll")]
         static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, char[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesWritten);
+
+        /// <summary>
+        /// WriteProcessMemory Signatur 3/4
+        /// </summary>
         [DllImport("kernel32.dll")]
         static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref POINT lpBuffer, uint nSize, out IntPtr lpNumberOfBytesWritten);
+
+        /// <summary>
+        /// WriteProcessMemory Signatur 4/4
+        /// </summary>
         [DllImport("kernel32.dll")]
         static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, ref LVITEM lpBuffer, uint nSize, out IntPtr lpNumberOfBytesWritten);
 
-        /** ReadProcessMemory */
+        /// <summary>
+        /// ReadProcessMemory Signatur 1/4
+        /// </summary>
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out byte[] lpBuffer, uint nSize, out IntPtr lpNumberOfBytesRead);
+
+        /// <summary>
+        /// ReadProcessMemory Signatur 2/4
+        /// </summary>
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [MarshalAs(UnmanagedType.LPTStr)]StringBuilder buf, int nSize, out IntPtr lpNumberOfBytesRead);
+
+        /// <summary>
+        /// ReadProcessMemory Signatur 3/4
+        /// </summary>
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out POINT lpBuffer, uint nSize, out IntPtr lpNumberOfBytesRead);
+
+        /// <summary>
+        /// ReadProcessMemory Signatur 4/4
+        /// </summary>
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, out LVITEM lpBuffer, uint nSize, out IntPtr lpNumberOfBytesRead);
 
-        /** ListViewItemFlags */
+        /// <summary>
+        /// ListViewItemFlags
+        /// </summary>
         public enum ListViewItemFlags {
             LVIF_TEXT = 0x0001,
             LVIF_IMAGE = 0x0002,
@@ -196,7 +302,9 @@ namespace Dib {
             LVIF_NORECOMPUTE = 0x0800
         }
 
-        /** LVITEM */
+        /// <summary>
+        /// LVITEM
+        /// </summary>
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         struct LVITEM {
             public ListViewItemFlags mask;
@@ -211,14 +319,21 @@ namespace Dib {
             public int iIndent;
         }
 
-        /** MyIconInfo */
+        #endregion
+
+        /// <summary>
+        /// MyIconInfo
+        /// </summary>
         struct MyIconInfo {
             public String title;
             public Point position;
             public int imageId;
         }
 
-        /** GetDesktopListViewHandle */
+        /// <summary>
+        /// GetDesktopListViewHandle
+        /// </summary>
+        /// <returns>The handle of the desktop ListView</returns>
         static private IntPtr GetDesktopListViewHandle() {
             IntPtr hWnd = IntPtr.Zero;
             hWnd = FindWindow("Progman", IntPtr.Zero);
@@ -227,7 +342,10 @@ namespace Dib {
             return hWnd;
         }
 
-        /** GetDesktopIcons */
+        /// <summary>
+        /// GetDesktopIcons
+        /// </summary>
+        /// <returns>A list of all icons on the desktop</returns>
         static private List<MyIconInfo> GetDesktopIcons() {
             List<MyIconInfo> retval = new List<MyIconInfo>();
             MyIconInfo iconinfo;
@@ -325,7 +443,11 @@ namespace Dib {
             return retval;
         }
 
-        /** Refresh the iconListView */
+        /// <summary>
+        /// Refresh the iconListView
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The arguments of the event</param>
         private void refreshListButton_Click(object sender, EventArgs e) {
             this.iconListView.BeginUpdate();
 
@@ -366,10 +488,16 @@ namespace Dib {
             this.iconListView.EndUpdate();
         }
 
-        /** item check lock update flag */
+        /// <summary>
+        /// item check lock update flag
+        /// </summary>
         private bool lockItemCheckedUpdates = false;
 
-        /** an item has been checked. */
+        /// <summary>
+        /// an item has been checked.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The arguments of the event</param>
         private void iconListView_ItemChecked(object sender, ItemCheckedEventArgs e) {
             if (this.lockItemCheckedUpdates) return;
             this.lockItemCheckedUpdates = true;
@@ -393,7 +521,11 @@ namespace Dib {
             this.lockItemCheckedUpdates = false;
         }
 
-        /** selection checkbox clicked */
+        /// <summary>
+        /// selection checkbox clicked
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The arguments of the event</param>
         private void selectCheckBox_Click(object sender, EventArgs e) {
             if (this.lockItemCheckedUpdates) return;
             this.lockItemCheckedUpdates = true;
@@ -419,7 +551,11 @@ namespace Dib {
             this.lockItemCheckedUpdates = false;
         }
 
-        /** store button */
+        /// <summary>
+        /// store button
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The arguments of the event</param>
         private void storeButton_Click(object sender, EventArgs e) {
             foreach (ListViewItem item in this.iconListView.CheckedItems) {
                 try {
@@ -430,7 +566,11 @@ namespace Dib {
             }
         }
 
-        /** store the icon positions as xml file */
+        /// <summary>
+        /// store the icon positions as xml file
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The arguments of the event</param>
         private void saveButton_Click(object sender, EventArgs e) {
             this.saveFileDialog.FileName = this.openFileDialog.FileName;
             if (this.saveFileDialog.ShowDialog() == DialogResult.OK) {
@@ -451,7 +591,11 @@ namespace Dib {
             }
         }
 
-        /** load a desktop icon backup from xml file */
+        /// <summary>
+        /// load a desktop icon backup from xml file
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The arguments of the event</param>
         private void loadButton_Click(object sender, EventArgs e) {
             if (this.openFileDialog.ShowDialog() == DialogResult.OK) {
 
@@ -551,7 +695,11 @@ namespace Dib {
             }
         }
 
-        /** restore the positions of the selected icons */
+        /// <summary>
+        /// restore the positions of the selected icons
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The arguments of the event</param>
         private void restoreButton_Click(object sender, EventArgs e) {
             IntPtr hWnd = GetDesktopListViewHandle();
             if (hWnd == IntPtr.Zero) {
@@ -563,17 +711,17 @@ namespace Dib {
                 return;
             }
 
-            /** get current desktop icons */
+            // get current desktop icons
             List<MyIconInfo> icons = DIBForm.GetDesktopIcons();
 
-            /** get the info whether to use the icon grid! */
+            // get the info whether to use the icon grid!
             bool useGrid = false;
             int extStyle = SendMessage(hWnd, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
             if ((extStyle & LVS_EX_SNAPTOGRID) != 0) {
                 useGrid = true;
             }
 
-            /** check the selected icons and unselect those without restorable position (warn! deselect) */
+            // check the selected icons and unselect those without restorable position (warn! deselect)
             int goodcount = 0;
             int badcount = 0;
             foreach (ListViewItem i in this.iconListView.CheckedItems) {
@@ -605,7 +753,7 @@ namespace Dib {
                 }
             }
 
-            /** check that the targeted positions are visible one a monitor (warn! deselect) */
+            // check that the targeted positions are visible one a monitor (warn! deselect)
             {
                 bool allVisible = true;
                 List<MyIconInfo> after = icons;
@@ -640,7 +788,7 @@ namespace Dib {
                 }
             }
 
-            /** check if targeted positions are must be changed due to the grid option (warn! continue) */
+            // check if targeted positions are must be changed due to the grid option (warn! continue)
             if (useGrid) {
                 DialogResult rs = MessageBox.Show("Warning: The snap to grid option is activated. This may be incompatible with the icon positions to be restored.\nDo you want to deactivate the snap to grid option?",
                     this.Text, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button3);
@@ -658,7 +806,7 @@ namespace Dib {
                 }
             }
 
-            /** check that none of the icons overlap (error! return) */
+            // check that none of the icons overlap (error! return)
             {
                 List<MyIconInfo> after = icons;
                 bool overlapp = false;
@@ -700,7 +848,7 @@ namespace Dib {
 
             }
 
-            /** precheck: disable auto align (warn! change) */
+            // precheck: disable auto align (warn! change)
             UInt32 style = GetWindowLong(hWnd, GWL_STYLE);
             if ((style & LVS_AUTOARRANGE) == LVS_AUTOARRANGE) {
                 if (IDM_TOGGLEAUTOARRANGE != 0) {
@@ -719,7 +867,7 @@ namespace Dib {
                 }
             }
 
-            /** move icons */
+            // move icons
             uint processID = 0;
             uint threadID = GetWindowThreadProcessId(hWnd, out processID);
 
@@ -768,7 +916,7 @@ namespace Dib {
                         }
 
                         if (titleString.Equals(i.SubItems[0].Text, StringComparison.InvariantCultureIgnoreCase)) {
-                            /** found! */
+                            // found!
                             Point p = (Point)i.SubItems[2].Tag;
                             IntPtr lparam = (IntPtr)((p.Y << 16) | (p.X & 0xffff));
                             SendMessage(hWnd, LVM_SETITEMPOSITION, idx, lparam);
@@ -777,38 +925,50 @@ namespace Dib {
                     }
                 }
 
-                // free the foreign process memory 
+                // free the foreign process memory
                 VirtualFreeEx(process, sharedMem, maxMemorySize, MEM_RELEASE);
                 CloseHandle(process);
             } else {
                 MessageBox.Show("Unable to allocate virtual memory.", "Desktop Icon Backup", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
-            /** reactivate icon grid */
+            // reactivate icon grid
             if (useGrid) {
                 SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_SNAPTOGRID, LVS_EX_SNAPTOGRID);
             }
 
-            /** refresh screen coordinates */
+            // refresh screen coordinates
             this.refreshListButton_Click(null, null);
 
-            /** inform the windows system about the changes */
+            // inform the windows system about the changes
+            ChangeDisplaySettings(IntPtr.Zero, 0);
             // TODO: how?
 
         }
 
-        /** finds the correct value for IDM_TOGGLEAUTOARRANGE */
+        [DllImport("user32.dll")]
+        private static extern int ChangeDisplaySettings(IntPtr devMode, int flags);
+
+        /// <summary>
+        /// finds the correct value for IDM_TOGGLEAUTOARRANGE
+        /// </summary>
         private void FindToggleAutoArrangeID() {
-            IntPtr hWnd = GetDesktopListViewHandle();
-            if (hWnd == IntPtr.Zero) {
-                return;
+            // This is very unofficial!
+            // The value of 'IDM_TOGGLEAUTOARRANGE' seams to be OS-Version dependent
+            //  Win98:  7041
+            //  WinNT4: 7031
+            //  Else:   7051
+            if (System.Environment.OSVersion.Platform == PlatformID.Win32Windows) {
+                IDM_TOGGLEAUTOARRANGE = 0x7041;
+            } else if (System.Environment.OSVersion.Platform == PlatformID.Win32NT) {
+                if (System.Environment.OSVersion.Version.Major == 4) {
+                    IDM_TOGGLEAUTOARRANGE = 0x7031;
+                } else {
+                    IDM_TOGGLEAUTOARRANGE = 0x7051;
+                }
+            } else {
+                throw new Exception("Unsupported Operating System");
             }
-
-
-
-            //IDM_TOGGLEAUTOARRANGE = 0x7051; // Got per Spy++
-            //IDM_TOGGLEAUTOARRANGE = 0x7041; // Websites (US-Versions ???)
-            throw new Exception("The method or operation is not implemented.");
         }
     }
 }

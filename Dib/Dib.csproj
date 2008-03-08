@@ -83,4 +83,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <PostBuildEvent>ReplaceVistaIcon $(TargetPath) $(ProjectDir)\Resources\DibIconVista.ico</PostBuildEvent>
+  </PropertyGroup>
 </Project>

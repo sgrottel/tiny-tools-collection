@@ -19,7 +19,7 @@ namespace Dib {
         /// </summary>
         public DIBForm() {
             InitializeComponent();
-            this.Icon = global::Dib.Properties.Resources.DibIcon;
+            this.Icon = global::Dib.Properties.Resources.DibIconVista;
 
             IDM_TOGGLEAUTOARRANGE = 0;
             try {

@@ -34,9 +34,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 Contained Files:
-	Dib.csproj							The Microsoft Visual Studio 2005 C#
+	Dib.csproj							The Microsoft Visual Studio 2008 C#
 										project file
-	Dib.sln								The Microsoft Visual Studio 2005 C#
+	Dib.sln								The Microsoft Visual Studio 2008 C#
 										solution file
 	DIBForm.cs							The main form source code
 	DIBForm.Designer.cs					The main form gui designer generated
@@ -47,7 +47,7 @@ Contained Files:
 	Properties\AssemblyInfo.cs			Assembly information source code
 	Properties\Resources.Designer.cs	Designer generated resource file
 	Properties\Resources.resx			Main resource file
-	Properties\Settings.Designer.cd		Designer generated settings source code
+	Properties\Settings.Designer.cs		Designer generated settings source code
 	Properties\Settings.settings		Designer generated settings file
 	Resources\DibIcon.ico				The applications icon
 	Resources\DibIconVista.ico			The applications icon featureing Vista sizes.

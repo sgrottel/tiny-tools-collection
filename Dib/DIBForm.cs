@@ -643,9 +643,249 @@ namespace Dib {
                 if (icons == null) {
                     throw new Exception("Failed to load dibxml icon file");
                 }
+                IntPtr hWnd = FindDesktopListView();
+                if (hWnd == IntPtr.Zero) {
+                    throw new Exception(
+                        "Unable to find the desktops listview control");
+                }
+                IconCollection dskicons = this.GetDesktopIcons(hWnd);
 
-                // TODO: Implement
+                // remove all entries from icons which are not present in
+                // dskicons
+                for (int i = icons.Count - 1; i >= 0; i--) {
+                    bool found = false;
+                    foreach (MyIconInfo mii in dskicons) {
+                        if (mii.title.Equals(icons[i].title)) {
+                            found = true;
+                            dskicons.Remove(mii);
+                            break;
+                        }
+                    }
+                    if (found) continue;
+                    icons.RemoveAt(i);
+                }
+                if (dskicons.Count > 0) {
+                    if (MessageBox.Show("There are desktop icons for which "
+                        + "no position was stored. These icons will not be "
+                        + "moved and might overlap with other icons.\nDo you "
+                        + "want continue?", "Desktop Icon Backup",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
+                        MessageBoxDefaultButton.Button2)
+                            != DialogResult.Yes) {
+                        return;
+                    }
+                }
 
+                // get the info whether to use the icon grid!
+                bool useGrid = false;
+                int extStyle = SendMessage(hWnd, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
+                if ((extStyle & LVS_EX_SNAPTOGRID) != 0) {
+                    useGrid = true;
+                }
+
+                // check that the targeted positions are visible one a monitor (warn! deselect)
+                bool allVisible = true;
+                foreach (MyIconInfo mii in icons) {
+                    bool vis = false;
+                    foreach (Screen s in Screen.AllScreens) {
+                        if (s.Bounds.Contains(mii.x, mii.y)) {
+                            vis = true;
+                            break;
+                        }
+                    }
+                    if (!vis) {
+                        allVisible = false;
+                        break;
+                    }
+                }
+                if (!allVisible) {
+                    if (MessageBox.Show(
+                            "Warning: The position for at least one icon is "
+                            + "not placed on the visible desktop.\nDo you "
+                            + "want to continue?", "Desktop Icon Backup",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
+                            MessageBoxDefaultButton.Button2)
+                                != DialogResult.Yes) {
+                        return;
+                    }
+                }
+
+                // check if targeted positions are must be changed due to the grid option (warn! continue)
+                if (useGrid) {
+                    DialogResult rs = MessageBox.Show(
+                        "Warning: The snap to grid option is activated. This "
+                        + "may be incompatible with the icon positions to be "
+                        + "restored.\nDo you want to deactivate the snap to "
+                        + "grid option?", "Desktop Icon Backup",
+                        MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning,
+                        MessageBoxDefaultButton.Button3);
+                    if (rs == DialogResult.Yes) {
+                        SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE,
+                            LVS_EX_SNAPTOGRID, 0);
+                        rs = MessageBox.Show("Do you want to reactivate the "
+                            + "grid option after the icon positions are "
+                            + "restored? (This may alter the icon positions "
+                            + "in an unwanted way.)", "Desktop Icon Backup",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question,
+                            MessageBoxDefaultButton.Button2);
+                        if (rs != DialogResult.Yes) {
+                            useGrid = false;
+                        }
+                    } else if (rs == DialogResult.No) {
+                        useGrid = false; // continue without action
+                    } else {
+                        return;
+                    }
+                }
+
+                // check that none of the icons overlap (error! return)
+                int c = icons.Count;
+                float dx, dy, minD;
+                minD = (float)Math.Max(SystemInformation.IconSize.Width,
+                    SystemInformation.IconSize.Height);
+                minD *= minD * 2.0f;
+                bool overlapp = false;
+                for (int i = 0; i < c; i++) {
+                    for (int j = i + 1; j < c; j++) {
+                        dx = (float)icons[i].x - (float)icons[j].x;
+                        dy = (float)icons[i].y - (float)icons[j].y;
+                        dx = dx * dx + dy * dy;
+                        if (dx < minD) {
+                            overlapp = true;
+                        }
+                    }
+                }
+                if (overlapp) {
+                    if (MessageBox.Show("Warning: If you continue some icons "
+                            + "may overlap each other.\nDo you want to "
+                            + "continue?", "Desktop Icon Backup",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
+                            MessageBoxDefaultButton.Button2)
+                                != DialogResult.Yes) {
+                        return;
+                    }
+                }
+
+                // precheck: disable auto align (warn! change)
+                UInt32 style = GetWindowLong(hWnd, GWL_STYLE);
+                if ((style & LVS_AUTOARRANGE) == LVS_AUTOARRANGE) {
+                    if (IDM_TOGGLEAUTOARRANGE != 0) {
+                        if (MessageBox.Show("Problem: Desktop icon auto "
+                                + "arrange is activated. If you continue DIB "
+                                + "will deactivate this option.\nDo you want "
+                                + "to deactivate auto arrange and continue?",
+                                "Desktop Icon Backup",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Warning,
+                                MessageBoxDefaultButton.Button2)
+                                    == DialogResult.Yes) {
+                            IntPtr parent = GetParent(hWnd);
+                            SendMessage(parent, WM_COMMAND,
+                                IDM_TOGGLEAUTOARRANGE, 0);
+                        } else {
+                            return;
+                        }
+                    } else {
+                        MessageBox.Show("Auto arrange is activated for the "
+                            + "desktop icons. You must deactivate this "
+                            + "option.", "Desktop Icon Backup",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        // Okey, I admit: I am just to lazy to implement retry
+                        return;
+                    }
+                }
+
+                // move icons
+                // Again, we need memory inside the desktop explorers process
+                uint processID = 0;
+                uint threadID = GetWindowThreadProcessId(hWnd, out processID);
+                uint pointSize = 8;
+                uint titleLength = 1024;
+                uint titleRequestSize = titleLength
+                    + (uint)Marshal.SizeOf(typeof(LVITEM));
+                uint maxMemorySize = Math.Max(pointSize, titleRequestSize);
+                IntPtr process = OpenProcess(ProcessAccessFlags.VMOperation
+                    | ProcessAccessFlags.VMRead | ProcessAccessFlags.VMWrite,
+                    false, processID);
+                IntPtr sharedMem = VirtualAllocEx(process, IntPtr.Zero,
+                    maxMemorySize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+                int count = SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
+                if (sharedMem == IntPtr.Zero) {
+                    throw new Exception("Unable to allocate virtual memory.");
+                }
+                // now search the icon index for each icon, based on its title
+                MyIconInfo iconinfo = new MyIconInfo();
+                foreach (MyIconInfo icon in icons) {
+                    //POINT pt = new POINT();
+                    char[] title = new char[titleRequestSize];
+                    LVITEM lvItem = new LVITEM();
+                    IntPtr outSize;
+                    // fetch icons
+                    for (int idx = 0; idx < count; idx++) {
+                        iconinfo.title = String.Empty;
+                        iconinfo.x = iconinfo.y = 0;
+
+                        // fetch icon title and image id
+                        for (int id = 0; id < titleRequestSize; id++) {
+                            title[id] = '\0';
+                        }
+                        lvItem.iItem = idx;
+                        lvItem.iSubItem = 0;
+                        lvItem.mask = ListViewItemFlags.LVIF_TEXT;
+                        lvItem.cchTextMax = (int)titleLength;
+                        lvItem.pszText = (IntPtr)((int)sharedMem
+                            + Marshal.SizeOf(typeof(LVITEM)));
+
+                        WriteProcessMemory(process, sharedMem, title,
+                            titleRequestSize, out outSize);
+                        WriteProcessMemory(process, sharedMem, ref lvItem,
+                            (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
+                        if (SendMessage(hWnd, LVM_GETITEMW, idx, sharedMem)
+                                != 0) {
+                            ReadProcessMemory(process, sharedMem, out lvItem,
+                                (uint)Marshal.SizeOf(typeof(LVITEM)),
+                                out outSize);
+                            for (int id = 0;
+                                    id < Marshal.SizeOf(typeof(LVITEM));
+                                    id++) {
+                                title[id] = 'X';
+                            }
+                            StringBuilder iconTitle
+                                = new StringBuilder((int)titleRequestSize);
+                            WriteProcessMemory(process, sharedMem, title,
+                                (uint)Marshal.SizeOf(typeof(LVITEM)),
+                                out outSize);
+                            ReadProcessMemory(process, sharedMem, iconTitle,
+                                (int)Math.Min(titleRequestSize,
+                                iconTitle.MaxCapacity), out outSize);
+                            iconinfo.title = iconTitle.ToString().Substring(
+                                Marshal.SizeOf(typeof(LVITEM)) / 2);
+                        }
+
+                        if (iconinfo.title.Equals(icon.title,
+                                StringComparison.CurrentCultureIgnoreCase)) {
+                            // found! => move!
+                            IntPtr lparam = (IntPtr)((icon.y << 16)
+                                | (icon.x & 0xffff));
+                            SendMessage(hWnd, LVM_SETITEMPOSITION, idx,
+                                lparam);
+                            break;
+                        }
+                    }
+                }
+
+                // free the foreign process memory
+                VirtualFreeEx(process, sharedMem, maxMemorySize, MEM_RELEASE);
+                CloseHandle(process);
+
+                // reactivate icon grid
+                if (useGrid) {
+                    SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE,
+                        LVS_EX_SNAPTOGRID, LVS_EX_SNAPTOGRID);
+                }
+
+                // inform the windows system about the changes
+                ChangeDisplaySettings(IntPtr.Zero, 0);
 
                 this.filename = this.openFileDialog.FileName;
 
@@ -657,257 +897,6 @@ namespace Dib {
         }
 
         #endregion
-
-        ///// <summary>
-        ///// restore the positions of the selected icons
-        ///// </summary>
-        ///// <param name="sender">The sender of the event</param>
-        ///// <param name="e">The arguments of the event</param>
-        //private void restoreButton_Click(object sender, EventArgs e) {
-        //    IntPtr hWnd = GetDesktopListViewHandle();
-        //    if (hWnd == IntPtr.Zero) {
-        //        MessageBox.Show("Unable to access Desktop", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        return;
-        //    }
-        //    if (this.iconListView.CheckedItems.Count == 0) {
-        //        MessageBox.Show("You must select (check) the Icons you want to restore.", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        return;
-        //    }
-
-        //    // get current desktop icons
-        //    List<MyIconInfo> icons = DIBForm.GetDesktopIcons();
-
-        //    // get the info whether to use the icon grid!
-        //    bool useGrid = false;
-        //    int extStyle = SendMessage(hWnd, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
-        //    if ((extStyle & LVS_EX_SNAPTOGRID) != 0) {
-        //        useGrid = true;
-        //    }
-
-        //    // check the selected icons and unselect those without restorable position (warn! deselect)
-        //    int goodcount = 0;
-        //    int badcount = 0;
-        //    foreach (ListViewItem i in this.iconListView.CheckedItems) {
-        //        try {
-        //            Point p = (Point)i.SubItems[2].Tag;
-        //            goodcount++;
-        //        } catch {
-        //            badcount++;
-        //        }
-        //    }
-        //    if (badcount > 0) {
-        //        if (goodcount == 0) {
-        //            MessageBox.Show("None of the selected Icons has a restorable position.", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //            return;
-        //        } else {
-        //            if (MessageBox.Show("Some of the selected Icons do not have a restorable position.\nDo you want to deselect these icons and continue restoring the positions of the remaining selection?",
-        //                this.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
-        //                foreach (ListViewItem i in this.iconListView.CheckedItems) {
-        //                    try {
-        //                        Point p = (Point)i.SubItems[2].Tag;
-        //                    } catch {
-        //                        i.Checked = false;
-        //                    }
-        //                }
-
-        //            } else {
-        //                return;
-        //            }
-        //        }
-        //    }
-
-        //    // check that the targeted positions are visible one a monitor (warn! deselect)
-        //    {
-        //        bool allVisible = true;
-        //        List<MyIconInfo> after = icons;
-        //        int i;
-        //        foreach (ListViewItem it in this.iconListView.CheckedItems) {
-        //            for (i = 0; i < after.Count; i++) {
-        //                if (after[i].title.Equals(it.SubItems[0].Text, StringComparison.InvariantCultureIgnoreCase)) {
-        //                    MyIconInfo tmp = after[i];
-        //                    tmp.position = (Point)it.SubItems[2].Tag;
-        //                    after[i] = tmp;
-        //                    break;
-        //                }
-        //            }
-        //        }
-
-        //        foreach (MyIconInfo ic in after) {
-        //            bool vis = false;
-        //            foreach (Screen s in Screen.AllScreens) {
-        //                if (s.Bounds.Contains(ic.position)) {
-        //                    vis = true;
-        //                    break;
-        //                }
-        //            }
-        //            if (!vis) allVisible = false;
-        //        }
-
-        //        if (!allVisible) {
-        //            if (MessageBox.Show("Warning: The targeted position for at least one icon is not placed on the visible desktop.\nDo you want to continue?",
-        //                   this.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes) {
-        //                return;
-        //            }
-        //        }
-        //    }
-
-        //    // check if targeted positions are must be changed due to the grid option (warn! continue)
-        //    if (useGrid) {
-        //        DialogResult rs = MessageBox.Show("Warning: The snap to grid option is activated. This may be incompatible with the icon positions to be restored.\nDo you want to deactivate the snap to grid option?",
-        //            this.Text, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button3);
-        //        if (rs == DialogResult.Yes) {
-        //            SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_SNAPTOGRID, 0);
-        //            rs = MessageBox.Show("Do you want to reactivate the grid option after the icon positions are restored? (This may alter the icon positions in an unwanted way.)",
-        //                this.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
-        //            if (rs != DialogResult.Yes) {
-        //                useGrid = false;
-        //            }
-        //        } else if (rs == DialogResult.No) {
-        //            useGrid = false; // continue without action
-        //        } else {
-        //            return;
-        //        }
-        //    }
-
-        //    // check that none of the icons overlap (error! return)
-        //    {
-        //        List<MyIconInfo> after = icons;
-        //        bool overlapp = false;
-
-        //        int i, j, c;
-        //        float dx, dy, minD;
-        //        c = after.Count;
-        //        minD = (float)Math.Max(SystemInformation.IconSize.Width, SystemInformation.IconSize.Height);
-        //        minD *= minD * 2.0f;
-
-        //        foreach (ListViewItem it in this.iconListView.CheckedItems) {
-        //            for (i = 0; i < c; i++) {
-        //                if (after[i].title.Equals(it.SubItems[0].Text, StringComparison.InvariantCultureIgnoreCase)) {
-        //                    MyIconInfo tmp = after[i];
-        //                    tmp.position = (Point)it.SubItems[2].Tag;
-        //                    after[i] = tmp;
-        //                    break;
-        //                }
-        //            }
-        //        }
-
-        //        for (i = 0; i < c; i++) {
-        //            for (j = i + 1; j < c; j++) {
-        //                dx = (float)after[i].position.X - (float)after[j].position.X;
-        //                dy = (float)after[i].position.Y - (float)after[j].position.Y;
-        //                dx = dx * dx + dy * dy;
-        //                if (dx < minD) {
-        //                    overlapp = true;
-        //                }
-        //            }
-        //        }
-
-        //        if (overlapp) {
-        //            if (MessageBox.Show("Warning: If you continue some icons may overlap each other.\nDo you want to continue?",
-        //                   this.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes) {
-        //                return;
-        //            }
-        //        }
-
-        //    }
-
-        //    // precheck: disable auto align (warn! change)
-        //    UInt32 style = GetWindowLong(hWnd, GWL_STYLE);
-        //    if ((style & LVS_AUTOARRANGE) == LVS_AUTOARRANGE) {
-        //        if (IDM_TOGGLEAUTOARRANGE != 0) {
-        //            if (MessageBox.Show("Problem: Desktop icon auto arrange is activated. If you continue DIB will deactivate this option.\n" +
-        //                    "Do you want to deactivate auto arrange and continue?", this.Text,
-        //                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
-        //                IntPtr parent = GetParent(hWnd);
-        //                SendMessage(parent, WM_COMMAND, IDM_TOGGLEAUTOARRANGE, 0);
-        //            } else {
-        //                return;
-        //            }
-        //        } else {
-        //            MessageBox.Show("Auto arrange is activated for the desktop icons. You must deactivate this option to proceed",
-        //                this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //            return;
-        //        }
-        //    }
-
-        //    // move icons
-        //    uint processID = 0;
-        //    uint threadID = GetWindowThreadProcessId(hWnd, out processID);
-
-        //    uint pointSize = 8;
-        //    uint titleLength = 1024;
-        //    uint titleRequestSize = titleLength + (uint)Marshal.SizeOf(typeof(LVITEM));
-
-        //    uint maxMemorySize = Math.Max(pointSize, titleRequestSize);
-
-        //    IntPtr process = OpenProcess(ProcessAccessFlags.VMOperation | ProcessAccessFlags.VMRead | ProcessAccessFlags.VMWrite, false, processID);
-        //    IntPtr sharedMem = VirtualAllocEx(process, IntPtr.Zero, maxMemorySize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-        //    int count = SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
-        //    if (sharedMem != IntPtr.Zero) {
-        //        MyIconInfo iconinfo;
-        //        foreach (ListViewItem i in this.iconListView.CheckedItems) {
-        //            //POINT pt = new POINT();
-        //            char[] title = new char[titleRequestSize];
-        //            LVITEM lvItem = new LVITEM();
-        //            IntPtr outSize;
-
-        //            // fetch icons
-        //            for (int idx = 0; idx < count; idx++) {
-        //                String titleString = "Unknown Icon " + idx.ToString();
-        //                iconinfo.title = titleString;
-        //                iconinfo.position = Point.Empty;
-        //                iconinfo.imageId = 0;
-
-        //                // fetch icon title and image id
-        //                for (int id = 0; id < titleRequestSize; id++) title[id] = '\0';
-        //                lvItem.iItem = idx;
-        //                lvItem.iSubItem = 0;
-        //                lvItem.mask = ListViewItemFlags.LVIF_TEXT | ListViewItemFlags.LVIF_IMAGE;
-        //                lvItem.cchTextMax = (int)titleLength;
-        //                lvItem.pszText = (IntPtr)((int)sharedMem + Marshal.SizeOf(typeof(LVITEM)));
-
-        //                WriteProcessMemory(process, sharedMem, title, titleRequestSize, out outSize);
-        //                WriteProcessMemory(process, sharedMem, ref lvItem, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
-        //                if (SendMessage(hWnd, LVM_GETITEMW, idx, sharedMem) != 0) {
-        //                    ReadProcessMemory(process, sharedMem, out lvItem, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
-        //                    iconinfo.imageId = lvItem.iImage;
-        //                    for (int id = 0; id < Marshal.SizeOf(typeof(LVITEM)); id++) title[id] = 'X';
-        //                    StringBuilder iconTitle = new StringBuilder((int)titleRequestSize);
-        //                    WriteProcessMemory(process, sharedMem, title, (uint)Marshal.SizeOf(typeof(LVITEM)), out outSize);
-        //                    ReadProcessMemory(process, sharedMem, iconTitle, (int)Math.Min(titleRequestSize, iconTitle.MaxCapacity), out outSize);
-        //                    titleString = iconTitle.ToString().Substring(Marshal.SizeOf(typeof(LVITEM)) / 2);
-        //                }
-
-        //                if (titleString.Equals(i.SubItems[0].Text, StringComparison.InvariantCultureIgnoreCase)) {
-        //                    // found!
-        //                    Point p = (Point)i.SubItems[2].Tag;
-        //                    IntPtr lparam = (IntPtr)((p.Y << 16) | (p.X & 0xffff));
-        //                    SendMessage(hWnd, LVM_SETITEMPOSITION, idx, lparam);
-        //                    break;
-        //                }
-        //            }
-        //        }
-
-        //        // free the foreign process memory
-        //        VirtualFreeEx(process, sharedMem, maxMemorySize, MEM_RELEASE);
-        //        CloseHandle(process);
-        //    } else {
-        //        MessageBox.Show("Unable to allocate virtual memory.", "Desktop Icon Backup", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //    }
-
-        //    // reactivate icon grid
-        //    if (useGrid) {
-        //        SendMessage(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_SNAPTOGRID, LVS_EX_SNAPTOGRID);
-        //    }
-
-        //    // refresh screen coordinates
-        //    this.refreshListButton_Click(null, null);
-
-        //    // inform the windows system about the changes
-        //    ChangeDisplaySettings(IntPtr.Zero, 0);
-        //    // TODO: how?
-
-        //}
 
     }
 }

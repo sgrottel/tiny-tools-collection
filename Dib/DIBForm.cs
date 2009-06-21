@@ -541,7 +541,7 @@ namespace Dib {
         /// </summary>
         /// <param name="sender">The sender of the event</param>
         /// <param name="e">The arguments of the event</param>
-        private void DIBForm_FormClosing(object sender,
+        public void DIBForm_FormClosing(object sender,
                 FormClosingEventArgs e) {
             try {
                 Microsoft.Win32.Registry.SetValue(
@@ -577,7 +577,7 @@ namespace Dib {
         /// </summary>
         /// <param name="sender">The sender of the event</param>
         /// <param name="e">The arguments of the event</param>
-        private void saveButton_Click(object sender, EventArgs e) {
+        public void saveButton_Click(object sender, EventArgs e) {
             try {
                 this.saveFileDialog.FileName = this.filename;
                 this.saveFileDialog.InitialDirectory
@@ -587,7 +587,14 @@ namespace Dib {
             if (this.saveFileDialog.ShowDialog() != DialogResult.OK) {
                 return;
             }
+        }
 
+        /// <summary>
+        /// Save all the desktop icons to a file
+        /// </summary>
+        /// <param name="filename">The filename to save to</param>
+        /// <param name="quiet">The quiet flag</param>
+        public void saveToFile(string filename, bool quiet) {
             try {
 
                 IntPtr hWnd = FindDesktopListView();
@@ -599,19 +606,20 @@ namespace Dib {
 
                 XmlWriterSettings settings = new XmlWriterSettings();
                 settings.Indent = true;
-                using (XmlWriter writer = XmlWriter.Create(
-                        this.saveFileDialog.FileName, settings)) {
+                using (XmlWriter writer = XmlWriter.Create(filename,
+                        settings)) {
                     XmlSerializer xser
                         = new XmlSerializer(typeof(IconCollection));
                     xser.Serialize(writer, icons);
                 }
 
-                this.filename = this.saveFileDialog.FileName;
-
+                this.filename = filename;
             } catch (Exception ex) {
-                MessageBox.Show("Failed: " + ex.ToString(),
-                    "Desktop Icon Backup", MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                if (!quiet) {
+                    MessageBox.Show("Failed: " + ex.ToString(),
+                        "Desktop Icon Backup", MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
             }
         }
 
@@ -620,7 +628,7 @@ namespace Dib {
         /// </summary>
         /// <param name="sender">The sender of the event</param>
         /// <param name="e">The arguments of the event</param>
-        private void loadButton_Click(object sender, EventArgs e) {
+        public void loadButton_Click(object sender, EventArgs e) {
             try {
                 this.openFileDialog.FileName = this.filename;
                 this.openFileDialog.InitialDirectory
@@ -630,12 +638,19 @@ namespace Dib {
             if (this.openFileDialog.ShowDialog() != DialogResult.OK) {
                 return;
             }
+            this.loadFromFile(this.openFileDialog.FileName, false);
+        }
 
+        /// <summary>
+        /// Restores the desktop icon positions from an xml file
+        /// </summary>
+        /// <param name="filename">The filename to load from</param>
+        /// <param name="quiet">The quiet flag</param>
+        public void loadFromFile(string filename, bool quiet) {
             try {
 
                 IconCollection icons = null;
-                using (XmlReader reader = XmlReader.Create(
-                        this.openFileDialog.FileName)) {
+                using (XmlReader reader = XmlReader.Create(filename)) {
                     XmlSerializer xser
                         = new XmlSerializer(typeof(IconCollection));
                     icons = (IconCollection)xser.Deserialize(reader);
@@ -665,6 +680,7 @@ namespace Dib {
                     icons.RemoveAt(i);
                 }
                 if (dskicons.Count > 0) {
+                    if (quiet) return;
                     if (MessageBox.Show("There are desktop icons for which "
                         + "no position was stored. These icons will not be "
                         + "moved and might overlap with other icons.\nDo you "
@@ -699,6 +715,7 @@ namespace Dib {
                     }
                 }
                 if (!allVisible) {
+                    if (quiet) return;
                     if (MessageBox.Show(
                             "Warning: The position for at least one icon is "
                             + "not placed on the visible desktop.\nDo you "
@@ -712,6 +729,7 @@ namespace Dib {
 
                 // check if targeted positions are must be changed due to the grid option (warn! continue)
                 if (useGrid) {
+                    if (quiet) return;
                     DialogResult rs = MessageBox.Show(
                         "Warning: The snap to grid option is activated. This "
                         + "may be incompatible with the icon positions to be "
@@ -756,6 +774,7 @@ namespace Dib {
                     }
                 }
                 if (overlapp) {
+                    if (quiet) return;
                     if (MessageBox.Show("Warning: If you continue some icons "
                             + "may overlap each other.\nDo you want to "
                             + "continue?", "Desktop Icon Backup",
@@ -770,6 +789,7 @@ namespace Dib {
                 UInt32 style = GetWindowLong(hWnd, GWL_STYLE);
                 if ((style & LVS_AUTOARRANGE) == LVS_AUTOARRANGE) {
                     if (IDM_TOGGLEAUTOARRANGE != 0) {
+                        if (quiet) return;
                         if (MessageBox.Show("Problem: Desktop icon auto "
                                 + "arrange is activated. If you continue DIB "
                                 + "will deactivate this option.\nDo you want "
@@ -786,6 +806,7 @@ namespace Dib {
                             return;
                         }
                     } else {
+                        if (quiet) return;
                         MessageBox.Show("Auto arrange is activated for the "
                             + "desktop icons. You must deactivate this "
                             + "option.", "Desktop Icon Backup",
@@ -890,9 +911,11 @@ namespace Dib {
                 this.filename = this.openFileDialog.FileName;
 
             } catch (Exception ex) {
-                MessageBox.Show("Failed: " + ex.ToString(),
-                    "Desktop Icon Backup", MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                if (!quiet) {
+                    MessageBox.Show("Failed: " + ex.ToString(),
+                        "Desktop Icon Backup", MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
             }
         }
 

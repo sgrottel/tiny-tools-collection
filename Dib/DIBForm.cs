@@ -587,6 +587,7 @@ namespace Dib {
             if (this.saveFileDialog.ShowDialog() != DialogResult.OK) {
                 return;
             }
+            this.saveToFile(this.saveFileDialog.FileName, false);
         }
 
         /// <summary>

@@ -13,11 +13,8 @@ namespace UrlCollector {
 
         public Form1() {
             InitializeComponent();
-            this.checkBox1_CheckedChanged(null, null);
-        }
-
-        private void checkBox1_CheckedChanged(object sender, EventArgs e) {
-            this.timer1.Enabled = this.checkBox1.Checked;
+            this.toolStripButton1_CheckedChanged(null, null);
+            this.Icon = Properties.Resources.UrlCollector;
         }
 
         private void timer1_Tick(object sender, EventArgs e) {
@@ -31,6 +28,32 @@ namespace UrlCollector {
                     Clipboard.Clear();
                 }
             }
+        }
+
+        private void toolStripSplitButton1_ButtonClick(object sender, EventArgs e) {
+            ToolStripSplitButton tssb = sender as ToolStripSplitButton;
+            if (tssb == null) return;
+            tssb.ShowDropDown();
+        }
+
+        private void toolStripButton2_Click(object sender, EventArgs e) {
+            this.richTextBox1.Clear();
+        }
+
+        private void toolStripButton1_CheckedChanged(object sender, EventArgs e) {
+            this.timer1.Enabled = this.toolStripButton1.Checked;
+        }
+
+        private void toolStripButton5_Click(object sender, EventArgs e) {
+            this.richTextBox1.Paste(DataFormats.Text);
+        }
+
+        private void copySelectionToolStripMenuItem_Click(object sender, EventArgs e) {
+            this.richTextBox1.Copy();
+        }
+
+        private void cutSelectionToolStripMenuItem_Click(object sender, EventArgs e) {
+            this.richTextBox1.Cut();
         }
 
     }

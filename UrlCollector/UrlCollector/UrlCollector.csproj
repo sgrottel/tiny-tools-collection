@@ -83,6 +83,36 @@
   <ItemGroup>
     <None Include="Resources\UrlCollector.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Copy.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cut.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\OpenFolder.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Paste.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Refresh_Cancel.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Save.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\NoAction.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\gear1.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\gear2.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\gear3.bmp" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

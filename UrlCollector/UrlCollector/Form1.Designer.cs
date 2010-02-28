@@ -39,14 +39,18 @@
             this.copyAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copySelectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyCurrentLineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.copyAllAsOneLineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSplitButton2 = new System.Windows.Forms.ToolStripSplitButton();
             this.cutAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cutSelectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cutCurrentLineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
+            this.cutAllAsSingleLineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -150,7 +154,9 @@
             this.toolStripSplitButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.copyAllToolStripMenuItem,
             this.copySelectionToolStripMenuItem,
-            this.copyCurrentLineToolStripMenuItem});
+            this.copyCurrentLineToolStripMenuItem,
+            this.toolStripMenuItem1,
+            this.copyAllAsOneLineToolStripMenuItem});
             this.toolStripSplitButton1.Image = global::UrlCollector.Properties.Resources.Copy;
             this.toolStripSplitButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripSplitButton1.Name = "toolStripSplitButton1";
@@ -161,30 +167,44 @@
             // copyAllToolStripMenuItem
             // 
             this.copyAllToolStripMenuItem.Name = "copyAllToolStripMenuItem";
-            this.copyAllToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+            this.copyAllToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.copyAllToolStripMenuItem.Text = "Copy All";
             this.copyAllToolStripMenuItem.Click += new System.EventHandler(this.copyAllToolStripMenuItem_Click);
             // 
             // copySelectionToolStripMenuItem
             // 
             this.copySelectionToolStripMenuItem.Name = "copySelectionToolStripMenuItem";
-            this.copySelectionToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+            this.copySelectionToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.copySelectionToolStripMenuItem.Text = "Copy Selection";
             this.copySelectionToolStripMenuItem.Click += new System.EventHandler(this.copySelectionToolStripMenuItem_Click);
             // 
             // copyCurrentLineToolStripMenuItem
             // 
             this.copyCurrentLineToolStripMenuItem.Name = "copyCurrentLineToolStripMenuItem";
-            this.copyCurrentLineToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+            this.copyCurrentLineToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
             this.copyCurrentLineToolStripMenuItem.Text = "Copy Current Line";
             this.copyCurrentLineToolStripMenuItem.Click += new System.EventHandler(this.copyCurrentLineToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(175, 6);
+            // 
+            // copyAllAsOneLineToolStripMenuItem
+            // 
+            this.copyAllAsOneLineToolStripMenuItem.Name = "copyAllAsOneLineToolStripMenuItem";
+            this.copyAllAsOneLineToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.copyAllAsOneLineToolStripMenuItem.Text = "Copy All as one line";
+            this.copyAllAsOneLineToolStripMenuItem.Click += new System.EventHandler(this.copyAllAsOneLineToolStripMenuItem_Click);
             // 
             // toolStripSplitButton2
             // 
             this.toolStripSplitButton2.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.cutAllToolStripMenuItem,
             this.cutSelectionToolStripMenuItem,
-            this.cutCurrentLineToolStripMenuItem});
+            this.cutCurrentLineToolStripMenuItem,
+            this.toolStripMenuItem2,
+            this.cutAllAsSingleLineToolStripMenuItem});
             this.toolStripSplitButton2.Image = global::UrlCollector.Properties.Resources.Cut;
             this.toolStripSplitButton2.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripSplitButton2.Name = "toolStripSplitButton2";
@@ -195,21 +215,21 @@
             // cutAllToolStripMenuItem
             // 
             this.cutAllToolStripMenuItem.Name = "cutAllToolStripMenuItem";
-            this.cutAllToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.cutAllToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.cutAllToolStripMenuItem.Text = "Cut All";
             this.cutAllToolStripMenuItem.Click += new System.EventHandler(this.cutAllToolStripMenuItem_Click);
             // 
             // cutSelectionToolStripMenuItem
             // 
             this.cutSelectionToolStripMenuItem.Name = "cutSelectionToolStripMenuItem";
-            this.cutSelectionToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.cutSelectionToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.cutSelectionToolStripMenuItem.Text = "Cut Selection";
             this.cutSelectionToolStripMenuItem.Click += new System.EventHandler(this.cutSelectionToolStripMenuItem_Click);
             // 
             // cutCurrentLineToolStripMenuItem
             // 
             this.cutCurrentLineToolStripMenuItem.Name = "cutCurrentLineToolStripMenuItem";
-            this.cutCurrentLineToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.cutCurrentLineToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
             this.cutCurrentLineToolStripMenuItem.Text = "Cut Current Line";
             this.cutCurrentLineToolStripMenuItem.Click += new System.EventHandler(this.cutCurrentLineToolStripMenuItem_Click);
             // 
@@ -221,6 +241,13 @@
             this.toolStripButton5.Size = new System.Drawing.Size(55, 22);
             this.toolStripButton5.Text = "Paste";
             this.toolStripButton5.Click += new System.EventHandler(this.toolStripButton5_Click);
+            // 
+            // toolStripLabel2
+            // 
+            this.toolStripLabel2.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripLabel2.Name = "toolStripLabel2";
+            this.toolStripLabel2.Size = new System.Drawing.Size(79, 22);
+            this.toolStripLabel2.Text = "© by SGrottel";
             // 
             // openFileDialog1
             // 
@@ -234,12 +261,17 @@
             this.saveFileDialog1.Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*";
             this.saveFileDialog1.Title = "Save ...";
             // 
-            // toolStripLabel2
+            // toolStripMenuItem2
             // 
-            this.toolStripLabel2.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.toolStripLabel2.Name = "toolStripLabel2";
-            this.toolStripLabel2.Size = new System.Drawing.Size(79, 22);
-            this.toolStripLabel2.Text = "© by SGrottel";
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(166, 6);
+            // 
+            // cutAllAsSingleLineToolStripMenuItem
+            // 
+            this.cutAllAsSingleLineToolStripMenuItem.Name = "cutAllAsSingleLineToolStripMenuItem";
+            this.cutAllAsSingleLineToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
+            this.cutAllAsSingleLineToolStripMenuItem.Text = "Cut All as one line";
+            this.cutAllAsSingleLineToolStripMenuItem.Click += new System.EventHandler(this.cutAllAsSingleLineToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -283,6 +315,10 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.ToolStripLabel toolStripLabel2;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem copyAllAsOneLineToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
+        private System.Windows.Forms.ToolStripMenuItem cutAllAsSingleLineToolStripMenuItem;
     }
 }
 

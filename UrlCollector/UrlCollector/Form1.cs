@@ -189,6 +189,19 @@ namespace UrlCollector {
             this.dirty = true;
         }
 
+        private void copyAllAsOneLineToolStripMenuItem_Click(object sender, EventArgs e) {
+            this.toolStripButton1.Checked = false;
+            Clipboard.SetText(String.Join(" ", this.richTextBox1.Text.Split(new char[] { '\n' })));
+            this.dirty = true;
+        }
+
+        private void cutAllAsSingleLineToolStripMenuItem_Click(object sender, EventArgs e) {
+            this.toolStripButton1.Checked = false;
+            Clipboard.SetText(String.Join(" ", this.richTextBox1.Text.Split(new char[] { '\n' })));
+            this.richTextBox1.Text = string.Empty;
+            this.dirty = true;
+        }
+
     }
 
 }

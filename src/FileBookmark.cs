@@ -242,7 +242,42 @@ namespace FileBookmark {
                 throw new Exception("Rights elevation required");
             }
 
-            // TODO: Implement
+            RegistryKey file = null;
+            RegistryKey shell = null;
+
+            file = Registry.ClassesRoot.OpenSubKey("*", true);
+            try {
+                shell = file.OpenSubKey("shell");
+                if (shell.GetSubKeyNames().Contains("bookmark")) {
+                    shell.DeleteSubKeyTree("bookmark");
+                }
+
+            } finally {
+                if (shell != null) { shell.Close(); shell = null; }
+                if (file != null) { file.Close(); file = null; }
+            }
+
+            file = Registry.ClassesRoot.OpenSubKey(Extension, true);
+            try {
+                if (file != null) {
+                    file.Close();
+                    file = null;
+                    Registry.ClassesRoot.DeleteSubKeyTree(Extension);
+                }
+            } finally {
+                if (file != null) { file.Close(); file = null; }
+            }
+
+            file = Registry.ClassesRoot.OpenSubKey(Application.ProductName + Extension, true);
+            try {
+                if (file != null) {
+                    file.Close();
+                    file = null;
+                    Registry.ClassesRoot.DeleteSubKeyTree(Application.ProductName + Extension);
+                }
+            } finally {
+                if (file != null) { file.Close(); file = null; }
+            }
 
         }
 

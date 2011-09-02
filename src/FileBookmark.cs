@@ -229,6 +229,9 @@ namespace FileBookmark {
                 if (file != null) { file.Close(); file = null; }
             }
 
+            MessageBox.Show("File Bookmark application (" + Application.ExecutablePath + ") sucessfully registered",
+                Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+
         }
 
         /// <summary>

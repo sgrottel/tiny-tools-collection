@@ -1,9 +1,9 @@
 
 	Desktop Icon Backup
-	08.03.2008
+	06.10.2011
 
 
-Copyright (c) SGrottel 2007 - 2008
+Copyright (c) SGrottel 2007 - 2011
 (http://www.sgrottel.de; http://www.sgrottel.com)
 
 All rights reserved.
@@ -34,21 +34,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 Contained Files:
-	Dib.csproj							The Microsoft Visual Studio 2008 C#
-										project file
-	Dib.sln								The Microsoft Visual Studio 2008 C#
-										solution file
-	DIBForm.cs							The main form source code
-	DIBForm.Designer.cs					The main form gui designer generated
-										source code
-	DIBForm.resx						The main form resource file
-	Program.cs							The entry point source code
-	Readme.txt							This file
-	Properties\AssemblyInfo.cs			Assembly information source code
+	Dib.csproj				The Microsoft Visual Studio 2008 C#
+							project file
+	Dib.sln					The Microsoft Visual Studio 2008 C#
+							solution file
+	DIBForm.cs				The main form source code
+	DIBForm.Designer.cs			The main form gui designer generated
+							source code
+	DIBForm.resx				The main form resource file
+	Program.cs				The entry point source code
+	Readme.txt				This file
+	Properties\AssemblyInfo.cs		Assembly information source code
 	Properties\Resources.Designer.cs	Designer generated resource file
-	Properties\Resources.resx			Main resource file
+	Properties\Resources.resx		Main resource file
 	Properties\Settings.Designer.cs		Designer generated settings source code
 	Properties\Settings.settings		Designer generated settings file
-	Resources\DibIcon.ico				The applications icon
-	Resources\DibIconVista.ico			The applications icon featureing Vista sizes.
-	bin\Release\Dib.exe					Compiled Any-CPU release binary.
+	Resources\DibIcon.ico			The applications icon
+	Resources\DibIconVista.ico		The applications icon featureing Vista sizes.
+	bin\Release\Dib.exe			Compiled Any-CPU release binary.

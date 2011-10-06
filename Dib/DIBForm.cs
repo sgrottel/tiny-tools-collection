@@ -75,6 +75,72 @@ namespace Dib {
         [DllImport("user32.dll")]
         private static extern int ChangeDisplaySettings(IntPtr devMode, int flags);
 
+        /// <summary>
+        /// An application-defined callback function used with the
+        /// EnumChildWindows function.
+        /// </summary>
+        /// <param name="hWnd">A handle to a child window of the parent window
+        /// specified in EnumChildWindows.</param>
+        /// <param name="lParam">The application-defined value given in
+        /// EnumChildWindows.</param>
+        /// <returns>To continue enumeration, the callback function must
+        /// return TRUE; to stop enumeration, it must return FALSE.</returns>
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        /// <summary>
+        /// Enumerates the child windows that belong to the specified parent
+        /// window by passing the handle to each child window, in turn, to an
+        /// application-defined callback function.
+        /// </summary>
+        /// <param name="hwndParent">A handle to the parent window whose child
+        /// windows are to be enumerated.</param>
+        /// <param name="lpEnumFunc">A pointer to an application-defined
+        /// callback function.</param>
+        /// <param name="lParam">An application-defined value to be passed to
+        /// the callback function.</param>
+        /// <returns>The return value is not used.</returns>
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool EnumChildWindows(IntPtr hwndParent,
+            EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+        /// <summary>
+        /// Retrieves the name of the class to which the specified window
+        /// belongs.
+        /// </summary>
+        /// <param name="hWnd">A handle to the window and, indirectly, the
+        /// class to which the window belongs.</param>
+        /// <param name="lpClassName">The class name string.</param>
+        /// <param name="nMaxCount">The length of the lpClassName buffer, in
+        /// characters.</param>
+        /// <returns>If the function succeeds, the return value is the number
+        /// of characters copied to the buffer, not including the terminating
+        /// null character.</returns>
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+        /// <summary>
+        /// Retrieves a string that specifies the window type.
+        /// </summary>
+        /// <remarks>
+        /// RealGetWindowClass versus GetClassName 
+        /// The difference between RealGetWindowClass and GetClassName is that
+        /// RealGetWindowClass retrieves the name of the base class for
+        /// superclassed windows.
+        /// See http://blogs.msdn.com/b/oldnewthing/archive/2010/12/31/10110524.aspx
+        /// for more information.
+        /// </remarks>
+        /// <param name="hwnd">A handle to the window whose type will be
+        /// retrieved.</param>
+        /// <param name="pszType">A pointer to a string that receives the
+        /// window type.</param>
+        /// <param name="cchType">The length, in characters, of the buffer
+        /// pointed to by the pszType parameter.</param>
+        /// <returns>If the function succeeds, the return value is the number
+        /// of characters copied to the specified buffer.</returns>
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        static extern uint RealGetWindowClass(IntPtr hwnd, [Out] StringBuilder pszType, uint cchType);
+
         #region ListView Messages
         /// <summary>
         /// ListView Messages
@@ -378,21 +444,103 @@ namespace Dib {
         }
 
         /// <summary>
+        /// Collect all windows returned by EnumChildWindows
+        /// </summary>
+        /// <param name="hWnd">The new window</param>
+        /// <param name="lParam">The list of windows</param>
+        /// <returns>true</returns>
+        private static bool collectChildren(IntPtr hWnd, IntPtr lParam) {
+            GCHandle hList = GCHandle.FromIntPtr(lParam);
+            List<IntPtr> list = hList.Target as List<IntPtr>;
+            if (list != null) {
+                list.Add(hWnd);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Collects all child windows of the specified window
+        /// </summary>
+        /// <param name="hWnd">The window</param>
+        /// <param name="wnds">The list to receive all child windows.
+        /// The list will be cleared before the operation starts</param>
+        private static void getChildWindows(IntPtr hWnd,
+                ref List<IntPtr> wnds) {
+            wnds.Clear();
+            GCHandle listHandle = GCHandle.Alloc(wnds);
+            try {
+                EnumWindowsProc callback = new EnumWindowsProc(collectChildren);
+                EnumChildWindows(hWnd, callback, GCHandle.ToIntPtr(listHandle));
+            } finally {
+                if (listHandle.IsAllocated) {
+                    listHandle.Free();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Answer the (real) class for a window
+        /// </summary>
+        /// <param name="hWnd">The window</param>
+        /// <returns>The class name</returns>
+        public static string getWindowClass(IntPtr hWnd) {
+            StringBuilder pszType = new StringBuilder();
+            pszType.Capacity = 255;
+            RealGetWindowClass(hWnd, pszType, (UInt32)pszType.Capacity);
+            return pszType.ToString();
+        }
+
+        /// <summary>
         /// Finds the handle to the list view control of the desktop
         /// </summary>
         /// <returns>The list view control of the desktop</returns>
         private IntPtr FindDesktopListView() {
             // In fact, I don't known what I am doing here! I used 'Spy++' and
             // this is what I found to be the best way of getting the handle.
-            IntPtr hWnd = FindWindow("Progman", IntPtr.Zero);
-            if (hWnd != IntPtr.Zero) {
-                hWnd = FindWindowEx(hWnd, IntPtr.Zero, "SHELLDLL_DefView",
-                    IntPtr.Zero);
+            IntPtr hWnd = IntPtr.Zero;
+
+            List<IntPtr> windows1 = new List<IntPtr>();
+            List<IntPtr> windows2 = new List<IntPtr>();
+            List<IntPtr> childWindows = new List<IntPtr>();
+
+            // Strange Win7-Behaviour: Desktop is not child of Progman/Shell?
+            // Why? What? WTF?
+            // Therefore:
+            //  Find "SysListView32", which is child of "SHELLDLL_DefView",
+            //  which is either child of "WorkerW"-Top-Level-Window
+            //  or child of "Progman"-Top-Level-Window
+
+            getChildWindows(IntPtr.Zero, ref windows1);
+            foreach (IntPtr w in windows1) {
+                string cn = getWindowClass(w);
+                if (cn.Equals("Progman")) windows2.Add(w); // this is what 'GetShellWindow' would have returned
+                if (cn.Equals("WorkerW")) windows2.Add(w);
             }
-            if (hWnd != IntPtr.Zero) {
-                hWnd = FindWindowEx(hWnd, IntPtr.Zero, "SysListView32",
-                    IntPtr.Zero);
+
+            windows1.Clear();
+            foreach (IntPtr w in windows2) {
+                getChildWindows(w, ref childWindows);
+                foreach (IntPtr c in childWindows) {
+                    string cn = getWindowClass(c);
+                    if (cn.Equals("SHELLDLL_DefView")) windows1.Add(c);
+                }
             }
+
+            windows2.Clear();
+            foreach (IntPtr w in windows1) {
+                getChildWindows(w, ref childWindows);
+                foreach (IntPtr c in childWindows) {
+                    string cn = getWindowClass(c);
+                    if (cn.Equals("SysListView32")) windows2.Add(c);
+                }
+            }
+
+            if (windows2.Count >= 1) {
+                hWnd = windows2[0];
+            }
+
             return hWnd;
         }
 
@@ -541,7 +689,7 @@ namespace Dib {
         /// </summary>
         /// <param name="sender">The sender of the event</param>
         /// <param name="e">The arguments of the event</param>
-        public void DIBForm_FormClosing(object sender,
+        private void DIBForm_FormClosing(object sender,
                 FormClosingEventArgs e) {
             try {
                 Microsoft.Win32.Registry.SetValue(
@@ -577,7 +725,7 @@ namespace Dib {
         /// </summary>
         /// <param name="sender">The sender of the event</param>
         /// <param name="e">The arguments of the event</param>
-        public void saveButton_Click(object sender, EventArgs e) {
+        private void saveButton_Click(object sender, EventArgs e) {
             try {
                 this.saveFileDialog.FileName = this.filename;
                 this.saveFileDialog.InitialDirectory
@@ -587,15 +735,7 @@ namespace Dib {
             if (this.saveFileDialog.ShowDialog() != DialogResult.OK) {
                 return;
             }
-            this.saveToFile(this.saveFileDialog.FileName, false);
-        }
 
-        /// <summary>
-        /// Save all the desktop icons to a file
-        /// </summary>
-        /// <param name="filename">The filename to save to</param>
-        /// <param name="quiet">The quiet flag</param>
-        public void saveToFile(string filename, bool quiet) {
             try {
 
                 IntPtr hWnd = FindDesktopListView();
@@ -607,20 +747,19 @@ namespace Dib {
 
                 XmlWriterSettings settings = new XmlWriterSettings();
                 settings.Indent = true;
-                using (XmlWriter writer = XmlWriter.Create(filename,
-                        settings)) {
+                using (XmlWriter writer = XmlWriter.Create(
+                        this.saveFileDialog.FileName, settings)) {
                     XmlSerializer xser
                         = new XmlSerializer(typeof(IconCollection));
                     xser.Serialize(writer, icons);
                 }
 
-                this.filename = filename;
+                this.filename = this.saveFileDialog.FileName;
+
             } catch (Exception ex) {
-                if (!quiet) {
-                    MessageBox.Show("Failed: " + ex.ToString(),
-                        "Desktop Icon Backup", MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
-                }
+                MessageBox.Show("Failed: " + ex.ToString(),
+                    "Desktop Icon Backup", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
@@ -629,7 +768,7 @@ namespace Dib {
         /// </summary>
         /// <param name="sender">The sender of the event</param>
         /// <param name="e">The arguments of the event</param>
-        public void loadButton_Click(object sender, EventArgs e) {
+        private void loadButton_Click(object sender, EventArgs e) {
             try {
                 this.openFileDialog.FileName = this.filename;
                 this.openFileDialog.InitialDirectory
@@ -639,19 +778,12 @@ namespace Dib {
             if (this.openFileDialog.ShowDialog() != DialogResult.OK) {
                 return;
             }
-            this.loadFromFile(this.openFileDialog.FileName, false);
-        }
 
-        /// <summary>
-        /// Restores the desktop icon positions from an xml file
-        /// </summary>
-        /// <param name="filename">The filename to load from</param>
-        /// <param name="quiet">The quiet flag</param>
-        public void loadFromFile(string filename, bool quiet) {
             try {
 
                 IconCollection icons = null;
-                using (XmlReader reader = XmlReader.Create(filename)) {
+                using (XmlReader reader = XmlReader.Create(
+                        this.openFileDialog.FileName)) {
                     XmlSerializer xser
                         = new XmlSerializer(typeof(IconCollection));
                     icons = (IconCollection)xser.Deserialize(reader);
@@ -681,7 +813,6 @@ namespace Dib {
                     icons.RemoveAt(i);
                 }
                 if (dskicons.Count > 0) {
-                    if (quiet) return;
                     if (MessageBox.Show("There are desktop icons for which "
                         + "no position was stored. These icons will not be "
                         + "moved and might overlap with other icons.\nDo you "
@@ -716,7 +847,6 @@ namespace Dib {
                     }
                 }
                 if (!allVisible) {
-                    if (quiet) return;
                     if (MessageBox.Show(
                             "Warning: The position for at least one icon is "
                             + "not placed on the visible desktop.\nDo you "
@@ -730,7 +860,6 @@ namespace Dib {
 
                 // check if targeted positions are must be changed due to the grid option (warn! continue)
                 if (useGrid) {
-                    if (quiet) return;
                     DialogResult rs = MessageBox.Show(
                         "Warning: The snap to grid option is activated. This "
                         + "may be incompatible with the icon positions to be "
@@ -775,7 +904,6 @@ namespace Dib {
                     }
                 }
                 if (overlapp) {
-                    if (quiet) return;
                     if (MessageBox.Show("Warning: If you continue some icons "
                             + "may overlap each other.\nDo you want to "
                             + "continue?", "Desktop Icon Backup",
@@ -790,7 +918,6 @@ namespace Dib {
                 UInt32 style = GetWindowLong(hWnd, GWL_STYLE);
                 if ((style & LVS_AUTOARRANGE) == LVS_AUTOARRANGE) {
                     if (IDM_TOGGLEAUTOARRANGE != 0) {
-                        if (quiet) return;
                         if (MessageBox.Show("Problem: Desktop icon auto "
                                 + "arrange is activated. If you continue DIB "
                                 + "will deactivate this option.\nDo you want "
@@ -807,7 +934,6 @@ namespace Dib {
                             return;
                         }
                     } else {
-                        if (quiet) return;
                         MessageBox.Show("Auto arrange is activated for the "
                             + "desktop icons. You must deactivate this "
                             + "option.", "Desktop Icon Backup",
@@ -912,11 +1038,9 @@ namespace Dib {
                 this.filename = this.openFileDialog.FileName;
 
             } catch (Exception ex) {
-                if (!quiet) {
-                    MessageBox.Show("Failed: " + ex.ToString(),
-                        "Desktop Icon Backup", MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
-                }
+                MessageBox.Show("Failed: " + ex.ToString(),
+                    "Desktop Icon Backup", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 

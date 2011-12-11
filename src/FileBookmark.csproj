@@ -59,6 +59,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bookmark.cs" />
     <Compile Include="Elevation.cs" />
     <Compile Include="FileBookmark.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

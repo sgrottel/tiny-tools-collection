@@ -88,75 +88,37 @@ namespace FileBookmark {
                     return suc ? 0 : -3;
                 }
 
-                /*string op;
-                int state = 0;
-                foreach (string arg in args) {
-                    op = "Unknown Operation";
+                int rv = 0;
+
+                foreach (string file in addBM) {
                     try {
+                        if (!Bookmark.Mark(file)) rv = -1;
+                    } catch {
+                    }
+                }
 
-                        if (state == 1) {
-                            // mark this file
-                            op = "Bookmarking file (" + arg + ")";
-                            addBookmark(arg);
+                foreach (string file in removeBM) {
+                    try {
+                        if (!Bookmark.Unmark(file)) rv = -4;
+                    } catch {
+                    }
+                }
 
-                            state = 0;
-                        } else if (state == 2) {
-                            // remove this bookmark file
-                            op = "Removing Bookmark (" + arg + ")";
-                            removeBookmark(arg);
-
-                            state = 0;
-                        } else if (state == 3) {
-                            // remove this bookmark file
-                            op = "Open Bookmark (" + arg + ")";
-                            openBookmark(arg);
-
-                            state = 0;
-                        } else {
-                            if (arg.Equals("-REG", StringComparison.CurrentCultureIgnoreCase)) {
-                                op = "Registering Application";
-                                // registers this application
-                                if (Elevation.IsElevated()) {
-                                    registerApplication();
-
-                                } else {
-                                    Elevation.RestartElevated("-REG");
-                                }
-
-                            }
-                            if (arg.Equals("-UNREG", StringComparison.CurrentCultureIgnoreCase)) {
-                                op = "Unregistering Application";
-                                // un-registers this application
-                                if (Elevation.IsElevated()) {
-                                    unregisterApplication();
-
-                                } else {
-                                    Elevation.RestartElevated("-UNREG");
-                                }
-
-                            }
-                            if (arg.Equals("-MARK", StringComparison.CurrentCultureIgnoreCase)) {
-                                // mark the file
-                                state = 1;
-                            }
-                            if (arg.Equals("-REMOVE", StringComparison.CurrentCultureIgnoreCase)) {
-                                // removes the file
-                                state = 2;
-                            }
-                            if (arg.Equals("-OPEN", StringComparison.CurrentCultureIgnoreCase)) {
-                                // removes the file
-                                state = 3;
+                foreach (string file in openBM) {
+                    try {
+                        if (System.IO.File.Exists(file)) {
+                            if (!Bookmark.Open(file)) rv = -5;
+                        } else if (System.IO.Path.GetExtension(file).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
+                            string f = file.Substring(0, file.Length - Program.Extension.Length);
+                            if (System.IO.File.Exists(f)) {
+                                if (!Bookmark.Open(f)) rv = -6;
                             }
                         }
-
-                    } catch (Exception ex) {
-                        DialogResult result = MessageBox.Show(op + " failed: " + ex.ToString(),
-                            Application.ProductName, MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
-                        if (result == DialogResult.Cancel) break;
+                    } catch {
                     }
-                }*/
+                }
 
-                return -1;
+                return rv;
 
             } else {
 
@@ -216,78 +178,6 @@ namespace FileBookmark {
                 }
             }
             return suc;
-        }
-
-        private static void openBookmark(string arg) {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Bookmarks a file moving another bookmark within this directory
-        /// </summary>
-        /// <param name="filename">The file of the bookmark file</param>
-        private static void addBookmark(string filename) {
-            if (!File.Exists(filename)) {
-                throw new Exception("File does not seem to exist");
-            }
-            if (Path.GetExtension(filename).Equals(Extension, StringComparison.CurrentCultureIgnoreCase)) {
-                throw new Exception("You cannot bookmark a bookmark file");
-            }
-            if (File.Exists(filename + Extension)) {
-                // file already bookmarked
-                return;
-            }
-
-            string path = Path.GetDirectoryName(filename);
-            string[] files = Directory.GetFiles(path, "*" + Extension);
-
-            if ((files == null) || (files.Length == 0)) {
-                // no other bookmarks, so we are good!
-            } else {
-                // remove other bookmarks ... next program version may be able to handle multiple bookmarks with a directory
-                foreach (string file in files) {
-                    try {
-                        removeBookmark(file);
-                    } catch (Exception ex) {
-                        DialogResult result = MessageBox.Show("Removing Bookmark (" + file + ") failed: " + ex.ToString(),
-                            Application.ProductName, MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
-                        if (result == DialogResult.Cancel) return;
-                    }
-                }
-            }
-
-            File.Create(filename + Extension).Close();
-
-        }
-
-        /// <summary>
-        /// Removes a bookmark file
-        /// </summary>
-        /// <param name="filename">The file of the bookmark file</param>
-        private static void removeBookmark(string filename) {
-            if (!File.Exists(filename)) {
-                throw new Exception("File does not seem to exist");
-            }
-
-            if (!Path.GetExtension(filename).Equals(Extension, StringComparison.CurrentCultureIgnoreCase)) {
-                if (File.Exists(filename + Extension)) {
-                    removeBookmark(filename + Extension); // remove bookmark
-                    return;
-                } else {
-                    throw new Exception("File does not seem to be bookmarked");
-                }
-            }
-
-            FileInfo info = new FileInfo(filename);
-            if (info == null) {
-                throw new Exception("Unable to access file");
-            }
-            if (info.Length != 0) {
-                throw new Exception("File is not empty. Does not seem to be a valid File Bookmark");
-            }
-
-            File.Delete(filename);
-
         }
 
     }

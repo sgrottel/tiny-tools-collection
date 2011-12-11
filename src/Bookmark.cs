@@ -18,8 +18,42 @@ namespace FileBookmark {
         /// <param name="path">The path to the file</param>
         /// <returns>True on success</returns>
         internal static bool Mark(string path) {
-            MessageBox.Show(string.Format("Mark \"{0}\" not implemented", path));
-            throw new NotImplementedException();
+            if (!System.IO.File.Exists(path)) {
+                throw new Exception("File does not seem to exist");
+            }
+
+            if (System.IO.Path.GetExtension(path).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
+                throw new Exception("You cannot bookmark a bookmark file");
+            }
+            if (System.IO.File.Exists(path + Program.Extension)) {
+                // file already bookmarked
+                return true;
+            }
+
+            // first remove previous bookmark
+            string dir = System.IO.Path.GetDirectoryName(path);
+            string[] files = System.IO.Directory.GetFiles(dir, "*" + Program.Extension);
+
+            if ((files == null) || (files.Length == 0)) {
+                // no other bookmarks, so we are good!
+            } else {
+                // remove other bookmarks ... next program version may be able to handle multiple bookmarks with a directory
+                foreach (string file in files) {
+                    try {
+                        Unmark(file);
+                    } catch (Exception ex) {
+                        DialogResult result = MessageBox.Show(string.Format(Strings.BookmarkRemoveError, file, ex.ToString()),
+                            Application.ProductName, MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                        if (result == DialogResult.Cancel) {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            System.IO.File.Create(path + Program.Extension).Close();
+
+            return System.IO.File.Exists(path + Program.Extension);
         }
 
         /// <summary>
@@ -28,6 +62,9 @@ namespace FileBookmark {
         /// <param name="path">The path to the file</param>
         /// <returns>True on success</returns>
         internal static bool Unmark(string path) {
+            if (!System.IO.File.Exists(path)) {
+                return true; // nothing there to delete
+            }
 
             if (!System.IO.Path.GetExtension(path).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
                 if (System.IO.File.Exists(path + Program.Extension)) {
@@ -75,45 +112,6 @@ namespace FileBookmark {
             return false;
         }
 
-/*
-        /// <summary>
-        /// Bookmarks a file moving another bookmark within this directory
-        /// </summary>
-        /// <param name="filename">The file of the bookmark file</param>
-        private static void addBookmark(string filename) {
-            if (!File.Exists(filename)) {
-                throw new Exception("File does not seem to exist");
-            }
-            if (Path.GetExtension(filename).Equals(Extension, StringComparison.CurrentCultureIgnoreCase)) {
-                throw new Exception("You cannot bookmark a bookmark file");
-            }
-            if (File.Exists(filename + Extension)) {
-                // file already bookmarked
-                return;
-            }
-
-            string path = Path.GetDirectoryName(filename);
-            string[] files = Directory.GetFiles(path, "*" + Extension);
-
-            if ((files == null) || (files.Length == 0)) {
-                // no other bookmarks, so we are good!
-            } else {
-                // remove other bookmarks ... next program version may be able to handle multiple bookmarks with a directory
-                foreach (string file in files) {
-                    try {
-                        removeBookmark(file);
-                    } catch (Exception ex) {
-                        DialogResult result = MessageBox.Show("Removing Bookmark (" + file + ") failed: " + ex.ToString(),
-                            Application.ProductName, MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
-                        if (result == DialogResult.Cancel) return;
-                    }
-                }
-            }
-
-            File.Create(filename + Extension).Close();
-
-        }
-        */
     }
 
 }

@@ -61,6 +61,15 @@ namespace FileBookmark {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Removing Bookmark {0} failed: {1}\nClick OK to create new bookmark anyway..
+        /// </summary>
+        internal static string BookmarkRemoveError {
+            get {
+                return ResourceManager.GetString("BookmarkRemoveError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Bookmark File.
         /// </summary>
         internal static string CommandBookmark {

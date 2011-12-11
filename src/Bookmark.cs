@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace FileBookmark {
 
@@ -27,8 +28,26 @@ namespace FileBookmark {
         /// <param name="path">The path to the file</param>
         /// <returns>True on success</returns>
         internal static bool Unmark(string path) {
-            MessageBox.Show(string.Format("Unmark \"{0}\" not implemented", path));
-            throw new NotImplementedException();
+
+            if (!System.IO.Path.GetExtension(path).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
+                if (System.IO.File.Exists(path + Program.Extension)) {
+                    return Unmark(path + Program.Extension); // remove bookmark
+                } else {
+                    return true; // file not bookmarked whatsoever
+                }
+            }
+
+            System.IO.FileInfo info = new System.IO.FileInfo(path);
+            if (info == null) {
+                return false; // Unable to access file
+            }
+            if (info.Length != 0) {
+                throw new Exception("File is not empty. Does not seem to be a valid File Bookmark");
+            }
+
+            System.IO.File.Delete(path);
+
+            return !System.IO.File.Exists(path);
         }
 
         /// <summary>
@@ -37,9 +56,25 @@ namespace FileBookmark {
         /// <param name="path">The path to the file</param>
         /// <returns>True on success</returns>
         internal static bool Open(string path) {
-            MessageBox.Show(string.Format("Open \"{0}\" not implemented", path));
-            throw new NotImplementedException();
+
+            if (System.IO.Path.GetExtension(path).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
+                path = path.Substring(0, path.Length - Program.Extension.Length);
+            }
+
+            if (System.IO.File.Exists(path)) {
+                try {
+                    ProcessStartInfo psi = new ProcessStartInfo();
+                    psi.FileName = path;
+                    psi.UseShellExecute = true;
+                    Process p = Process.Start(psi);
+                    return (p != null);
+                } catch {
+                }
+            }
+
+            return false;
         }
+
 /*
         /// <summary>
         /// Bookmarks a file moving another bookmark within this directory
@@ -78,37 +113,7 @@ namespace FileBookmark {
             File.Create(filename + Extension).Close();
 
         }
-
-        /// <summary>
-        /// Removes a bookmark file
-        /// </summary>
-        /// <param name="filename">The file of the bookmark file</param>
-        private static void removeBookmark(string filename) {
-            if (!File.Exists(filename)) {
-                throw new Exception("File does not seem to exist");
-            }
-
-            if (!Path.GetExtension(filename).Equals(Extension, StringComparison.CurrentCultureIgnoreCase)) {
-                if (File.Exists(filename + Extension)) {
-                    removeBookmark(filename + Extension); // remove bookmark
-                    return;
-                } else {
-                    throw new Exception("File does not seem to be bookmarked");
-                }
-            }
-
-            FileInfo info = new FileInfo(filename);
-            if (info == null) {
-                throw new Exception("Unable to access file");
-            }
-            if (info.Length != 0) {
-                throw new Exception("File is not empty. Does not seem to be a valid File Bookmark");
-            }
-
-            File.Delete(filename);
-
-        }
-*/
+        */
     }
 
 }

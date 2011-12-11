@@ -5,6 +5,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Diagnostics;
+using Microsoft.Win32;
 
 namespace FileBookmark {
 
@@ -33,6 +34,20 @@ namespace FileBookmark {
         //    btn.FlatStyle = FlatStyle.System;
         //    SendMessage(new HandleRef(btn, btn.Handle), BCM_SETSHIELD, IntPtr.Zero, new IntPtr(show ? 1 : 0));
         //}
+
+        /// <summary>
+        /// Answer whether or not elevation is required to get write access to HKCR
+        /// </summary>
+        /// <returns>True if elevation is required</returns>
+        static internal bool IsElevationRequired() {
+            try {
+                RegistryKey key = Registry.ClassesRoot.OpenSubKey("*", true);
+                key.Close();
+                return false;
+            } catch {
+            }
+            return true;
+        }
 
         /// <summary>
         /// Answers whether the user is an admin

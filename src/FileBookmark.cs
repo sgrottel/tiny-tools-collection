@@ -12,20 +12,83 @@ namespace FileBookmark {
         /// <summary>
         /// The file name extension
         /// </summary>
-        private const string Extension = ".bookmark";
+        internal const string Extension = ".bookmark";
 
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         /// <param name="args">The command line arguments</param>
+        /// <returns>0 on success</returns>
         [STAThread]
-        static void Main(string[] args) {
+        static int Main(string[] args) {
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
             if ((args != null) && (args.Length > 0)) {
-                string op;
+                bool noElev = false;
+                bool reg = false;
+                bool unreg = false;
+                List<string> addBM = new List<string>();
+                List<string> removeBM = new List<string>();
+                List<string> openBM = new List<string>();
+
+                for (int i = 0; i < args.Length; i++) {
+                    if (args[i].Equals("-NOELEV")) {
+                        noElev = true;
+                    } else if (args[i].Equals("-REG")) {
+                        reg = true;
+                    } else if (args[i].Equals("-UNREG")) {
+                        unreg = true;
+                    } else if (args[i].Equals("-MARK")) {
+                        i++;
+                        if ((i < args.Length) && System.IO.File.Exists(args[i])) {
+                            addBM.Add(args[i]);
+                        }
+                    } else if (args[i].Equals("-UNMARK")) {
+                        i++;
+                        if ((i < args.Length) && System.IO.File.Exists(args[i])) {
+                            removeBM.Add(args[i]);
+                        }
+                    } else if (args[i].Equals("-OPEN")) {
+                        i++;
+                        if ((i < args.Length) && System.IO.File.Exists(args[i])) {
+                            openBM.Add(args[i]);
+                        }
+                    } else {
+                        if (System.IO.File.Exists(args[i])) {
+                            openBM.Add(args[i]);
+                        }
+                    }
+                }
+
+                if (reg || unreg) {
+                    if (reg && unreg) {
+                        MessageBox.Show(Strings.RegUnregError, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return -2;
+                    }
+                    if ((addBM.Count > 0) || (removeBM.Count > 0) || (openBM.Count > 0)) {
+                        MessageBox.Show(Strings.IgnoreFilesOnRegWarning, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        addBM.Clear();
+                        removeBM.Clear();
+                        openBM.Clear();
+                    }
+                    bool suc = false;
+                    if (reg) {
+                        suc = registerApplication(noElev);
+                    }
+                    if (unreg) {
+                        suc = unregisterApplication(noElev);
+                    }
+                    if (!noElev) {
+                        MessageBox.Show(String.Format(reg ? Strings.RegistrationResult : Strings.UnregistrationResult,
+                            suc ? Strings.ResultSuccess : Strings.ResultFailed),
+                            Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    return suc ? 0 : -3;
+                }
+
+                /*string op;
                 int state = 0;
                 foreach (string arg in args) {
                     op = "Unknown Operation";
@@ -41,6 +104,12 @@ namespace FileBookmark {
                             // remove this bookmark file
                             op = "Removing Bookmark (" + arg + ")";
                             removeBookmark(arg);
+
+                            state = 0;
+                        } else if (state == 3) {
+                            // remove this bookmark file
+                            op = "Open Bookmark (" + arg + ")";
+                            openBookmark(arg);
 
                             state = 0;
                         } else {
@@ -74,6 +143,10 @@ namespace FileBookmark {
                                 // removes the file
                                 state = 2;
                             }
+                            if (arg.Equals("-OPEN", StringComparison.CurrentCultureIgnoreCase)) {
+                                // removes the file
+                                state = 3;
+                            }
                         }
 
                     } catch (Exception ex) {
@@ -81,22 +154,72 @@ namespace FileBookmark {
                             Application.ProductName, MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
                         if (result == DialogResult.Cancel) break;
                     }
-                }
+                }*/
+
+                return -1;
 
             } else {
 
-                if (MessageBox.Show("This application is not to be called directly. Do you want to (re-)register the application for use from the Explorer context menu?",
-                        Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Stop, MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
-                    if (Elevation.IsElevated()) {
-                        registerApplication();
+                if (MessageBox.Show(Strings.StartRegistryQuestion,
+                        Application.ProductName, MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Stop, MessageBoxDefaultButton.Button2) 
+                        == DialogResult.Yes) {
 
-                    } else {
-                        Elevation.RestartElevated("-REG");
-                    }
+                    bool suc = false;
+                    suc = registerApplication(false);
+
+                    MessageBox.Show(String.Format(Strings.RegistrationResult, suc ? Strings.ResultSuccess : Strings.ResultFailed),
+                        Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    return suc ? 0 : -2;
                 }
+
+                return 0;
 
             }
 
+        }
+
+        /// <summary>
+        /// Registers the application
+        /// </summary>
+        /// <param name="noElev">If true the application is not allowed to elevate</param>
+        /// <returns>True on success</returns>
+        private static bool registerApplication(bool noElev) {
+            bool suc;
+            if (Elevation.IsElevationRequired() && !Elevation.IsElevated() && !noElev) {
+                suc = (Elevation.RestartElevated("-NOELEV -REG") == 0);
+            } else {
+                try {
+                    suc = Registration.RegisterApplication();
+                } catch {
+                    suc = false;
+                }
+            }
+            return suc;
+        }
+
+        /// <summary>
+        /// Unregisters the application
+        /// </summary>
+        /// <param name="noElev">If true the application is not allowed to elevate</param>
+        /// <returns>True on success</returns>
+        private static bool unregisterApplication(bool noElev) {
+            bool suc;
+            if (Elevation.IsElevationRequired() && !Elevation.IsElevated() && !noElev) {
+                suc = (Elevation.RestartElevated("-NOELEV -UNREG") == 0);
+            } else {
+                try {
+                    suc = Registration.UnregisterApplication();
+                } catch {
+                    suc = false;
+                }
+            }
+            return suc;
+        }
+
+        private static void openBookmark(string arg) {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -164,120 +287,6 @@ namespace FileBookmark {
             }
 
             File.Delete(filename);
-
-        }
-
-        /// <summary>
-        /// Registers this application in the windows registry
-        /// </summary>
-        private static void registerApplication() {
-            if (!Elevation.IsElevated()) {
-                throw new Exception("Rights elevation required");
-            }
-
-            RegistryKey file = null;
-            RegistryKey shell = null;
-            RegistryKey verb = null;
-            RegistryKey command = null;
-
-            file = Registry.ClassesRoot.OpenSubKey("*", true);
-            try {
-                shell = file.CreateSubKey("shell");
-                verb = shell.CreateSubKey("bookmark");
-                verb.SetValue(string.Empty, "Set File Bookmark");
-                command = verb.CreateSubKey("command");
-                command.SetValue(string.Empty, string.Format("\"{0}\" -mark \"%1\"", Application.ExecutablePath));
-
-            } finally {
-                if (command != null) { command.Close(); command = null; }
-                if (verb != null) { verb.Close(); verb = null; }
-                if (shell != null) { shell.Close(); shell = null; }
-                if (file != null) { file.Close(); file = null; }
-            }
-
-            file = Registry.ClassesRoot.CreateSubKey(Extension);
-            try {
-                file.SetValue(string.Empty, Application.ProductName + Extension);
-            } finally {
-                if (command != null) { command.Close(); command = null; }
-                if (verb != null) { verb.Close(); verb = null; }
-                if (shell != null) { shell.Close(); shell = null; }
-                if (file != null) { file.Close(); file = null; }
-            }
-
-            file = Registry.ClassesRoot.CreateSubKey(Application.ProductName + Extension);
-            try {
-                file.SetValue(string.Empty, "File Bookmark");
-
-                try {
-                    shell = file.CreateSubKey("DefaultIcon");
-                    shell.SetValue(string.Empty, Application.ExecutablePath);
-                } finally {
-                    if (shell != null) { shell.Close(); shell = null; }
-                }
-
-                shell = file.CreateSubKey("shell");
-                verb = shell.CreateSubKey("remove");
-                verb.SetValue(string.Empty, "Remove File Bookmark");
-                command = verb.CreateSubKey("command");
-                command.SetValue(string.Empty, string.Format("\"{0}\" -remove \"%1\"", Application.ExecutablePath));
-
-            } finally {
-                if (command != null) { command.Close(); command = null; }
-                if (verb != null) { verb.Close(); verb = null; }
-                if (shell != null) { shell.Close(); shell = null; }
-                if (file != null) { file.Close(); file = null; }
-            }
-
-            MessageBox.Show("File Bookmark application (" + Application.ExecutablePath + ") sucessfully registered",
-                Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-        }
-
-        /// <summary>
-        /// Removes the registry entries of this application from the windows registry
-        /// </summary>
-        private static void unregisterApplication() {
-            if (!Elevation.IsElevated()) {
-                throw new Exception("Rights elevation required");
-            }
-
-            RegistryKey file = null;
-            RegistryKey shell = null;
-
-            file = Registry.ClassesRoot.OpenSubKey("*", true);
-            try {
-                shell = file.OpenSubKey("shell");
-                if (shell.GetSubKeyNames().Contains("bookmark")) {
-                    shell.DeleteSubKeyTree("bookmark");
-                }
-
-            } finally {
-                if (shell != null) { shell.Close(); shell = null; }
-                if (file != null) { file.Close(); file = null; }
-            }
-
-            file = Registry.ClassesRoot.OpenSubKey(Extension, true);
-            try {
-                if (file != null) {
-                    file.Close();
-                    file = null;
-                    Registry.ClassesRoot.DeleteSubKeyTree(Extension);
-                }
-            } finally {
-                if (file != null) { file.Close(); file = null; }
-            }
-
-            file = Registry.ClassesRoot.OpenSubKey(Application.ProductName + Extension, true);
-            try {
-                if (file != null) {
-                    file.Close();
-                    file = null;
-                    Registry.ClassesRoot.DeleteSubKeyTree(Application.ProductName + Extension);
-                }
-            } finally {
-                if (file != null) { file.Close(); file = null; }
-            }
 
         }
 

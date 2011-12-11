@@ -721,11 +721,35 @@ namespace Dib {
         }
 
         /// <summary>
+        /// Sets the current action
+        /// </summary>
+        /// <param name="p">The name of the current action</param>
+        private void startAction(string p) {
+            this.loadButton.Enabled = false;
+            this.saveButton.Enabled = false;
+            this.exitButton.Enabled = false;
+            this.statusLabel.Text = p;
+        }
+
+        /// <summary>
+        /// Ends the current action
+        /// </summary>
+        /// <param name="abort">True if the action was aborted</param>
+        private void endAction(bool abort) {
+            this.statusLabel.Text = this.statusLabel.Text + " - "
+                + (abort ? "aborted" : "completed");
+            this.loadButton.Enabled = true;
+            this.saveButton.Enabled = true;
+            this.exitButton.Enabled = true;
+        }
+
+        /// <summary>
         /// Save all the desktop icons to a file
         /// </summary>
         /// <param name="sender">The sender of the event</param>
         /// <param name="e">The arguments of the event</param>
         private void saveButton_Click(object sender, EventArgs e) {
+            this.startAction("Saving Desktop Icons' Positions");
             try {
                 this.saveFileDialog.FileName = this.filename;
                 this.saveFileDialog.InitialDirectory
@@ -733,6 +757,7 @@ namespace Dib {
             } catch {
             }
             if (this.saveFileDialog.ShowDialog() != DialogResult.OK) {
+                this.endAction(true);
                 return;
             }
 
@@ -755,11 +780,13 @@ namespace Dib {
                 }
 
                 this.filename = this.saveFileDialog.FileName;
+                this.endAction(false);
 
             } catch (Exception ex) {
                 MessageBox.Show("Failed: " + ex.ToString(),
                     "Desktop Icon Backup", MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+                this.endAction(true);
             }
         }
 
@@ -769,6 +796,7 @@ namespace Dib {
         /// <param name="sender">The sender of the event</param>
         /// <param name="e">The arguments of the event</param>
         private void loadButton_Click(object sender, EventArgs e) {
+            this.startAction("Loading Desktop Icons' Positions");
             try {
                 this.openFileDialog.FileName = this.filename;
                 this.openFileDialog.InitialDirectory
@@ -776,6 +804,7 @@ namespace Dib {
             } catch {
             }
             if (this.openFileDialog.ShowDialog() != DialogResult.OK) {
+                this.endAction(true);
                 return;
             }
 
@@ -820,6 +849,7 @@ namespace Dib {
                         MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
                         MessageBoxDefaultButton.Button2)
                             != DialogResult.Yes) {
+                        this.endAction(true);
                         return;
                     }
                 }
@@ -854,6 +884,7 @@ namespace Dib {
                             MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
                             MessageBoxDefaultButton.Button2)
                                 != DialogResult.Yes) {
+                        this.endAction(true);
                         return;
                     }
                 }
@@ -882,6 +913,7 @@ namespace Dib {
                     } else if (rs == DialogResult.No) {
                         useGrid = false; // continue without action
                     } else {
+                        this.endAction(true);
                         return;
                     }
                 }
@@ -910,6 +942,7 @@ namespace Dib {
                             MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
                             MessageBoxDefaultButton.Button2)
                                 != DialogResult.Yes) {
+                        this.endAction(true);
                         return;
                     }
                 }
@@ -931,6 +964,7 @@ namespace Dib {
                             SendMessage(parent, WM_COMMAND,
                                 IDM_TOGGLEAUTOARRANGE, 0);
                         } else {
+                            this.endAction(true);
                             return;
                         }
                     } else {
@@ -939,6 +973,7 @@ namespace Dib {
                             + "option.", "Desktop Icon Backup",
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
                         // Okey, I admit: I am just to lazy to implement retry
+                        this.endAction(true);
                         return;
                     }
                 }
@@ -1036,11 +1071,13 @@ namespace Dib {
                 ChangeDisplaySettings(IntPtr.Zero, 0);
 
                 this.filename = this.openFileDialog.FileName;
+                this.endAction(false);
 
             } catch (Exception ex) {
                 MessageBox.Show("Failed: " + ex.ToString(),
                     "Desktop Icon Backup", MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+                this.endAction(true);
             }
         }
 

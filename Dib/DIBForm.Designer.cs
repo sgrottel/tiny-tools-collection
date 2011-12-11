@@ -29,6 +29,7 @@ namespace Dib {
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            this.statusLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // loadButton
@@ -53,7 +54,7 @@ namespace Dib {
             // 
             // exitButton
             // 
-            this.exitButton.Location = new System.Drawing.Point(12, 70);
+            this.exitButton.Location = new System.Drawing.Point(12, 83);
             this.exitButton.Name = "exitButton";
             this.exitButton.Size = new System.Drawing.Size(100, 23);
             this.exitButton.TabIndex = 4;
@@ -64,7 +65,7 @@ namespace Dib {
             // linkLabel1
             // 
             this.linkLabel1.AutoSize = true;
-            this.linkLabel1.Location = new System.Drawing.Point(118, 75);
+            this.linkLabel1.Location = new System.Drawing.Point(118, 88);
             this.linkLabel1.Name = "linkLabel1";
             this.linkLabel1.Size = new System.Drawing.Size(114, 13);
             this.linkLabel1.TabIndex = 9;
@@ -84,12 +85,21 @@ namespace Dib {
             this.saveFileDialog.Filter = "Desktop Icon Backups (*.dibxml)|*.dibxml|All Files (*.*)|*.*";
             this.saveFileDialog.Title = "Save Desktop Icon Positions";
             // 
+            // statusLabel
+            // 
+            this.statusLabel.AutoSize = true;
+            this.statusLabel.Location = new System.Drawing.Point(9, 67);
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Size = new System.Drawing.Size(0, 13);
+            this.statusLabel.TabIndex = 10;
+            // 
             // DIBForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Window;
-            this.ClientSize = new System.Drawing.Size(244, 104);
+            this.ClientSize = new System.Drawing.Size(244, 118);
+            this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.linkLabel1);
             this.Controls.Add(this.exitButton);
             this.Controls.Add(this.saveButton);
@@ -113,6 +123,7 @@ namespace Dib {
         private System.Windows.Forms.LinkLabel linkLabel1;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
+        private System.Windows.Forms.Label statusLabel;
     }
 }
 

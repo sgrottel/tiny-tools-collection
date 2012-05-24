@@ -16,7 +16,7 @@ require "rev2ver.inc";
 my $verInfo = getRevisionInfo($path);
 
 my $majorVer = 1;
-my $minorVer = 3;
+my $minorVer = 4;
 my $buildNum = $verInfo->rev;
 my $revNum = 0;
 

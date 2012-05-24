@@ -1,9 +1,9 @@
 
 	Desktop Icon Backup
-	06.10.2011
+	XX.XX.2012
 
 
-Copyright (c) SGrottel 2007 - 2011
+Copyright (c) SGrottel 2007 - 2012
 (http://www.sgrottel.de; http://www.sgrottel.com)
 
 All rights reserved.
@@ -52,3 +52,13 @@ Contained Files:
 	Resources\DibIcon.ico			The applications icon
 	Resources\DibIconVista.ico		The applications icon featureing Vista sizes.
 	bin\Release\Dib.exe			Compiled Any-CPU release binary.
+
+Changelog:
+
+Version 1.4 - Fix
+Icon positions are now stored in global screen coordinates, instead of local
+coordinates. This especially fixes false warnings about invisible icons if the
+desktop starts at negative coordinates.
+
+Version 1.3 - first official release
+

@@ -335,6 +335,24 @@ namespace Dib {
             public int iIndent;
         }
 
+        /// <summary>
+        /// This function converts the client coordinates of a specified point to screen coordinates.
+        /// </summary>
+        /// <param name="hWnd">Handle to the window whose client area is used for the conversion.</param>
+        /// <param name="lpPoint">Long pointer to a POINT structure that contains the client coordinates to be converted.</param>
+        /// <returns>Nonzero indicates success. Zero indicates failure.</returns>
+        [DllImport("user32.dll")]
+        static extern bool ClientToScreen(IntPtr hWnd, ref POINT lpPoint);
+
+        /// <summary>
+        /// This function converts the screen coordinates of a specified point on the screen to client coordinates.
+        /// </summary>
+        /// <param name="hWnd">Handle to the window whose client area will be used for the conversion.</param>
+        /// <param name="lpPoint">Long pointer to a POINT structure that contains the screen coordinates to be converted.</param>
+        /// <returns>Nonzero indicates success. Zero indicates failure.</returns>
+        [DllImport("user32.dll")]
+        static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
+
         #endregion
 
         #region private attributes
@@ -652,6 +670,10 @@ namespace Dib {
                         != 0) {
                     ReadProcessMemory(process, sharedMem, out pt, pointSize,
                         out outSize);
+
+                    // FIX: use better values if the desktop spans into the negative region
+                    ClientToScreen(hWnd, ref pt);
+
                     iconinfo.x = pt.X;
                     iconinfo.y = pt.Y;
                 }
@@ -1048,8 +1070,15 @@ namespace Dib {
                         if (iconinfo.title.Equals(icon.title,
                                 StringComparison.CurrentCultureIgnoreCase)) {
                             // found! => move!
-                            IntPtr lparam = (IntPtr)((icon.y << 16)
-                                | (icon.x & 0xffff));
+
+                            // FIX: we store global coordinates, which now need to be converted to local coordinates
+                            POINT pt = new POINT();
+                            pt.X = icon.x;
+                            pt.Y = icon.y;
+                            ScreenToClient(hWnd, ref pt);
+
+                            IntPtr lparam = (IntPtr)((pt.Y << 16)
+                                | (pt.X & 0xffff));
                             SendMessage(hWnd, LVM_SETITEMPOSITION, idx,
                                 lparam);
                             break;

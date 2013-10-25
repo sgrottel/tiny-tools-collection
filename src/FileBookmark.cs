@@ -89,18 +89,31 @@ namespace FileBookmark {
                 }
 
                 int rv = 0;
+#if DEBUG
+                System.Text.StringBuilder err = new System.Text.StringBuilder();
+#endif
 
                 foreach (string file in addBM) {
                     try {
                         if (!Bookmark.Mark(file)) rv = -1;
+#if DEBUG
+                    } catch (Exception ex) {
+                        err.AppendFormat("Cannot mark \"{0}\": {1}", file, ex);
+#else
                     } catch {
+#endif
                     }
                 }
 
                 foreach (string file in removeBM) {
                     try {
                         if (!Bookmark.Unmark(file)) rv = -4;
+#if DEBUG
+                    } catch (Exception ex) {
+                        err.AppendFormat("Cannot unmark \"{0}\": {1}", file, ex);
+#else
                     } catch {
+#endif
                     }
                 }
 
@@ -114,9 +127,20 @@ namespace FileBookmark {
                                 if (!Bookmark.Open(f)) rv = -6;
                             }
                         }
+#if DEBUG
+                    } catch (Exception ex) {
+                        err.AppendFormat("Cannot open \"{0}\": {1}", file, ex);
+#else
                     } catch {
+#endif
                     }
                 }
+
+#if DEBUG
+                if (err.Length > 0) {
+                    MessageBox.Show(err.ToString(), Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+#endif
 
                 return rv;
 

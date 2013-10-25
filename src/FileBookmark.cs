@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using System.IO;
 using Microsoft.Win32;
 
-namespace FileBookmark {
+namespace SG.FileBookmark {
 
     static class Program {
 

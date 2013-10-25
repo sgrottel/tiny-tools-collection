@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
 
-namespace FileBookmark {
+namespace SG.FileBookmark {
 
     /// <summary>
     /// Class holding bookmark related functions

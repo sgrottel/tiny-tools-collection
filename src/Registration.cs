@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.Win32;
 using System.Windows.Forms;
 
-namespace FileBookmark {
+namespace SG.FileBookmark {
 
     /// <summary>
     /// Class to handle registration functions

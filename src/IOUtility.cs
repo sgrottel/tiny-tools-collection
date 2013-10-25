@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FileBookmark {
+namespace SG.FileBookmark {
 
     /// <summary>
     /// Utility class for managing long file names

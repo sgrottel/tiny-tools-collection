@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using Microsoft.Win32;
 
-namespace FileBookmark {
+namespace SG.FileBookmark {
 
     /// <summary>
     /// Utilitiy class for UAC elevation

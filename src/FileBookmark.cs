@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using System.IO;
 using Microsoft.Win32;
 
 namespace SG.FileBookmark {
@@ -42,21 +41,21 @@ namespace SG.FileBookmark {
                         unreg = true;
                     } else if (args[i].Equals("-MARK")) {
                         i++;
-                        if ((i < args.Length) && System.IO.File.Exists(args[i])) {
+                        if ((i < args.Length) && IOUtility.FileExists(args[i])) {
                             addBM.Add(args[i]);
                         }
                     } else if (args[i].Equals("-UNMARK")) {
                         i++;
-                        if ((i < args.Length) && System.IO.File.Exists(args[i])) {
+                        if ((i < args.Length) && IOUtility.FileExists(args[i])) {
                             removeBM.Add(args[i]);
                         }
                     } else if (args[i].Equals("-OPEN")) {
                         i++;
-                        if ((i < args.Length) && System.IO.File.Exists(args[i])) {
+                        if ((i < args.Length) && IOUtility.FileExists(args[i])) {
                             openBM.Add(args[i]);
                         }
                     } else {
-                        if (System.IO.File.Exists(args[i])) {
+                        if (IOUtility.FileExists(args[i])) {
                             openBM.Add(args[i]);
                         }
                     }
@@ -119,11 +118,11 @@ namespace SG.FileBookmark {
 
                 foreach (string file in openBM) {
                     try {
-                        if (System.IO.File.Exists(file)) {
+                        if (IOUtility.FileExists(file)) {
                             if (!Bookmark.Open(file)) rv = -5;
-                        } else if (System.IO.Path.GetExtension(file).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
+                        } else if (IOUtility.GetFileExtension(file).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
                             string f = file.Substring(0, file.Length - Program.Extension.Length);
-                            if (System.IO.File.Exists(f)) {
+                            if (IOUtility.FileExists(f)) {
                                 if (!Bookmark.Open(f)) rv = -6;
                             }
                         }

@@ -18,21 +18,21 @@ namespace SG.FileBookmark {
         /// <param name="path">The path to the file</param>
         /// <returns>True on success</returns>
         internal static bool Mark(string path) {
-            if (!System.IO.File.Exists(path)) {
+            if (!IOUtility.FileExists(path)) {
                 throw new Exception("File does not seem to exist");
             }
 
-            if (System.IO.Path.GetExtension(path).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
+            if (IOUtility.GetFileExtension(path).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
                 throw new Exception("You cannot bookmark a bookmark file");
             }
-            if (System.IO.File.Exists(path + Program.Extension)) {
+            if (IOUtility.FileExists(path + Program.Extension)) {
                 // file already bookmarked
                 return true;
             }
 
             // first remove previous bookmark
-            string dir = System.IO.Path.GetDirectoryName(path);
-            string[] files = System.IO.Directory.GetFiles(dir, "*" + Program.Extension);
+            string dir = IOUtility.GetDirectoryName(path);
+            string[] files = IOUtility.GetFiles(dir, "*" + Program.Extension);
 
             if ((files == null) || (files.Length == 0)) {
                 // no other bookmarks, so we are good!
@@ -51,9 +51,9 @@ namespace SG.FileBookmark {
                 }
             }
 
-            System.IO.File.Create(path + Program.Extension).Close();
+            IOUtility.CreateFile(path + Program.Extension);
 
-            return System.IO.File.Exists(path + Program.Extension);
+            return IOUtility.FileExists(path + Program.Extension);
         }
 
         /// <summary>
@@ -62,29 +62,25 @@ namespace SG.FileBookmark {
         /// <param name="path">The path to the file</param>
         /// <returns>True on success</returns>
         internal static bool Unmark(string path) {
-            if (!System.IO.File.Exists(path)) {
+            if (!IOUtility.FileExists(path)) {
                 return true; // nothing there to delete
             }
 
-            if (!System.IO.Path.GetExtension(path).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
-                if (System.IO.File.Exists(path + Program.Extension)) {
+            if (!IOUtility.GetFileExtension(path).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
+                if (IOUtility.FileExists(path + Program.Extension)) {
                     return Unmark(path + Program.Extension); // remove bookmark
                 } else {
                     return true; // file not bookmarked whatsoever
                 }
             }
 
-            System.IO.FileInfo info = new System.IO.FileInfo(path);
-            if (info == null) {
-                return false; // Unable to access file
-            }
-            if (info.Length != 0) {
+            if (IOUtility.FileSize(path) != 0) {
                 throw new Exception("File is not empty. Does not seem to be a valid File Bookmark");
             }
 
-            System.IO.File.Delete(path);
+            IOUtility.DeleteFile(path);
 
-            return !System.IO.File.Exists(path);
+            return !IOUtility.FileExists(path);
         }
 
         /// <summary>
@@ -94,11 +90,11 @@ namespace SG.FileBookmark {
         /// <returns>True on success</returns>
         internal static bool Open(string path) {
 
-            if (System.IO.Path.GetExtension(path).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
+            if (IOUtility.GetFileExtension(path).Equals(Program.Extension, StringComparison.CurrentCultureIgnoreCase)) {
                 path = path.Substring(0, path.Length - Program.Extension.Length);
             }
 
-            if (System.IO.File.Exists(path)) {
+            if (IOUtility.FileExists(path)) {
                 try {
                     ProcessStartInfo psi = new ProcessStartInfo();
                     psi.FileName = path;

@@ -353,7 +353,7 @@ namespace SG.FileBookmark {
             if (hFile.ToInt32() != -1) {
                 do {
                     if ((findData.dwFileAttributes & (uint)FileAttributes.Directory) != (uint)FileAttributes.Directory) {
-                        files.Add(findData.cFileName);
+                        files.Add(directory + findData.cFileName);
                     }
                 } while (FindNextFile(hFile, out findData));
 
@@ -382,7 +382,6 @@ namespace SG.FileBookmark {
         /// </summary>
         /// <param name="path">The path to the file to delete</param>
         internal static void DeleteFile(string path) {
-            System.Windows.Forms.MessageBox.Show("Ping");
             if (DeleteFileW(@"\\?\" + path) == false) {
                 int lastError = Marshal.GetLastWin32Error();
                 throw new Exception("Cannto delete '" + path +"': LastError=" + lastError.ToString());

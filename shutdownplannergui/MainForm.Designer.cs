@@ -23,6 +23,7 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            this.components = new System.ComponentModel.Container();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.buttonAbortSubmit = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -42,6 +43,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.labelShutdownCommand = new System.Windows.Forms.Label();
             this.backgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.timerEditing = new System.Windows.Forms.Timer(this.components);
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -114,6 +116,8 @@
             this.textBoxShutdownTotalSeconds.Name = "textBoxShutdownTotalSeconds";
             this.textBoxShutdownTotalSeconds.Size = new System.Drawing.Size(172, 20);
             this.textBoxShutdownTotalSeconds.TabIndex = 17;
+            this.textBoxShutdownTotalSeconds.TextChanged += new System.EventHandler(this.textBoxShutdown_TextChanged);
+            this.textBoxShutdownTotalSeconds.Leave += new System.EventHandler(this.textBoxShutdown_Leave);
             // 
             // label4
             // 
@@ -148,6 +152,8 @@
             this.textBoxShutdownSeconds.Name = "textBoxShutdownSeconds";
             this.textBoxShutdownSeconds.Size = new System.Drawing.Size(75, 20);
             this.textBoxShutdownSeconds.TabIndex = 13;
+            this.textBoxShutdownSeconds.TextChanged += new System.EventHandler(this.textBoxShutdown_TextChanged);
+            this.textBoxShutdownSeconds.Leave += new System.EventHandler(this.textBoxShutdown_Leave);
             // 
             // textBoxShutdownMinutes
             // 
@@ -155,6 +161,8 @@
             this.textBoxShutdownMinutes.Name = "textBoxShutdownMinutes";
             this.textBoxShutdownMinutes.Size = new System.Drawing.Size(75, 20);
             this.textBoxShutdownMinutes.TabIndex = 12;
+            this.textBoxShutdownMinutes.TextChanged += new System.EventHandler(this.textBoxShutdown_TextChanged);
+            this.textBoxShutdownMinutes.Leave += new System.EventHandler(this.textBoxShutdown_Leave);
             // 
             // textBoxShutdownHours
             // 
@@ -162,6 +170,8 @@
             this.textBoxShutdownHours.Name = "textBoxShutdownHours";
             this.textBoxShutdownHours.Size = new System.Drawing.Size(75, 20);
             this.textBoxShutdownHours.TabIndex = 11;
+            this.textBoxShutdownHours.TextChanged += new System.EventHandler(this.textBoxShutdown_TextChanged);
+            this.textBoxShutdownHours.Leave += new System.EventHandler(this.textBoxShutdown_Leave);
             // 
             // checkBoxShutdownForce
             // 
@@ -174,6 +184,7 @@
             this.checkBoxShutdownForce.TabIndex = 19;
             this.checkBoxShutdownForce.Text = "Force";
             this.checkBoxShutdownForce.UseVisualStyleBackColor = true;
+            this.checkBoxShutdownForce.CheckedChanged += new System.EventHandler(this.checkBoxShutdownForce_CheckedChanged);
             // 
             // textBoxOutput
             // 
@@ -225,6 +236,11 @@
             this.backgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker_DoWork);
             this.backgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker_RunWorkerCompleted);
             // 
+            // timerEditing
+            // 
+            this.timerEditing.Interval = 2000;
+            this.timerEditing.Tick += new System.EventHandler(this.timerEditing_Tick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -270,6 +286,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label labelShutdownCommand;
         private System.ComponentModel.BackgroundWorker backgroundWorker;
+        private System.Windows.Forms.Timer timerEditing;
     }
 }
 

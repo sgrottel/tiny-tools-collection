@@ -39,12 +39,16 @@
             this.textBoxOutput = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.labelShutdownCommand = new System.Windows.Forms.Label();
+            this.backgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.buttonAbortSubmit);
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Top;
             this.groupBox1.Location = new System.Drawing.Point(10, 135);
@@ -62,9 +66,11 @@
             this.buttonAbortSubmit.TabIndex = 13;
             this.buttonAbortSubmit.Text = "Submit";
             this.buttonAbortSubmit.UseVisualStyleBackColor = true;
+            this.buttonAbortSubmit.Click += new System.EventHandler(this.buttonAbortSubmit_Click);
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.labelShutdownCommand);
             this.groupBox2.Controls.Add(this.buttonShutdownSubmit);
             this.groupBox2.Controls.Add(this.checkBoxShutdownForce);
             this.groupBox2.Controls.Add(this.label5);
@@ -91,6 +97,7 @@
             this.buttonShutdownSubmit.TabIndex = 20;
             this.buttonShutdownSubmit.Text = "Submit";
             this.buttonShutdownSubmit.UseVisualStyleBackColor = true;
+            this.buttonShutdownSubmit.Click += new System.EventHandler(this.buttonShutdownSubmit_Click);
             // 
             // label5
             // 
@@ -195,6 +202,29 @@
             this.panel2.Size = new System.Drawing.Size(604, 5);
             this.panel2.TabIndex = 17;
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(87, 24);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(67, 13);
+            this.label1.TabIndex = 14;
+            this.label1.Text = "shutdown /a";
+            // 
+            // labelShutdownCommand
+            // 
+            this.labelShutdownCommand.AutoSize = true;
+            this.labelShutdownCommand.Location = new System.Drawing.Point(87, 99);
+            this.labelShutdownCommand.Name = "labelShutdownCommand";
+            this.labelShutdownCommand.Size = new System.Drawing.Size(66, 13);
+            this.labelShutdownCommand.TabIndex = 21;
+            this.labelShutdownCommand.Text = "shutdown /s";
+            // 
+            // backgroundWorker
+            // 
+            this.backgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker_DoWork);
+            this.backgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker_RunWorkerCompleted);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -209,7 +239,9 @@
             this.Padding = new System.Windows.Forms.Padding(10, 6, 10, 4);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Shutdown Planner GUI";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
@@ -235,6 +267,9 @@
         private System.Windows.Forms.TextBox textBoxOutput;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labelShutdownCommand;
+        private System.ComponentModel.BackgroundWorker backgroundWorker;
     }
 }
 

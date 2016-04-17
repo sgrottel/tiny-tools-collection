@@ -43,7 +43,8 @@ namespace UrlCollector {
                 string text = Clipboard.GetText();
                 if ((text.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase)
                         || text.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase)
-                        || text.StartsWith("ftp://", StringComparison.InvariantCultureIgnoreCase))
+                        || text.StartsWith("ftp://", StringComparison.InvariantCultureIgnoreCase)
+                        || text.StartsWith("magnet:", StringComparison.InvariantCultureIgnoreCase))
                     && (!text.Contains('\n'))) {
                     this.richTextBox1.AppendText(text + "\n");
                     this.dirty = true;

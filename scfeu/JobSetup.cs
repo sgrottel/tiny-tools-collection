@@ -11,7 +11,7 @@ namespace scfeu
 	{
 
 		public const string DefaultIncludePattern = "";
-		public const string DefaultExcludePattern = "*.sln";
+		public const string DefaultExcludePattern = "*.sln;.git;.vs";
 
 		private string dir;
 		public string Directory {
@@ -70,7 +70,6 @@ namespace scfeu
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
-
 
 		private bool enabled = true;
 		public bool IsEnabled {

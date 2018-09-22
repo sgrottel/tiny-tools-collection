@@ -41,7 +41,11 @@ namespace scfeu {
 
 		public MainWindow() {
 			InitializeComponent();
-			lineEndingsComboBox.ItemsSource = typeof(LineBreak).GetEnumValues();
+			var lineBreakStyles = typeof(LineBreak).GetEnumValues();
+			Array.Sort(lineBreakStyles, new LineBreakComparer());
+			lineEndingsComboBox.ItemsSource = lineBreakStyles;
+			encodingComboBox.ItemsSource = Encoding.GetEncodings().Select(e => e.GetEncoding()).ToArray();
+			encodingComboBox.Items.SortDescriptions.Add(new SortDescription("EncodingName", ListSortDirection.Ascending));
 
 			//progressBar.Value = 10.0;
 		}

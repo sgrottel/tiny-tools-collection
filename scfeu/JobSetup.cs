@@ -58,8 +58,8 @@ namespace scfeu
 			}
 		}
 
-		private string enc = "hundekuchen";
-		public string Encoding {
+		private Encoding enc = Encoding.UTF8;
+		public Encoding Encoding {
 			get { return enc; }
 			set {
 				if (enc != value) {

@@ -96,7 +96,18 @@
 				</ComboBox>
 				<Label Grid.Column="2" Margin="5,0,0,0">Encoding</Label>
 				<ComboBox Grid.Column="4" x:Name="encodingComboBox" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}"
-						SelectedValue="{Binding JobSetup.Encoding, ElementName=window, Mode=TwoWay}"></ComboBox>
+						SelectedValue="{Binding JobSetup.Encoding, ElementName=window, Mode=TwoWay}">
+					<ComboBox.ItemTemplate>
+						<DataTemplate>
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="{Binding EncodingName}"/>
+								<TextBlock Margin="10,0,4,0">(CP:</TextBlock>
+								<TextBlock Text="{Binding CodePage}"/>
+								<TextBlock>)</TextBlock>
+							</StackPanel>
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
 			</Grid>
 		</StackPanel>
 		<ProgressBar x:Name="progressBar" Grid.Row="1" Height="20" Margin="0,0,0,3"></ProgressBar>

@@ -37,13 +37,41 @@ namespace scfeu {
 		public MainWindow() {
 			InitializeComponent();
 
-			progress.Value = 10.0;
+			progressBar.Value = 10.0;
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		private void ScanDirectoryButton_Click(object sender, RoutedEventArgs e) {
 			IsUiInteractive = !IsUiInteractive;
+		}
+
+		private void window_DragOver(object sender, DragEventArgs e) {
+			e.Effects = DragDropEffects.None;
+			try {
+				if (e.Data.GetDataPresent("FileNameW")) {
+					string path = ((string[])e.Data.GetData("FileNameW"))[0];
+					if (System.IO.Directory.Exists(path) && directoryTextBox.IsEnabled) {
+						e.Effects = DragDropEffects.Copy;
+					}
+				}
+			} catch {
+			}
+			e.Handled = true;
+		}
+
+		private void window_Drop(object sender, DragEventArgs e) {
+			try {
+				if (e.Data.GetDataPresent("FileNameW")) {
+					string path = ((string[])e.Data.GetData("FileNameW"))[0];
+					if (System.IO.Directory.Exists(path) && directoryTextBox.IsEnabled) {
+						directoryTextBox.Text = path;
+						e.Handled = true;
+						ScanDirectoryButton_Click(this, null);
+					}
+				}
+			} catch {
+			}
 		}
 	}
 }

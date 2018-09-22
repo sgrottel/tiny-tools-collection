@@ -6,6 +6,7 @@
 		xmlns:local="clr-namespace:scfeu"
 		mc:Ignorable="d"
 		Title="scfeu" Width="1280" Height="720" AllowDrop="True" DragOver="window_DragOver" Drop="window_Drop">
+
 	<Grid Margin="5">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="auto"/>
@@ -18,14 +19,64 @@
 					<ColumnDefinition Width="auto" />
 					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="auto" />
+					<ColumnDefinition Width="auto" />
 				</Grid.ColumnDefinitions>
 				<Label Grid.Column="0">Directory</Label>
-				<TextBox Grid.Column="1" x:Name="directoryTextBox" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}" AllowDrop="True" PreviewDragOver="window_DragOver" Drop="window_Drop" ></TextBox>
-				<Button Grid.Column="2" Content="..." MinWidth="24" Padding="5,1" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}"></Button>
+				<TextBox Grid.Column="1" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}" AllowDrop="True" PreviewDragOver="window_DragOver" Drop="window_Drop"
+						 Text="{Binding JobSetup.Directory, ElementName=window, Mode=TwoWay}"></TextBox>
+				<Button Grid.Column="2" MinWidth="24" Padding="5,1" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}">...</Button>
+				<ToggleButton Grid.Column="3" MinWidth="24" Margin="3,0,0,0" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}" x:Name="filterToggleButton">
+					<Viewbox Width="16" Height="16" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+						<Rectangle Width="16" Height="16">
+							<Rectangle.Fill>
+								<DrawingBrush>
+									<DrawingBrush.Drawing>
+										<DrawingGroup>
+											<DrawingGroup.Children>
+												<GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+												<GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,3.0004L0,4.2764 3,9.2774 3,14.0004 7,14.0004 7,9.2774 7.699,8.1124 12,12.4144 16,8.4134 16,7.0004 8.366,7.0004 10.767,3.0004z" />
+												<GeometryDrawing Brush="#FF424242" Geometry="F1M12,11L9,8 15,8z M9,4L6,9 6,13 4,13 4,9 1,4z" />
+											</DrawingGroup.Children>
+										</DrawingGroup>
+									</DrawingBrush.Drawing>
+								</DrawingBrush>
+							</Rectangle.Fill>
+						</Rectangle>
+					</Viewbox>
+				</ToggleButton>
+			</Grid>
+			<Grid>
+				<Grid.Style>
+					<Style TargetType="{x:Type Grid}">
+						<Setter Property="Visibility" Value="Collapsed" />
+						<Style.Triggers>
+							<DataTrigger Binding="{Binding IsChecked, ElementName=filterToggleButton}" Value="True">
+								<Setter Property="Visibility" Value="Visible" />
+							</DataTrigger>
+						</Style.Triggers>
+					</Style>
+				</Grid.Style>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="auto" />
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="auto" />
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition />
+					<RowDefinition />
+				</Grid.RowDefinitions>
+				<Label Grid.Row="0" Grid.Column="0" Margin="0,0,0,3">Include Pattern</Label>
+				<TextBox Grid.Row="0" Grid.Column="1" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}" Margin="0,0,0,3"
+					Text="{Binding JobSetup.IncludePattern, ElementName=window, Mode=TwoWay}"></TextBox>
+				<Button Grid.Row="0" Grid.Column="2" Click="JobIncludePatternDefaultButton_Click">Default</Button>
+				<Label Grid.Row="1" Grid.Column="0" Margin="0,0,0,3">Exclude Pattern</Label>
+				<TextBox Grid.Row="1" Grid.Column="1" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}" Margin="0,0,0,3"
+					Text="{Binding JobSetup.ExcludePattern, ElementName=window, Mode=TwoWay}"></TextBox>
+				<Button Grid.Row="1" Grid.Column="2" Click="JobExcludePatternDefaultButton_Click">Default</Button>
 			</Grid>
 			<WrapPanel Orientation="Horizontal" Margin="0,0,0,3">
-				<Button Margin="0,0,3,0" MinHeight="26" Padding="5,1" Click="ScanDirectoryButton_Click">Scan Directory</Button>
-				<Button Padding="5,1" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}">Fix Files</Button>
+				<Button Margin="0,0,3,0" MinHeight="26" Padding="5,1" Click="ScanDirectoryButton_Click" IsEnabled="{Binding ElementName=window, Path=JobSetup.CanScanDir}">Scan Directory</Button>
+				<Button Padding="5,1" IsEnabled="{Binding ElementName=window, Path=JobSetup.CanFixFiles}">Fix Files</Button>
 			</WrapPanel>
 			<Grid Margin="0,0,0,3">
 				<Grid.ColumnDefinitions>
@@ -35,9 +86,17 @@
 					<ColumnDefinition Width="*" />
 				</Grid.ColumnDefinitions>
 				<Label Grid.Column="0">Line Endings</Label>
-				<ComboBox Grid.Column="1" x:Name="lineEndingsComboBox" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}"></ComboBox>
+				<ComboBox Grid.Column="1" x:Name="lineEndingsComboBox" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}"
+						SelectedValue="{Binding JobSetup.LineBreak, ElementName=window, Mode=TwoWay}">
+					<ComboBox.ItemTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding Converter={StaticResource EnumDescriptionConverter}}"/>
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
 				<Label Grid.Column="2" Margin="5,0,0,0">Encoding</Label>
-				<ComboBox Grid.Column="4" x:Name="encodingComboBox" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}" ></ComboBox>
+				<ComboBox Grid.Column="4" x:Name="encodingComboBox" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}"
+						SelectedValue="{Binding JobSetup.Encoding, ElementName=window, Mode=TwoWay}"></ComboBox>
 			</Grid>
 		</StackPanel>
 		<ProgressBar x:Name="progressBar" Grid.Row="1" Height="20" Margin="0,0,0,3"></ProgressBar>

@@ -20,6 +20,10 @@ namespace scfeu {
 	/// </summary>
 	public partial class MainWindow : Window, INotifyPropertyChanged {
 
+		public JobSetup JobSetup {
+			get; set;
+		} = new JobSetup();
+
 		/// <summary>
 		/// Flag to control `IsEnabled` of almost all UI
 		/// </summary>
@@ -30,20 +34,21 @@ namespace scfeu {
 				if (isUiInteractive != value) {
 					isUiInteractive = value;
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsUiInteractive)));
+					JobSetup.IsEnabled = value;
 				}
 			}
 		}
 
 		public MainWindow() {
 			InitializeComponent();
+			lineEndingsComboBox.ItemsSource = typeof(LineBreak).GetEnumValues();
 
-			progressBar.Value = 10.0;
+			//progressBar.Value = 10.0;
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		private void ScanDirectoryButton_Click(object sender, RoutedEventArgs e) {
-			IsUiInteractive = !IsUiInteractive;
 		}
 
 		private void window_DragOver(object sender, DragEventArgs e) {
@@ -51,7 +56,7 @@ namespace scfeu {
 			try {
 				if (e.Data.GetDataPresent("FileNameW")) {
 					string path = ((string[])e.Data.GetData("FileNameW"))[0];
-					if (System.IO.Directory.Exists(path) && directoryTextBox.IsEnabled) {
+					if (System.IO.Directory.Exists(path) && IsUiInteractive) {
 						e.Effects = DragDropEffects.Copy;
 					}
 				}
@@ -64,14 +69,22 @@ namespace scfeu {
 			try {
 				if (e.Data.GetDataPresent("FileNameW")) {
 					string path = ((string[])e.Data.GetData("FileNameW"))[0];
-					if (System.IO.Directory.Exists(path) && directoryTextBox.IsEnabled) {
-						directoryTextBox.Text = path;
+					if (System.IO.Directory.Exists(path) && IsUiInteractive) {
+						JobSetup.Directory = path;
 						e.Handled = true;
 						ScanDirectoryButton_Click(this, null);
 					}
 				}
 			} catch {
 			}
+		}
+
+		private void JobIncludePatternDefaultButton_Click(object sender, RoutedEventArgs e) {
+			JobSetup.IncludePattern = JobSetup.DefaultIncludePattern;
+		}
+
+		private void JobExcludePatternDefaultButton_Click(object sender, RoutedEventArgs e) {
+			JobSetup.ExcludePattern = JobSetup.DefaultExcludePattern;
 		}
 	}
 }

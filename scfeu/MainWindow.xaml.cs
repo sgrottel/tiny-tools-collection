@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -89,6 +90,53 @@ namespace scfeu {
 
 		private void JobExcludePatternDefaultButton_Click(object sender, RoutedEventArgs e) {
 			JobSetup.ExcludePattern = JobSetup.DefaultExcludePattern;
+		}
+
+		private void BrowseDirButton_Click(object sender, RoutedEventArgs e) {
+			var dialog = new CommonOpenFileDialog();
+			dialog.IsFolderPicker = true;
+			dialog.InitialDirectory = JobSetup.Directory;
+			CommonFileDialogResult result = dialog.ShowDialog();
+			if (result == CommonFileDialogResult.Ok) {
+				if (System.IO.Directory.Exists(dialog.FileName)) {
+					JobSetup.Directory = dialog.FileName;
+				}
+			}
+		}
+
+		private System.IO.DirectoryInfo autoCompleteDir = null;
+		public IEnumerable<String> AutoCompleteFileSystemFolders {
+			get {
+				List<String> dirz = new List<string>();
+
+				foreach (var d in System.IO.DriveInfo.GetDrives()) {
+					dirz.Add(d.RootDirectory.ToString());
+				}
+
+				if (autoCompleteDir != null) {
+					var dir = autoCompleteDir;
+					while (dir != null) {
+						foreach (var d in dir.GetDirectories()) {
+							if (d.Attributes.HasFlag(System.IO.FileAttributes.Hidden)) continue;
+							if (d.Attributes.HasFlag(System.IO.FileAttributes.System)) continue;
+							dirz.Add(d.FullName);
+						}
+						dir = dir.Parent;
+					}
+				}
+
+				return dirz;
+			}
+		}
+
+		private void TextBox_TextChanged(object sender, TextChangedEventArgs e) {
+			string path = ((TextBox)e.Source).Text;
+			if (path.EndsWith("\\")) {
+				if (System.IO.Directory.Exists(path)) {
+					autoCompleteDir = new System.IO.DirectoryInfo(path);
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoCompleteFileSystemFolders)));
+				}
+			}
 		}
 	}
 }

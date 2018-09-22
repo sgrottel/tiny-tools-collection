@@ -5,6 +5,7 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:scfeu"
 		mc:Ignorable="d"
+		xmlns:behaviors="clr-namespace:WPFTextBoxAutoComplete;assembly=WPFTextBoxAutoComplete"
 		Title="scfeu" Width="1280" Height="720" AllowDrop="True" DragOver="window_DragOver" Drop="window_Drop">
 
 	<Grid Margin="5">
@@ -23,8 +24,11 @@
 				</Grid.ColumnDefinitions>
 				<Label Grid.Column="0">Directory</Label>
 				<TextBox Grid.Column="1" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}" AllowDrop="True" PreviewDragOver="window_DragOver" Drop="window_Drop"
-						 Text="{Binding JobSetup.Directory, ElementName=window, Mode=TwoWay}"></TextBox>
-				<Button Grid.Column="2" MinWidth="24" Padding="5,1" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}">...</Button>
+						 Text="{Binding JobSetup.Directory, ElementName=window, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+						 behaviors:AutoCompleteBehavior.AutoCompleteItemsSource="{Binding ElementName=window, Path=AutoCompleteFileSystemFolders}"
+						 behaviors:AutoCompleteBehavior.AutoCompleteStringComparison="InvariantCultureIgnoreCase" TextChanged="TextBox_TextChanged"
+						 ></TextBox>
+				<Button Grid.Column="2" MinWidth="24" Padding="5,1" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}" Click="BrowseDirButton_Click">...</Button>
 				<ToggleButton Grid.Column="3" MinWidth="24" Margin="3,0,0,0" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}" x:Name="filterToggleButton">
 					<Viewbox Width="16" Height="16" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 						<Rectangle Width="16" Height="16">
@@ -110,7 +114,7 @@
 				</ComboBox>
 			</Grid>
 		</StackPanel>
-		<ProgressBar x:Name="progressBar" Grid.Row="1" Height="20" Margin="0,0,0,3"></ProgressBar>
+		<ProgressBar x:Name="progressBar" Grid.Row="1" Height="20" Margin="0,0,0,3" Visibility="Collapsed"></ProgressBar>
 		<TreeView x:Name="filesTreeView" Grid.Row="2" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}"></TreeView>
 	</Grid>
 </Window>

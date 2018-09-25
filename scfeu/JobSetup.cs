@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using scfeu.Properties;
 
 namespace scfeu
 {
@@ -114,6 +115,39 @@ namespace scfeu
 		private void evalCanFixFiles() {
 			CanFixFiles = enabled
 				&& false; // TODO: Implement
+		}
+
+		internal void LoadFrom(Settings s) {
+			try {
+				if (System.IO.Directory.Exists(s.Directory))
+					Directory = s.Directory;
+			} catch { }
+			try {
+				if (!string.IsNullOrWhiteSpace(s.IncludePattern))
+					IncludePattern = s.IncludePattern;
+			} catch { }
+			try {
+				if (!string.IsNullOrWhiteSpace(s.ExcludePattern))
+					ExcludePattern = s.ExcludePattern;
+			} catch { }
+			try {
+				if (!string.IsNullOrWhiteSpace(s.LineBreak))
+					LineBreak = (LineBreak)Enum.Parse(typeof(LineBreak), s.LineBreak);
+			} catch { }
+			try {
+				if (!string.IsNullOrWhiteSpace(s.Encoding))
+					Encoding = Encoding.GetEncoding(s.Encoding);
+			} catch { }
+		}
+
+		internal void SaveTo(Settings s) {
+			s.Directory = Directory;
+			if (!string.Equals(IncludePattern, DefaultIncludePattern))
+				s.IncludePattern = IncludePattern;
+			if (!string.Equals(ExcludePattern, DefaultExcludePattern))
+				s.ExcludePattern = ExcludePattern;
+			s.LineBreak = LineBreak.ToString();
+			s.Encoding = Encoding.WebName;
 		}
 	}
 }

@@ -78,13 +78,15 @@ namespace scfeu {
 
 		public MainWindow() {
 			InitializeComponent();
+
 			var lineBreakStyles = typeof(LineBreak).GetEnumValues();
 			Array.Sort(lineBreakStyles, new LineBreakComparer());
 			lineEndingsComboBox.ItemsSource = lineBreakStyles;
+
 			encodingComboBox.ItemsSource = Encoding.GetEncodings().Select(e => e.GetEncoding()).ToArray();
 			encodingComboBox.Items.SortDescriptions.Add(new SortDescription("EncodingName", ListSortDirection.Ascending));
 
-			//progressBar.Value = 10.0;
+			JobSetup.LoadFrom(Properties.Settings.Default);
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -178,7 +180,14 @@ namespace scfeu {
 		}
 
 		private void AbortJobButton_Click(object sender, RoutedEventArgs e) {
-			job?.Abort();
+			Job?.Abort();
+		}
+
+		private void window_Closed(object sender, EventArgs e) {
+			try {
+				JobSetup?.SaveTo(Properties.Settings.Default);
+				Properties.Settings.Default.Save();
+			} catch { }
 		}
 	}
 }

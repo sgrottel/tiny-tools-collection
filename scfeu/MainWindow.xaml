@@ -6,7 +6,7 @@
 		xmlns:local="clr-namespace:scfeu"
 		mc:Ignorable="d"
 		xmlns:behaviors="clr-namespace:WPFTextBoxAutoComplete;assembly=WPFTextBoxAutoComplete"
-		Title="scfeu" Width="1280" Height="720" AllowDrop="True" DragOver="window_DragOver" Drop="window_Drop">
+		Title="scfeu" Width="1280" Height="720" AllowDrop="True" DragOver="window_DragOver" Drop="window_Drop" Closed="window_Closed">
 
 	<Grid Margin="5">
 		<Grid.RowDefinitions>

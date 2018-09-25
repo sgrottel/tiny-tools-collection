@@ -40,7 +40,7 @@ namespace scfeu {
 					Thread.Sleep(10);
 				}
 
-			} catch(ThreadAbortException e) {
+			} catch(ThreadAbortException) {
 			} catch {
 			} finally {
 				running = false;

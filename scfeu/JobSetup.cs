@@ -10,7 +10,7 @@ namespace scfeu
 	public class JobSetup : INotifyPropertyChanged
 	{
 
-		public const string DefaultIncludePattern = "";
+		public const string DefaultIncludePattern = "*.c*;*.h*;*.inl;*.rc;*.frg;*.vrt;*.geo;*.md;*.txt";
 		public const string DefaultExcludePattern = "*.sln;.git;.vs";
 
 		private string dir;

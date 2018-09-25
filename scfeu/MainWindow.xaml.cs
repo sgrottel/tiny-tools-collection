@@ -40,6 +40,42 @@ namespace scfeu {
 			}
 		}
 
+		private IJob job = null;
+		public IJob Job {
+			get {
+				return job;
+			}
+			private set {
+				if (value != null) {
+					if (job != null) {
+						if (job == value) return;
+						throw new InvalidOperationException();
+					}
+					value.Done += (object s, EventArgs a) => { if (Job == s) Job = null; };
+					value.PropertyChanged += (object s, PropertyChangedEventArgs a) => {
+						PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobProgress)));
+						PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobIndeterminate)));
+					};
+
+					IsUiInteractive = false;
+					job = value;
+					job.Start();
+
+				} else {
+					if (job == null) return;
+					if (job.running) throw new InvalidOperationException();
+					IsUiInteractive = true;
+					job = null;
+
+				}
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Job)));
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobProgress)));
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobIndeterminate)));
+			}
+		}
+		public int JobProgress { get { return (int)(1000.0 * ((job != null) ? Math.Min(1.0, Math.Max(0.0, job.Progress)) : 0.0)); } }
+		public bool JobIndeterminate { get { return (job != null) ? job.Progress < 0.0 : false; } }
+
 		public MainWindow() {
 			InitializeComponent();
 			var lineBreakStyles = typeof(LineBreak).GetEnumValues();
@@ -54,6 +90,8 @@ namespace scfeu {
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		private void ScanDirectoryButton_Click(object sender, RoutedEventArgs e) {
+			IJob j = new DemoJob();
+			Job = j;
 		}
 
 		private void window_DragOver(object sender, DragEventArgs e) {
@@ -137,6 +175,10 @@ namespace scfeu {
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoCompleteFileSystemFolders)));
 				}
 			}
+		}
+
+		private void AbortJobButton_Click(object sender, RoutedEventArgs e) {
+			job?.Abort();
 		}
 	}
 }

@@ -114,7 +114,26 @@
 				</ComboBox>
 			</Grid>
 		</StackPanel>
-		<ProgressBar x:Name="progressBar" Grid.Row="1" Height="20" Margin="0,0,0,3" Visibility="Collapsed"></ProgressBar>
+		<Grid Grid.Row="1">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="auto"/>
+			</Grid.ColumnDefinitions>
+			<Grid.Style>
+				<Style TargetType="Grid">
+					<Setter Property="Visibility" Value="Visible" />
+					<Style.Triggers>
+						<DataTrigger Binding="{Binding ElementName=window, Path=Job}" Value="{x:Null}">
+							<Setter Property="Visibility" Value="Collapsed" />
+						</DataTrigger>
+					</Style.Triggers>
+				</Style>
+			</Grid.Style>
+			<ProgressBar x:Name="progressBar" Grid.Column="0" Height="20" Margin="0,0,0,3"
+						 IsIndeterminate="{Binding ElementName=window, Path=JobIndeterminate, Mode=OneWay}" Maximum="1000"
+						 Value="{Binding ElementName=window, Path=JobProgress, Mode=OneWay}"/>
+			<Button Padding="5,1" Margin="3,0,0,0" Grid.Column="1" Click="AbortJobButton_Click">Abort</Button>
+		</Grid>
 		<TreeView x:Name="filesTreeView" Grid.Row="2" IsEnabled="{Binding ElementName=window, Path=IsUiInteractive}"></TreeView>
 	</Grid>
 </Window>

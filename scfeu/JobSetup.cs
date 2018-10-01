@@ -11,7 +11,11 @@ namespace scfeu
 	public class JobSetup : INotifyPropertyChanged
 	{
 
-		public const string DefaultIncludePattern = "*.c*;*.h*;*.inl;*.rc;*.frg;*.vrt;*.geo;*.md;*.txt";
+		public const string DefaultIncludePattern
+			= "*.c;*.cpp;*.cxx;*.cc;*.tli;*.tlh;*.h;*.hh;*.hpp;*.hxx;*.hh;*.inl;*.ipp;*.rc;*.resx;*.idl;*.asm;*.inc;" // C++ project and source files
+			+ "*.cs;*.resx;*.resw;*.xsd;*.wsdl;*.xaml;*.xml;*.htm;*.html;*.css;" // C# project and source files
+			+ "*.frg;*.vrt;*.geo;" // MORF shader files
+			+ "*.md;*.txt"; // General text files
 		public const string DefaultExcludePattern = "*.sln;.git;.vs";
 
 		private string dir;

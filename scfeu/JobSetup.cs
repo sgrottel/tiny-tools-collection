@@ -75,6 +75,50 @@ namespace scfeu
 			}
 		}
 
+		private bool removeTrailingWhitespace = true;
+		public bool RemoveTrailingWhitespace {
+			get { return removeTrailingWhitespace; }
+			set {
+				if (removeTrailingWhitespace != value) {
+					removeTrailingWhitespace = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RemoveTrailingWhitespace)));
+				}
+			}
+		}
+
+		private int indention = 4;
+		public int Indention {
+			get { return indention; }
+			set {
+				if (indention != value) {
+					indention = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Indention)));
+				}
+			}
+		}
+
+		private int tabSize = 4;
+		public int TabSize {
+			get { return tabSize; }
+			set {
+				if (tabSize != value) {
+					tabSize = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TabSize)));
+				}
+			}
+		}
+
+		private LeadingWhitespace leadingWhitespace = LeadingWhitespace.Tabs;
+		public LeadingWhitespace LeadingWhitespace {
+			get { return leadingWhitespace; }
+			set {
+				if (leadingWhitespace != value) {
+					leadingWhitespace = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeadingWhitespace)));
+				}
+			}
+		}
+
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		private bool enabled = true;
@@ -143,6 +187,23 @@ namespace scfeu
 				if (!string.IsNullOrWhiteSpace(s.Encoding))
 					Encoding = Encoding.GetEncoding(s.Encoding);
 			} catch { }
+			try {
+				if (!string.IsNullOrWhiteSpace(s.Indention))
+					Indention = int.Parse(s.Indention);
+			} catch { }
+			try {
+				if (!string.IsNullOrWhiteSpace(s.TrailingWhitespace))
+					RemoveTrailingWhitespace = bool.Parse(s.TrailingWhitespace);
+			} catch { }
+			try {
+				if (!string.IsNullOrWhiteSpace(s.LeadingWhitespace))
+					LeadingWhitespace = (LeadingWhitespace)Enum.Parse(typeof(LeadingWhitespace), s.LeadingWhitespace);
+			} catch { }
+			try {
+				if (!string.IsNullOrWhiteSpace(s.TabSize))
+					tabSize = int.Parse(s.TabSize);
+			} catch { }
+
 		}
 
 		internal void SaveTo(Settings s) {
@@ -153,6 +214,10 @@ namespace scfeu
 				s.ExcludePattern = ExcludePattern;
 			s.LineBreak = LineBreak.ToString();
 			s.Encoding = Encoding.WebName;
+			s.Indention = Indention.ToString();
+			s.TrailingWhitespace = removeTrailingWhitespace.ToString();
+			s.LeadingWhitespace = leadingWhitespace.ToString();
+			s.TabSize = tabSize.ToString();
 		}
 	}
 }

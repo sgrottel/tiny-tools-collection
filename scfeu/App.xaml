@@ -6,5 +6,6 @@
 			 StartupUri="MainWindow.xaml">
 	<Application.Resources>
 		<local:EnumDescriptionConverter x:Key="EnumDescriptionConverter" />
+		<local:EnumBooleanConverter x:Key="EnumBooleanConverter" />
 	</Application.Resources>
 </Application>

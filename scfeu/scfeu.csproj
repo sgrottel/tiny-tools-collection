@@ -81,9 +81,11 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DemoJob.cs" />
+    <Compile Include="EnumBooleanConverter.cs" />
     <Compile Include="EnumDescriptionConverter.cs" />
     <Compile Include="IJob.cs" />
     <Compile Include="JobSetup.cs" />
+    <Compile Include="LeadingWhitespace.cs" />
     <Compile Include="LineBreak.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

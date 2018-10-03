@@ -82,5 +82,53 @@ namespace scfeu.Properties {
                 this["Encoding"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Indention {
+            get {
+                return ((string)(this["Indention"]));
+            }
+            set {
+                this["Indention"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LeadingWhitespace {
+            get {
+                return ((string)(this["LeadingWhitespace"]));
+            }
+            set {
+                this["LeadingWhitespace"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string TrailingWhitespace {
+            get {
+                return ((string)(this["TrailingWhitespace"]));
+            }
+            set {
+                this["TrailingWhitespace"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string TabSize {
+            get {
+                return ((string)(this["TabSize"]));
+            }
+            set {
+                this["TabSize"] = value;
+            }
+        }
     }
 }

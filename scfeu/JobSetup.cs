@@ -15,6 +15,7 @@ namespace scfeu
 			= "*.c;*.cpp;*.cxx;*.cc;*.tli;*.tlh;*.h;*.hh;*.hpp;*.hxx;*.hh;*.inl;*.ipp;*.rc;*.resx;*.idl;*.asm;*.inc;" // C++ project and source files
 			+ "*.cs;*.resx;*.resw;*.xsd;*.wsdl;*.xaml;*.xml;*.htm;*.html;*.css;" // C# project and source files
 			+ "*.frg;*.vrt;*.geo;*.comp;*.tessctrl;*.tesseval;" // MORF shader files
+			+ "*.glsl;*.frag;*.vert;*.geom;*.tesc;*.tese;" // Other known glsl files
 			+ "*.md;*.txt"; // General text files
 		public const string DefaultExcludePattern = "*.sln;.git;.vs";
 

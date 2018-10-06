@@ -202,8 +202,22 @@ namespace scfeu {
 			} catch { }
 		}
 
+		private Scanned.RootDirectory root = null;
+		internal Scanned.RootDirectory RootDir {
+			get { return root; }
+			set {
+				if (root != value) {
+					root = value;
+					filesTreeView.ItemsSource = new Scanned.RootDirectory[] { root };
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RootDir)));
+				}
+			}
+		}
+
 		private void ScanDirectoryButton_Click(object sender, RoutedEventArgs e) {
-			IJob j = new DemoJob();
+			CollectFilesJob j = new CollectFilesJob();
+			j.JobSetup = JobSetup?.Clone();
+			RootDir = j.Root = new Scanned.RootDirectory() { Path = JobSetup?.Directory };
 			Job = j;
 		}
 

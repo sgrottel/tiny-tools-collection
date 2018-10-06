@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace scfeu
 {
@@ -19,13 +20,18 @@ namespace scfeu
 				work();
 				Progress = 1.0;
 			} catch (ThreadAbortException) {
-			} catch {
+			} catch (Exception e) {
+				MessageBox.Show("ERROR: " + e.ToString(), "scfeu", MessageBoxButton.OK, MessageBoxImage.Error);
 			} finally {
 				Running = false;
 				try {
 					FireDone();
 				} catch { }
 			}
+		}
+
+		protected void Dispatch(Action a) {
+			Application.Current.Dispatcher.BeginInvoke(a, System.Windows.Threading.DispatcherPriority.Background, null);
 		}
 
 		public override void Start() {

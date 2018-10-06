@@ -17,7 +17,9 @@ namespace scfeu
 			+ "*.frg;*.vrt;*.geo;*.comp;*.tessctrl;*.tesseval;" // MORF shader files
 			+ "*.glsl;*.frag;*.vert;*.geom;*.tesc;*.tese;" // Other known glsl files
 			+ "*.md;*.txt"; // General text files
-		public const string DefaultExcludePattern = "*.sln;.git;.vs";
+		public const string DefaultExcludePattern
+			= ".git;.vs;" // scm
+			+ "*.sln;packages;obj;bin;Win32;x64"; // Visual studio
 
 		private string dir;
 		public string Directory {
@@ -202,6 +204,20 @@ namespace scfeu
 			s.TrailingWhitespace = removeTrailingWhitespace.ToString();
 			s.LeadingWhitespace = leadingWhitespace.ToString();
 			s.TabSize = tabSize.ToString();
+		}
+
+		public JobSetup Clone() {
+			JobSetup s = new JobSetup();
+			s.Directory = Directory;
+			s.IncludePattern = IncludePattern;
+			s.ExcludePattern = ExcludePattern;
+			s.LineBreak = LineBreak;
+			s.Encoding = (Encoding)Encoding?.Clone();
+			s.removeTrailingWhitespace = removeTrailingWhitespace;
+			s.leadingWhitespace = leadingWhitespace;
+			s.tabSize = tabSize;
+
+			return s;
 		}
 	}
 }

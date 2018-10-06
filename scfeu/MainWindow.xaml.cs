@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Shell;
 
 namespace scfeu {
 	/// <summary>
@@ -54,7 +55,9 @@ namespace scfeu {
 					value.Done += (object s, EventArgs a) => { if (Job == s) Job = null; };
 					value.PropertyChanged += (object s, PropertyChangedEventArgs a) => {
 						PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobProgress)));
+						PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobProgressPercent)));
 						PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobIndeterminate)));
+						PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobProgressState)));
 					};
 
 					IsUiInteractive = false;
@@ -70,11 +73,21 @@ namespace scfeu {
 				}
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Job)));
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobProgress)));
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobProgressPercent)));
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobIndeterminate)));
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JobProgressState)));
 			}
 		}
-		public int JobProgress { get { return (int)(1000.0 * ((job != null) ? Math.Min(1.0, Math.Max(0.0, job.Progress)) : 0.0)); } }
+		public int JobProgress { get { return (int)(1000.0 * JobProgressPercent); } }
+		public double JobProgressPercent { get { return ((job != null) ? Math.Min(1.0, Math.Max(0.0, job.Progress)) : 0.0); } }
 		public bool JobIndeterminate { get { return (job != null) ? job.Progress < 0.0 : false; } }
+		public TaskbarItemProgressState JobProgressState {
+			get {
+				if (job == null) return TaskbarItemProgressState.None;
+				if (job.Progress < 0.0) return TaskbarItemProgressState.Indeterminate;
+				return TaskbarItemProgressState.Normal;
+			}
+		}
 
 		public MainWindow() {
 			InitializeComponent();

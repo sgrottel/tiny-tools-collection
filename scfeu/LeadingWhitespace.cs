@@ -10,7 +10,8 @@ namespace scfeu {
 		Keep,
 		Tabs,
 		Spaces,
-		MajorityVote
+		MajorityVoteTabs,
+		MajorityVoteSpaces,
 	}
 
 }

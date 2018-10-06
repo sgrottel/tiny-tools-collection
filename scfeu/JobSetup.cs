@@ -86,17 +86,6 @@ namespace scfeu
 			}
 		}
 
-		private int indention = 4;
-		public int Indention {
-			get { return indention; }
-			set {
-				if (indention != value) {
-					indention = value;
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Indention)));
-				}
-			}
-		}
-
 		private int tabSize = 4;
 		public int TabSize {
 			get { return tabSize; }
@@ -108,7 +97,7 @@ namespace scfeu
 			}
 		}
 
-		private LeadingWhitespace leadingWhitespace = LeadingWhitespace.Tabs;
+		private LeadingWhitespace leadingWhitespace = LeadingWhitespace.MajorityVoteTabs;
 		public LeadingWhitespace LeadingWhitespace {
 			get { return leadingWhitespace; }
 			set {
@@ -188,10 +177,6 @@ namespace scfeu
 					Encoding = Encoding.GetEncoding(s.Encoding);
 			} catch { }
 			try {
-				if (!string.IsNullOrWhiteSpace(s.Indention))
-					Indention = int.Parse(s.Indention);
-			} catch { }
-			try {
 				if (!string.IsNullOrWhiteSpace(s.TrailingWhitespace))
 					RemoveTrailingWhitespace = bool.Parse(s.TrailingWhitespace);
 			} catch { }
@@ -214,7 +199,6 @@ namespace scfeu
 				s.ExcludePattern = ExcludePattern;
 			s.LineBreak = LineBreak.ToString();
 			s.Encoding = Encoding.WebName;
-			s.Indention = Indention.ToString();
 			s.TrailingWhitespace = removeTrailingWhitespace.ToString();
 			s.LeadingWhitespace = leadingWhitespace.ToString();
 			s.TabSize = tabSize.ToString();

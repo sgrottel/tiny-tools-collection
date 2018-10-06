@@ -7,6 +7,9 @@
 		mc:Ignorable="d"
 		xmlns:behaviors="clr-namespace:WPFTextBoxAutoComplete;assembly=WPFTextBoxAutoComplete"
 		Title="scfeu" Width="1280" Height="720" AllowDrop="True" DragOver="window_DragOver" Drop="window_Drop" Closed="window_Closed">
+	<Window.TaskbarItemInfo>
+		<TaskbarItemInfo ProgressState="{Binding ElementName=window, Path=JobProgressState, Mode=OneWay}" ProgressValue="{Binding ElementName=window, Path=JobProgressPercent, Mode=OneWay}" />
+	</Window.TaskbarItemInfo>
 
 	<Grid Margin="5">
 		<Grid.RowDefinitions>
@@ -118,9 +121,6 @@
 				<GroupBox Margin="3" Header="Leading Whitespace">
 					<StackPanel>
 						<StackPanel Orientation="Horizontal">
-							<Label>Indention</Label>
-							<TextBox Width="50px" Text="{Binding JobSetup.Indention,ElementName=window,Mode=TwoWay}" VerticalContentAlignment="Center"></TextBox>
-							<Label Margin="0,0,20,0">characters</Label>
 							<Label>Tab Size</Label>
 							<TextBox Width="50px" Text="{Binding JobSetup.TabSize,ElementName=window,Mode=TwoWay}" VerticalContentAlignment="Center"/>
 							<Label>characters</Label>
@@ -128,7 +128,8 @@
 						<RadioButton Margin="3" IsChecked="{Binding JobSetup.LeadingWhitespace,ElementName=window,Mode=TwoWay,Converter={StaticResource EnumBooleanConverter},ConverterParameter={x:Static local:LeadingWhitespace.Keep} }">Keep</RadioButton>
 						<RadioButton Margin="3" IsChecked="{Binding JobSetup.LeadingWhitespace,ElementName=window,Mode=TwoWay,Converter={StaticResource EnumBooleanConverter},ConverterParameter={x:Static local:LeadingWhitespace.Spaces} }">Ensure Spaces</RadioButton>
 						<RadioButton Margin="3" IsChecked="{Binding JobSetup.LeadingWhitespace,ElementName=window,Mode=TwoWay,Converter={StaticResource EnumBooleanConverter},ConverterParameter={x:Static local:LeadingWhitespace.Tabs} }">Ensure Tabs</RadioButton>
-						<RadioButton Margin="3" IsChecked="{Binding JobSetup.LeadingWhitespace,ElementName=window,Mode=TwoWay,Converter={StaticResource EnumBooleanConverter},ConverterParameter={x:Static local:LeadingWhitespace.MajorityVote} }">Make consistent (majority vote)</RadioButton>
+						<RadioButton Margin="3" IsChecked="{Binding JobSetup.LeadingWhitespace,ElementName=window,Mode=TwoWay,Converter={StaticResource EnumBooleanConverter},ConverterParameter={x:Static local:LeadingWhitespace.MajorityVoteTabs} }">Make consistent (majority vote; prefer Tabs)</RadioButton>
+						<RadioButton Margin="3" IsChecked="{Binding JobSetup.LeadingWhitespace,ElementName=window,Mode=TwoWay,Converter={StaticResource EnumBooleanConverter},ConverterParameter={x:Static local:LeadingWhitespace.MajorityVoteSpaces} }">Make consistent (majority vote; prefer Spaces)</RadioButton>
 					</StackPanel>
 				</GroupBox>
 			</StackPanel>

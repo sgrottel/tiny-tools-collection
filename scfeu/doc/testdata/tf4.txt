@@ -1,0 +1,2 @@
+Die qu�lende Frage bleibt, wie weit man es treiben muss, damit dieses Encoding erkannt wird.
+This is a test text �߀		win1252 no bom

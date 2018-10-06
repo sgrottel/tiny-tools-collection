@@ -78,6 +78,10 @@ namespace scfeu {
 
 		public MainWindow() {
 			InitializeComponent();
+			if (string.IsNullOrEmpty(Properties.Settings.Default.Directory)) {
+				Properties.Settings.Default.Upgrade();
+				Properties.Settings.Default.Save();
+			}
 
 			var lineBreakStyles = typeof(LineBreak).GetEnumValues();
 			Array.Sort(lineBreakStyles, new LineBreakComparer());

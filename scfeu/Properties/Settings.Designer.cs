@@ -130,5 +130,17 @@ namespace scfeu.Properties {
                 this["TabSize"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string WriteNoBOM {
+            get {
+                return ((string)(this["WriteNoBOM"]));
+            }
+            set {
+                this["WriteNoBOM"] = value;
+            }
+        }
     }
 }

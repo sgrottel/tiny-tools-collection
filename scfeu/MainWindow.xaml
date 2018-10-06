@@ -118,6 +118,7 @@
 						</ComboBox.ItemTemplate>
 					</ComboBox>
 				</Grid>
+				<CheckBox Content="Omit BOM when writing" Margin="3" IsChecked="{Binding JobSetup.WriteNoBOM,ElementName=window,Mode=TwoWay}"/>
 				<CheckBox Content="Remove Trailing Whitespace" Margin="3" IsChecked="{Binding JobSetup.RemoveTrailingWhitespace,ElementName=window,Mode=TwoWay}"/>
 				<GroupBox Margin="3" Header="Leading Whitespace">
 					<StackPanel>

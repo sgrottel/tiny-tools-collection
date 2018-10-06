@@ -77,6 +77,17 @@ namespace scfeu
 			}
 		}
 
+		private bool noBOM = true;
+		public bool WriteNoBOM {
+			get { return noBOM; }
+			set {
+				if (noBOM != value) {
+					noBOM = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WriteNoBOM)));
+				}
+			}
+		}
+
 		private bool removeTrailingWhitespace = true;
 		public bool RemoveTrailingWhitespace {
 			get { return removeTrailingWhitespace; }
@@ -190,6 +201,10 @@ namespace scfeu
 				if (!string.IsNullOrWhiteSpace(s.TabSize))
 					tabSize = int.Parse(s.TabSize);
 			} catch { }
+			try {
+				if (!string.IsNullOrWhiteSpace(s.WriteNoBOM))
+					WriteNoBOM = bool.Parse(s.WriteNoBOM);
+			} catch { }
 
 		}
 
@@ -204,6 +219,7 @@ namespace scfeu
 			s.TrailingWhitespace = removeTrailingWhitespace.ToString();
 			s.LeadingWhitespace = leadingWhitespace.ToString();
 			s.TabSize = tabSize.ToString();
+			s.WriteNoBOM = noBOM.ToString();
 		}
 
 		public JobSetup Clone() {
@@ -216,7 +232,7 @@ namespace scfeu
 			s.removeTrailingWhitespace = removeTrailingWhitespace;
 			s.leadingWhitespace = leadingWhitespace;
 			s.tabSize = tabSize;
-
+			s.WriteNoBOM = noBOM;
 			return s;
 		}
 	}

@@ -76,10 +76,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Include="AbstractJob.cs" />
+    <Compile Include="AbstractJobThread.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="CollectFilesJob.cs" />
     <Compile Include="DemoJob.cs" />
     <Compile Include="EnumBooleanConverter.cs" />
     <Compile Include="EnumDescriptionConverter.cs" />

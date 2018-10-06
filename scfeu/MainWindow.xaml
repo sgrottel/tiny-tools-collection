@@ -136,7 +136,7 @@
 
 			<WrapPanel Orientation="Horizontal" Margin="0,0,0,3">
 				<Button Margin="0,0,3,0" MinHeight="26" Padding="5,1" Click="ScanDirectoryButton_Click" IsEnabled="{Binding ElementName=window, Path=JobSetup.CanScanDir}">Scan Directory</Button>
-				<Button Padding="5,1" IsEnabled="{Binding ElementName=window, Path=JobSetup.CanFixFiles}">Fix Files</Button>
+				<Button Padding="5,1" IsEnabled="{Binding ElementName=window, Path=JobSetup.CanFixFiles}" Click="FixFilesButton_Click">Fix Files</Button>
 			</WrapPanel>
 		</StackPanel>
 		<Grid Grid.Row="1">

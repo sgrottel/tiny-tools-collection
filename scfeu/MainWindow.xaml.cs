@@ -66,7 +66,7 @@ namespace scfeu {
 
 				} else {
 					if (job == null) return;
-					if (job.running) throw new InvalidOperationException();
+					if (job.Running) throw new InvalidOperationException();
 					IsUiInteractive = true;
 					job = null;
 
@@ -107,11 +107,6 @@ namespace scfeu {
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
-
-		private void ScanDirectoryButton_Click(object sender, RoutedEventArgs e) {
-			IJob j = new DemoJob();
-			Job = j;
-		}
 
 		private void window_DragOver(object sender, DragEventArgs e) {
 			e.Effects = DragDropEffects.None;
@@ -205,6 +200,16 @@ namespace scfeu {
 				JobSetup?.SaveTo(Properties.Settings.Default);
 				Properties.Settings.Default.Save();
 			} catch { }
+		}
+
+		private void ScanDirectoryButton_Click(object sender, RoutedEventArgs e) {
+			IJob j = new DemoJob();
+			Job = j;
+		}
+
+		private void FixFilesButton_Click(object sender, RoutedEventArgs e) {
+			IJob j = new DemoJob();
+			Job = j;
 		}
 	}
 }

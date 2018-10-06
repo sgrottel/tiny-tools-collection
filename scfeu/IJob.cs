@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace scfeu {
 
-	public interface IJob : INotifyPropertyChanged {
+	public interface IJob: INotifyPropertyChanged {
 
 		double Progress { get; }
-		bool running { get; }
+		bool Running { get; }
 
 		event EventHandler Done;
 

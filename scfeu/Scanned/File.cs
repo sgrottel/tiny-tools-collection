@@ -116,7 +116,19 @@ namespace scfeu.Scanned
 						if (cdet.Confidence > 0.85) {
 							try {
 								Encoding e = Encoding.GetEncoding(cdet.Charset);
-								// TODO: if e is us-Ascii but never uses 8 bit, change to utf-8 without bom
+								// if e is us-Ascii but never uses 8 bit, change to utf-8 without bom
+								if (e == Encoding.ASCII) {
+									bool allSmall = true;
+									fs.Seek(0, SeekOrigin.Begin);
+									byte[] data = new byte[fs.Length];
+									int bl = fs.Read(data, 0, data.Length);
+									for (int i = 0; i < bl; ++i) {
+										if (data[i] > 127) allSmall = false;
+									}
+									if (allSmall) {
+										e = Encoding.UTF8;
+									}
+								}
 								return e;
 							} catch {
 								throw;

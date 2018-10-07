@@ -192,7 +192,7 @@
 				<DataTemplate DataType="{x:Type local_Scanned:File}">
 					<StackPanel Orientation="Horizontal">
 						<CheckBox IsChecked="{Binding Selected}" IsEnabled="{Binding Enabled}" Margin="0,0,3,0" />
-						<TextBlock Text="{Binding Name}" />
+						<TextBlock Text="{Binding Name}" MinWidth="150"/>
 						<TextBlock Margin="15,3,0,0" FontSize="9">
 							<Run Text="[Encoding:" />
 							<Run Text="{Binding EncodingName,Mode=OneWay}" FontWeight="Bold"/>

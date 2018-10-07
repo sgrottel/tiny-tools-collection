@@ -207,10 +207,22 @@ namespace scfeu {
 			get { return root; }
 			set {
 				if (root != value) {
+					if (root != null) {
+						root.PropertyChanged -= Root_PropertyChanged;
+					}
 					root = value;
+					if (root != null) {
+						root.PropertyChanged += Root_PropertyChanged;
+					}
 					filesTreeView.ItemsSource = new Scanned.RootDirectory[] { root };
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RootDir)));
 				}
+			}
+		}
+
+		private void Root_PropertyChanged(object sender, PropertyChangedEventArgs e) {
+			if (string.Equals(e?.PropertyName, nameof(Scanned.RootDirectory.SelectedFiles))) {
+				JobSetup.SelectedFiles = RootDir.SelectedFiles;
 			}
 		}
 

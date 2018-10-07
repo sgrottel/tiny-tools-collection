@@ -139,7 +139,7 @@ namespace scfeu
 		private bool canScanDir = false;
 		public bool CanScanDir {
 			get { return canScanDir; }
-			set {
+			private set {
 				if (canScanDir != value) {
 					canScanDir = value;
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanScanDir)));
@@ -155,7 +155,7 @@ namespace scfeu
 		private bool canFixFiles = false;
 		public bool CanFixFiles {
 			get { return canFixFiles; }
-			set {
+			private set {
 				if (canFixFiles != value) {
 					canFixFiles = value;
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanFixFiles)));
@@ -163,9 +163,21 @@ namespace scfeu
 			}
 		}
 
+		private int selFiles = 0;
+		public int SelectedFiles {
+			get { return selFiles; }
+			set {
+				if (selFiles != value) {
+					selFiles = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedFiles)));
+					evalCanFixFiles();
+				}
+			}
+		}
+
 		private void evalCanFixFiles() {
 			CanFixFiles = enabled
-				&& false; // TODO: Implement
+				&& (selFiles > 0);
 		}
 
 		internal void LoadFrom(Settings s) {

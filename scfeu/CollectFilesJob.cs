@@ -73,6 +73,7 @@ namespace scfeu
 					if (MatchesExcludes(file.Name)) continue;
 
 					Scanned.File f = new Scanned.File() { Name = file.Name };
+					f.PropertyChanged += Root.File_PropertyChanged;
 					files.Add(new Tuple<FileInfo, Scanned.File>(file, f));
 					Dispatch(() => { dir.Item2.Children.SortIn(f); });
 				}

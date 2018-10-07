@@ -21,6 +21,13 @@ namespace scfeu.Scanned {
 			}
 		}
 
+		public void AllFiles(bool select) {
+			foreach (Element e in Children) {
+				(e as Directory)?.AllFiles(select);
+				File f = e as File;
+				if (f != null) f.Selected = select;
+			}
+		}
 	}
 
 }

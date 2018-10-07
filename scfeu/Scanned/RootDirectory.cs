@@ -49,5 +49,20 @@ namespace scfeu.Scanned
 				SelectedFiles = (int)countSelFilesRec(this);
 			}
 		}
+
+		private static void getSelectedFiles(List<string> files, Directory dir, string path) {
+			foreach (Element e in dir.Children) {
+				Directory d = e as Directory;
+				if (d != null) getSelectedFiles(files, d, System.IO.Path.Combine(path, d.Name));
+				File f = e as File;
+				if (f != null && f.Selected) files.Add(System.IO.Path.Combine(path, f.Name));
+			}
+		}
+
+		internal string[] GetSelectedFiles() {
+			List<string> s = new List<string>();
+			getSelectedFiles(s, this, Path);
+			return s.ToArray();
+		}
 	}
 }

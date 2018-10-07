@@ -75,6 +75,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="FixFilesJob.cs" />
     <Compile Include="Scanned\Element.cs" />
     <Compile Include="Scanned\File.cs" />
     <Compile Include="Scanned\RootDirectory.cs" />

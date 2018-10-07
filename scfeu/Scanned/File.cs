@@ -81,9 +81,9 @@ namespace scfeu.Scanned
 			get {
 				if (indentSpaces == 0 && indentTabs == 0) return "?";
 				if (indentSpaces == 0) return "Tab";
-				if (indentTabs == 0) return "Spc";
-				if (indentSpaces > indentTabs) return "Spc " + indentSpaces.ToString() + "; Tab " + indentTabs.ToString();
-				return "Tab " + indentTabs.ToString() + "; Spc " + indentSpaces.ToString();
+				if (indentTabs == 0) return "Space";
+				if (indentSpaces > indentTabs) return "Space " + indentSpaces.ToString() + "; Tab " + indentTabs.ToString();
+				return "Tab " + indentTabs.ToString() + "; Space " + indentSpaces.ToString();
 			}
 		}
 
@@ -94,9 +94,8 @@ namespace scfeu.Scanned
 			}
 		}
 
-		internal void Analyse(string path) {
+		internal static Encoding GuessEncoding(string path) {
 			using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read)) {
-				Encoding = null;
 				{
 					Ude.CharsetDetector cdet = new Ude.CharsetDetector();
 					cdet.Feed(fs);
@@ -104,7 +103,7 @@ namespace scfeu.Scanned
 					if (cdet.Charset != null) {
 						if (cdet.Confidence > 0.85) {
 							try {
-								Encoding = Encoding.GetEncoding(cdet.Charset);
+								return Encoding.GetEncoding(cdet.Charset);
 							} catch {
 								throw;
 							}
@@ -112,6 +111,11 @@ namespace scfeu.Scanned
 					}
 				}
 			}
+			return null;
+		}
+
+		internal void Analyse(string path) {
+			Encoding = GuessEncoding(path);
 
 			if (Encoding != null) {
 				string content = System.IO.File.ReadAllText(path, Encoding);

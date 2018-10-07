@@ -213,6 +213,7 @@ namespace scfeu {
 					root = value;
 					if (root != null) {
 						root.PropertyChanged += Root_PropertyChanged;
+						if (JobSetup != null) JobSetup.SelectedFiles = root.SelectedFiles;
 					}
 					filesTreeView.ItemsSource = new Scanned.RootDirectory[] { root };
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RootDir)));
@@ -222,7 +223,7 @@ namespace scfeu {
 
 		private void Root_PropertyChanged(object sender, PropertyChangedEventArgs e) {
 			if (string.Equals(e?.PropertyName, nameof(Scanned.RootDirectory.SelectedFiles))) {
-				JobSetup.SelectedFiles = RootDir.SelectedFiles;
+				if (JobSetup != null) JobSetup.SelectedFiles = RootDir.SelectedFiles;
 			}
 		}
 
@@ -234,8 +235,17 @@ namespace scfeu {
 		}
 
 		private void FixFilesButton_Click(object sender, RoutedEventArgs e) {
-			IJob j = new DemoJob();
+			FixFilesJob j = new FixFilesJob();
+			j.Setup = JobSetup?.Clone();
+			j.Files = RootDir?.GetSelectedFiles();
 			Job = j;
+		}
+
+		private void SelectNoFilesButton_Click(object sender, RoutedEventArgs e) {
+			RootDir?.AllFiles(false);
+		}
+		private void SelectAllFilesButton_Click(object sender, RoutedEventArgs e) {
+			RootDir?.AllFiles(true);
 		}
 	}
 }

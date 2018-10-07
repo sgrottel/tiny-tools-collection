@@ -238,6 +238,7 @@ namespace scfeu {
 			FixFilesJob j = new FixFilesJob();
 			j.Setup = JobSetup?.Clone();
 			j.Files = RootDir?.GetSelectedFiles();
+			j.Done += (object o, EventArgs ea) => { RootDir?.RescanFiles(); };
 			Job = j;
 		}
 

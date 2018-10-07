@@ -64,5 +64,22 @@ namespace scfeu.Scanned
 			getSelectedFiles(s, this, Path);
 			return s.ToArray();
 		}
+
+		private static void rescanFiles(Directory dir, string path) {
+			foreach (Element e in dir.Children) {
+				Directory d = e as Directory;
+				if (d != null) rescanFiles(d, System.IO.Path.Combine(path, d.Name));
+				File f = e as File;
+				if (f != null) {
+					bool s = f.Selected;
+					f.Analyse(System.IO.Path.Combine(path, f.Name));
+					f.Selected = s;
+				}
+			}
+		}
+
+		internal void RescanFiles() {
+			rescanFiles(this, Path);
+		}
 	}
 }

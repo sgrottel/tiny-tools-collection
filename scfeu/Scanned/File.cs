@@ -160,6 +160,9 @@ namespace scfeu.Scanned
 				string content = System.IO.File.ReadAllText(path, Encoding);
 
 				int status = 0;
+				cntUnixNL = 0;
+				cntMacNL = 0;
+				cntWinNL = 0;
 				foreach (char c in content) {
 					switch (status) {
 						case 0:
@@ -176,6 +179,8 @@ namespace scfeu.Scanned
 				FirePropertyChanged(nameof(LineBreakInfo));
 
 				string[] lines = content.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+				indentSpaces = 0;
+				indentTabs = 0;
 				foreach (string l in lines) {
 					if (string.IsNullOrEmpty(l)) continue;
 					if (char.IsWhiteSpace(l.Last())) {
@@ -194,7 +199,6 @@ namespace scfeu.Scanned
 			}
 
 			Enabled = true;
-			Selected = Encoding != null;
 		}
 
 	}

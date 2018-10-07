@@ -67,8 +67,8 @@ namespace scfeu {
 				} else {
 					if (job == null) return;
 					if (job.Running) throw new InvalidOperationException();
-					IsUiInteractive = true;
 					job = null;
+					IsUiInteractive = true;
 
 				}
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Job)));
@@ -209,6 +209,7 @@ namespace scfeu {
 				if (root != value) {
 					if (root != null) {
 						root.PropertyChanged -= Root_PropertyChanged;
+						if (JobSetup != null) JobSetup.SelectedFiles = 0;
 					}
 					root = value;
 					if (root != null) {
@@ -231,6 +232,7 @@ namespace scfeu {
 			CollectFilesJob j = new CollectFilesJob();
 			j.JobSetup = JobSetup?.Clone();
 			RootDir = j.Root = new Scanned.RootDirectory() { Path = JobSetup?.Directory };
+			j.Done += (object o, EventArgs ea) => { Root_PropertyChanged(RootDir, new PropertyChangedEventArgs(nameof(Scanned.RootDirectory.SelectedFiles))); };
 			Job = j;
 		}
 

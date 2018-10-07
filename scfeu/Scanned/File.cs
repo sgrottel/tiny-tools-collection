@@ -53,8 +53,20 @@ namespace scfeu.Scanned
 			}
 		}
 
+		private bool hasBom = false;
+		public bool WithBom {
+			get { return hasBom; }
+			set {
+				if (hasBom != value) {
+					hasBom = value;
+					FirePropertyChanged(nameof(WithBom));
+					FirePropertyChanged(nameof(EncodingName));
+				}
+			}
+		}
+
 		public string EncodingName {
-			get { return encoding == null ? "Unknown / Binary" : encoding.WebName; }
+			get { return encoding == null ? "Unknown / Binary" : (encoding.WebName + (hasBom ? " (BOM)" : "")); }
 		}
 
 		public string LineBreakInfo {
@@ -103,7 +115,9 @@ namespace scfeu.Scanned
 					if (cdet.Charset != null) {
 						if (cdet.Confidence > 0.85) {
 							try {
-								return Encoding.GetEncoding(cdet.Charset);
+								Encoding e = Encoding.GetEncoding(cdet.Charset);
+								// TODO: if e is us-Ascii but never uses 8 bit, change to utf-8 without bom
+								return e;
 							} catch {
 								throw;
 							}
@@ -118,6 +132,19 @@ namespace scfeu.Scanned
 			Encoding = GuessEncoding(path);
 
 			if (Encoding != null) {
+				WithBom = false;
+				byte[] bom = Encoding.GetPreamble();
+				if (bom != null && bom.Length > 0) {
+					byte[] fbom = new byte[bom.Length];
+					using (var f = System.IO.File.OpenRead(path)) {
+						f.Read(fbom, 0, bom.Length);
+						f.Close();
+					}
+					if (fbom.SequenceEqual(bom)) {
+						WithBom = true;
+					}
+				}
+
 				string content = System.IO.File.ReadAllText(path, Encoding);
 
 				int status = 0;

@@ -34,8 +34,26 @@ namespace scfeu.Scanned {
 
 namespace scfeu {
 	static internal class DirectoryUtil {
+
+		static private int Compare(Scanned.Element e1, Scanned.Element e2) {
+			if (e1 is Scanned.Directory && e2 is Scanned.File) return -1;
+			if (e2 is Scanned.Directory && e1 is Scanned.File) return 1;
+
+			return string.Compare(e1.Name, e2.Name, true);
+		}
+
 		static internal void SortIn(this ObservableCollection<Scanned.Element> col, Scanned.Element e) {
-			// TODO: Implement sorted insert
+			if (col.Count <= 0) { col.Add(e); return; }
+
+			if (Compare(col.Last(), e) < 0) { col.Add(e); return; }
+
+			for (int i = 0; i < col.Count; ++i) {
+				if (Compare(col[i], e) > 0) {
+					col.Insert(i, e);
+					return;
+				}
+			}
+
 			col.Add(e);
 		}
 	}

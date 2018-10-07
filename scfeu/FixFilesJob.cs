@@ -27,6 +27,55 @@ namespace scfeu {
 			}
 		}
 
+		private Encoding secondGuess(byte[] inData, Encoding enc) {
+			try {
+				string s = enc.GetString(inData);
+				int good = 0;
+				int bad = 0;
+				foreach (char c in s) {
+					bool g = false;
+					switch (char.GetUnicodeCategory(c)) {
+						case System.Globalization.UnicodeCategory.UppercaseLetter: g = true; break;
+						case System.Globalization.UnicodeCategory.LowercaseLetter: g = true; break;
+						case System.Globalization.UnicodeCategory.TitlecaseLetter: g = true; break;
+						case System.Globalization.UnicodeCategory.ModifierLetter: g = true; break;
+						case System.Globalization.UnicodeCategory.OtherLetter: g = true; break;
+						case System.Globalization.UnicodeCategory.NonSpacingMark: break;
+						case System.Globalization.UnicodeCategory.SpacingCombiningMark: break;
+						case System.Globalization.UnicodeCategory.EnclosingMark: g = true; break;
+						case System.Globalization.UnicodeCategory.DecimalDigitNumber: g = true; break;
+						case System.Globalization.UnicodeCategory.LetterNumber: g = true; break;
+						case System.Globalization.UnicodeCategory.OtherNumber: break;
+						case System.Globalization.UnicodeCategory.SpaceSeparator: g = true; break;
+						case System.Globalization.UnicodeCategory.LineSeparator: g = true; break;
+						case System.Globalization.UnicodeCategory.ParagraphSeparator: g = true; break;
+						case System.Globalization.UnicodeCategory.Control: g = (c == '\n') || (c == '\r'); break;
+						case System.Globalization.UnicodeCategory.Format: break;
+						case System.Globalization.UnicodeCategory.Surrogate: break;
+						case System.Globalization.UnicodeCategory.PrivateUse: break;
+						case System.Globalization.UnicodeCategory.ConnectorPunctuation: g = true; break;
+						case System.Globalization.UnicodeCategory.DashPunctuation: g = true; break;
+						case System.Globalization.UnicodeCategory.OpenPunctuation: g = true; break;
+						case System.Globalization.UnicodeCategory.ClosePunctuation: g = true; break;
+						case System.Globalization.UnicodeCategory.InitialQuotePunctuation: g = true; break;
+						case System.Globalization.UnicodeCategory.FinalQuotePunctuation: g = true; break;
+						case System.Globalization.UnicodeCategory.OtherPunctuation: g = true; break;
+						case System.Globalization.UnicodeCategory.MathSymbol: g = true; break;
+						case System.Globalization.UnicodeCategory.CurrencySymbol: g = true; break;
+						case System.Globalization.UnicodeCategory.ModifierSymbol: g = true; break;
+						case System.Globalization.UnicodeCategory.OtherSymbol: break;
+						case System.Globalization.UnicodeCategory.OtherNotAssigned: break;
+					}
+					if (g) good++; else bad++;
+				}
+
+				double ratio = (double)bad / (double)(bad + good);
+				if (ratio < 0.1) return enc;
+			} catch {
+			}
+			return null;
+		}
+
 		private void fixFile(string file) {
 			string[] nlWin = new string[] { "\r\n" };
 			char[] nlOther = new char[] { '\r', '\n' };
@@ -36,6 +85,11 @@ namespace scfeu {
 			byte[] inData = System.IO.File.ReadAllBytes(file);
 
 			// read lines from file
+			if (inEnc == null) inEnc = secondGuess(inData, Encoding.UTF8);
+			if (inEnc == null) inEnc = secondGuess(inData, Encoding.ASCII);
+			if (inEnc == null) inEnc = secondGuess(inData, Encoding.Default);
+			if (inEnc == null) throw new Exception("Failed to load data as text");
+
 			string[] lines = null;
 			{
 				int dataStart = 0;

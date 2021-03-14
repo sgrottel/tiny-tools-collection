@@ -11,20 +11,24 @@ namespace Redate
 	public class FileInfoData
 	{
 		public string Path { get; set; }
-		public long Length { get; set; }
-		public DateTime WriteTime { get; set; }
-		public FileAttributes Attributes { get; set; }
-		public string Md5Hash { get; set; }
+		public long Length { get; set; } = 0;
+		public DateTime WriteTime { get; set; } = DateTime.MinValue;
+		public FileAttributes Attributes { get; set; } = 0;
+		public string Md5Hash { get; set; } = null;
 
 		public FileInfoData(string fn)
 		{
-			if (!File.Exists(fn)) throw new FileNotFoundException("Cannot create FileInfoData for non-existing file", fn);
 			Path = fn;
-			FileInfo fi = new FileInfo(fn);
+			if (File.Exists(Path)) Collect();
+		}
+
+		public void Collect()
+		{
+			if (!File.Exists(Path)) throw new FileNotFoundException("Cannot create FileInfoData for non-existing file", Path);
+			FileInfo fi = new FileInfo(Path);
 			Length = fi.Length;
 			WriteTime = fi.LastWriteTimeUtc;
 			Attributes = fi.Attributes;
-			Md5Hash = null;
 		}
 
 		public void ComputeMd5Hash()
@@ -45,6 +49,11 @@ namespace Redate
 			{
 				Path = Path.Substring(v.Length);
 			}
+		}
+
+		internal void PathToAbsolute(string targetDir)
+		{
+			Path = System.IO.Path.Combine(targetDir, Path);
 		}
 	}
 }

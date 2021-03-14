@@ -26,11 +26,11 @@ namespace Redate
 				switch (cmd.RunMode)
 				{
 					case RunMode.Init:
+						Console.WriteLine("Init");
 						{
-							FileCollectionInfoData files = new FileCollectionInfoData();
-
 							Console.WriteLine("Collecting Data");
 							string targetDir = System.IO.Path.GetDirectoryName(cmd.RedateFile) + '\\';
+							FileCollectionInfoData files = new FileCollectionInfoData();
 							files.Collect(cmd.SourceDirs);
 							files.SourceDirsToRelative(targetDir);
 
@@ -52,7 +52,34 @@ namespace Redate
 						break;
 
 					case RunMode.Run:
-						throw new NotImplementedException();
+						Console.WriteLine("Run");
+						{
+							Console.WriteLine("Loading " + System.IO.Path.GetFileName(cmd.RedateFile));
+							FileCollectionInfoData knownFiles = JsonConvert.DeserializeObject<FileCollectionInfoData>(System.IO.File.ReadAllText(cmd.RedateFile));
+							string targetDir = System.IO.Path.GetDirectoryName(cmd.RedateFile) + '\\';
+							knownFiles.SourceDirsToAbsolute(targetDir);
+							foreach (var f in knownFiles.Files) f.PathToAbsolute(targetDir);
+
+							Console.WriteLine("Collecting Data");
+							FileCollectionInfoData files = new FileCollectionInfoData();
+							files.Collect(knownFiles.SourceDirs);
+							Console.WriteLine("Compute MD5s");
+							foreach (var f in files.Files) f.ComputeMd5Hash();
+
+							Console.WriteLine("Updating");
+							knownFiles.Update(files);
+
+							Console.WriteLine("Saving " + System.IO.Path.GetFileName(cmd.RedateFile));
+							knownFiles.SourceDirsToRelative(targetDir);
+							foreach (var f in knownFiles.Files) f.PathToRelative(targetDir);
+							knownFiles.FileDate = DateTime.Now;
+							JsonSerializerSettings s = new JsonSerializerSettings();
+							s.Culture = CultureInfo.InvariantCulture;
+							s.Formatting = Formatting.Indented;
+							System.IO.File.WriteAllText(cmd.RedateFile, JsonConvert.SerializeObject(knownFiles, s), new UTF8Encoding(false));
+
+						}
+						Console.WriteLine("Done");
 						break;
 					case RunMode.FileReg:
 						RegisterFileType();

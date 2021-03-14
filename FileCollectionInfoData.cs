@@ -51,6 +51,84 @@ namespace Redate
 				}
 			}
 		}
+
+		internal void SourceDirsToAbsolute(string targetDir)
+		{
+			for (int i = 0; i < SourceDirs.Length; ++i)
+			{
+				SourceDirs[i] = System.IO.Path.Combine(targetDir, SourceDirs[i]);
+			}
+		}
+
+		internal void Update(FileCollectionInfoData files)
+		{
+			// this is the old/known state
+			// files is the potentially new state
+
+			// Update:
+			//   File only in this --> delete
+			//   File only in files --> add
+			//   Files in both
+			//     length inequal --> files
+			//     md5 inequal --> files
+			//       use known --> set date & attributes on existing file
+
+			Console.WriteLine();
+			List<FileInfoData> kfs = new List<FileInfoData>();
+			foreach (FileInfoData fid in Files)
+			{
+				Console.Write(fid.Path + " - ");
+
+				FileInfoData newfid = files.Files.FirstOrDefault((FileInfoData i) => { return i.Path.Equals(fid.Path, StringComparison.InvariantCultureIgnoreCase); });
+				if (newfid == null)
+				{
+					Console.WriteLine("Removed");
+					continue; // skip fid, will kill it
+				}
+
+				if (newfid.Length != fid.Length)
+				{
+					kfs.Add(newfid);
+					Console.WriteLine("Size changed");
+					continue;
+				}
+				if (!newfid.Md5Hash.Equals(fid.Md5Hash, StringComparison.InvariantCultureIgnoreCase))
+				{
+					kfs.Add(newfid);
+					Console.WriteLine("Content changed");
+					continue;
+				}
+
+				// length and md5 are equal
+				if (newfid.Attributes != fid.Attributes || newfid.WriteTime != fid.WriteTime)
+				{
+					Console.WriteLine("Restoring Date and Attributes");
+					// set file info
+					System.IO.File.SetLastWriteTimeUtc(fid.Path, fid.WriteTime);
+					System.IO.File.SetAttributes(fid.Path, fid.Attributes);
+
+					// update and take
+					newfid.Collect();
+					kfs.Add(newfid);
+					continue;
+				}
+
+				Console.WriteLine("Unchanged");
+				kfs.Add(fid);
+			}
+
+			foreach (FileInfoData fid in files.Files)
+			{
+				FileInfoData oldfid = Files.FirstOrDefault((FileInfoData i) => { return i.Path.Equals(fid.Path, StringComparison.InvariantCultureIgnoreCase); });
+				if (oldfid != null) continue; // already there
+				Console.WriteLine(fid.Path + " - Added");
+				kfs.Add(fid); // new --> add
+			}
+
+			Console.WriteLine();
+
+			Files = kfs.ToArray();
+		}
 	}
 
 }

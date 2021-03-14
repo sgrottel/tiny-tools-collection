@@ -14,7 +14,7 @@ namespace Redate
 
 		public string RedateFile { get; private set; } = null;
 
-		public string[] Source { get; private set; } = null;
+		public string[] SourceDirs { get; private set; } = null;
 
 		public CmdLineParser(string[] args)
 		{
@@ -33,8 +33,8 @@ namespace Redate
 			if (args.Length < 2) throw new ArgumentException("You need to specify a 'redate' file");
 			RedateFile = args[1];
 
-			Source = args.AsSpan(2).ToArray();
-			if (Source.Length == 0 && RunMode == Program.RunMode.Init) throw new ArgumentException("You need to specify source information for ' init'");
+			SourceDirs = args.AsSpan(2).ToArray();
+			if (SourceDirs.Length == 0 && RunMode == Program.RunMode.Init) throw new ArgumentException("You need to specify source directories information for 'init'");
 		}
 
 	}

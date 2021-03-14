@@ -19,6 +19,7 @@ namespace Redate
 		static int Main(string[] args)
 		{
 			Console.WriteLine("Redate");
+
 			try
 			{
 				CmdLineParser cmd = new CmdLineParser(args);
@@ -99,9 +100,58 @@ namespace Redate
 			catch (Exception ex)
 			{
 				Console.Error.WriteLine("Fatal error: " + ex);
+				WaitBeforeClosingConsole();
 				return -1;
 			}
+
+			WaitBeforeClosingConsole();
 			return 0;
+		}
+
+		private static void WaitBeforeClosingConsole()
+		{
+			if (!IsSelfhostedConsole) return;
+			Wait(defaultTimeoutSeconds);
+		}
+
+		const int defaultTimeoutSeconds = 20;
+
+		[System.Runtime.InteropServices.DllImport("kernel32.dll")]
+		private static extern int GetConsoleProcessList(int[] buffer, int size);
+
+		public static bool IsSelfhostedConsole {
+			get {
+				return GetConsoleProcessList(new int[2], 2) <= 1;
+			}
+		}
+
+		public static void Wait(int timeoutSeconds)
+		{
+			if (timeoutSeconds == 0) return;
+			if (Console.IsOutputRedirected) return;
+
+			while (Console.KeyAvailable) Console.ReadKey();
+
+			Console.Write("Hit any key to continue...");
+
+			if (timeoutSeconds < 0)
+			{
+				Console.ReadKey();
+			}
+			else
+			{
+				DateTime start = DateTime.Now;
+				while (((int)(DateTime.Now - start).TotalSeconds) < timeoutSeconds)
+				{
+					Console.Write("\rHit any key to continue... {0} ", timeoutSeconds - (int)(DateTime.Now - start).TotalSeconds);
+					if (Console.KeyAvailable) break;
+					System.Threading.Thread.Sleep(10);
+				}
+				Console.Write("\rHit any key to continue...     ");
+			}
+
+			while (Console.KeyAvailable) Console.ReadKey();
+			Console.WriteLine();
 		}
 
 	}

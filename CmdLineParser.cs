@@ -26,7 +26,7 @@ namespace Redate
 				case "init": RunMode = Program.RunMode.Init; break;
 				case "run": RunMode = Program.RunMode.Run; break;
 				case "reg": RunMode = Program.RunMode.FileReg; return; // no more args
-				case "unreg": RunMode = Program.RunMode.FileUnreg; break; // no more args
+				case "unreg": RunMode = Program.RunMode.FileUnreg; return; // no more args
 				default: throw new ArgumentException("Run mode must be 'init' or 'run'. Found: " + args[0]);
 			}
 

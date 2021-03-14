@@ -82,10 +82,14 @@ namespace Redate
 						Console.WriteLine("Done");
 						break;
 					case RunMode.FileReg:
-						RegisterFileType();
+						Console.WriteLine("File Type Registration");
+						FileTypeReg.Register();
+						Console.WriteLine("Done");
 						break;
 					case RunMode.FileUnreg:
-						UnregisterFileType();
+						Console.WriteLine("File Type Unregistration");
+						FileTypeReg.Unregister();
+						Console.WriteLine("Done");
 						break;
 					default:
 						throw new NotImplementedException();
@@ -98,16 +102,6 @@ namespace Redate
 				return -1;
 			}
 			return 0;
-		}
-
-		private static void RegisterFileType()
-		{
-			throw new NotImplementedException();
-		}
-
-		private static void UnregisterFileType()
-		{
-			throw new NotImplementedException();
 		}
 
 	}

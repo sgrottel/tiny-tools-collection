@@ -1,0 +1,36 @@
+version: 1.0.0.{build}
+image: Visual Studio 2019
+
+configuration:
+- Release
+- Debug
+
+platform: Any CPU
+
+before_build:
+  - nuget restore
+
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '{version}'
+  version_prefix: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
+
+build:
+  project: .\Redate.sln
+  verbosity: minimal
+
+for:
+  -
+    matrix:
+      only:
+        - configuration: Release
+    after_build:
+    - ps: .\publish-release.ps1 -version $env:APPVEYOR_BUILD_VERSION
+    artifacts:
+    - path: .\bin\Release\Redate*.zip
+      name: redate

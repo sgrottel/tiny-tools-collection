@@ -10,7 +10,23 @@ platform: Any CPU
 before_build:
   - nuget restore
 
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '{version}'
+  version_prefix: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
+
 build:
   project: .\Redate.sln
-  publish_core_console: true
   verbosity: minimal
+
+after_build:
+- ps: .\publish-release.ps1
+
+artifacts:
+- path: .\bin\Release\*\Publish\*
+  name: redate

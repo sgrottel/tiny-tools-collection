@@ -30,7 +30,7 @@ for:
       only:
         - configuration: Release
     after_build:
-    - ps: .\publish-release.ps1 -version '{version}'
+    - ps: .\publish-release.ps1 -version $env:APPVEYOR_BUILD_VERSION
     artifacts:
     - path: .\bin\Release\Redate*.zip
       name: redate

@@ -3,6 +3,8 @@
 
 Rewrite dates of files.
 
+[![Build status](https://ci.appveyor.com/api/projects/status/dbkm60f719k2eho8?svg=true)](https://ci.appveyor.com/project/s_grottel/redate)
+
 Uses _redate_ files to memorize the state, i.e. size, file attributes, content hash, and last write date, of files within input source directories.
 The tool can then reset file attributes and last write date of files, which have been rewritten with the same content as before, i.e. same size and same content hash.
 

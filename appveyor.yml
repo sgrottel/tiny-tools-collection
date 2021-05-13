@@ -1,0 +1,16 @@
+version: 1.0.0.{build}
+image: Visual Studio 2019
+
+configuration:
+- Release
+- Debug
+
+platform: Any CPU
+
+before_build:
+  - nuget restore
+
+build:
+  project: .\Redate.sln
+  publish_core_console: true
+  verbosity: minimal

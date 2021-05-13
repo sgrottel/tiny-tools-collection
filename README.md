@@ -1,4 +1,5 @@
 # Redate
+![Redate Icon](images/redate_128x.png)
 
 Rewrite dates of files.
 
@@ -27,7 +28,24 @@ The following subsections provide details about the possible commands.
 .\Redate.exe init <redate-file> <source-directories>
 ```
 
-TODO
+This will create and initialize the `redate-file`.
+
+The file name extension `.redate` is **not** automatically added.
+Remember to write it yourself.
+                         
+You will need to specify one or more `source-directories`.
+Those should be full file paths!
+
+Redate, will now crawl all source directories recursively, and write the state of all files found in those directories into the redate JSON file.
+This state includes the _file size_, _last write date_, _file attributes_, and _md5 hash_ of the files' contents.
+If the source directories are in sub directories from the location the `.redate` file is being created, then the file names will be stored as relative paths.
+Else, the files will be stored in absolute paths.
+
+It is not supported to have the `.redate` file located in one of the source directories.
+Doing so might result in undefined behavior.
+
+MD5 hashes will be computed for all files in the source directories.
+If you have larger files or many files, this might be a slow process.
 
 
 ### Run a Redate
@@ -35,7 +53,17 @@ TODO
 .\Redate.exe run <redate-file>
 ```
 
-TODO
+When you run a redate, the source directories specified within the `.redate` file are crawled recursively for all files.
+For all files the state within the file system and the stored stated within in the `.redate` file is compared.
+
+* _New_ files only present in the file system will be added to the stored state.
+* _Deleted_ files will also removed from the stored state.
+* For _existing_ files, the _size_, and _content hash_ will be compared.
+    * If the file is _unchanged_, the _last write date_ in the file system will be reset to the value stored in the `.redate` file.
+    * If the file is _changed_, the stored state is updated. 
+
+After this process, files which have been written or re-created, but have the same content as before, will be reset to their previous _last write date_.
+This recreates the appearance of the original file.
 
 
 ### Register the Redate File Type

@@ -22,7 +22,21 @@ namespace Redate
 
 			try
 			{
-				CmdLineParser cmd = new CmdLineParser(args);
+				CmdLineParser cmd = null;
+				try
+				{
+					cmd = new CmdLineParser(args);
+				}
+				catch
+				{
+					Console.WriteLine();
+					Console.WriteLine("Error parsing command line.");
+					Console.WriteLine();
+
+					CmdLineParser.PrintHelp();
+
+					throw;
+				}
 
 				switch (cmd.RunMode)
 				{

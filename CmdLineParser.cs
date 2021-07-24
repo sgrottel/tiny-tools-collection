@@ -37,6 +37,26 @@ namespace Redate
 			if (SourceDirs.Length == 0 && RunMode == Program.RunMode.Init) throw new ArgumentException("You need to specify source directories information for 'init'");
 		}
 
+		static public void PrintHelp()
+		{
+			Console.WriteLine("Syntax:");
+			Console.WriteLine("\tredate.exe init <file.redate> <input ...>");
+			Console.WriteLine("\tredate.exe run <file.redate>");
+			Console.WriteLine("\tredate.exe reg");
+			Console.WriteLine("\tredate.exe unreg");
+			Console.WriteLine();
+			Console.WriteLine("Init");
+			Console.WriteLine("Specify redate file to be created, and one or multiple input source directories.");
+			Console.WriteLine();
+			Console.WriteLine("Run");
+			Console.WriteLine("Specify redate file to run.");
+			Console.WriteLine();
+			Console.WriteLine("Reg/Unreg");
+			Console.WriteLine("Registers redate file type in windows registry, or unregisters the redate file type.");
+			Console.WriteLine("This must likely be run with elevated priviliges.");
+			Console.WriteLine();
+		}
+
 	}
 
 }

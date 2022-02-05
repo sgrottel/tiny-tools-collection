@@ -1,7 +1,7 @@
 # KeePass HotKey
 Wrapper utility to open a KeePass DB or trigger the Auto-Type Feature
 
-<img src="./KeePass_Square_BW.ico" alt="KeePass_Square_BW" width="64px" style="float: right" />
+<img src="./KeePass_Square_BW.ico" alt="KeePass_Square_BW" width="64px" />
 
 This utility is _very_ specific to my use case:
 

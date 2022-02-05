@@ -17,14 +17,35 @@
 // limitations under the License.
 //
 
-#define VC_EXTRALEAN
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <tchar.h>
+#include "Common.h"
+#include "Config.h"
 
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
+void reportException(std::string const& msgUtf8) {
+	_tstringstream text;
+	text << _T("Error: ") << fromUtf8<TCHAR>(msgUtf8.c_str());
 
-	MessageBox(NULL, _T("Hello World"), _T("KeePass'HotKey"), MB_OK | MB_APPLMODAL);
+	MessageBox(NULL,
+		text.str().c_str(),
+		k_caption,
+		MB_ICONERROR | MB_OK | MB_APPLMODAL);
+}
+
+int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow) {
+	Config config;
+	try {
+		config.init(lpCmdLine);
+		if (!config.continueProgram()) return 0;
+
+
+		MessageBox(NULL, _T("Hello World"), k_caption, MB_OK | MB_APPLMODAL);
+
+	}
+	catch (std::exception const& ex) {
+		reportException(ex.what());
+	}
+	catch (...) {
+		reportException("Unexpected Exception");
+	}
 
 	return 0;
 }

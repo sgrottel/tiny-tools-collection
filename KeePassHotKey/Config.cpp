@@ -23,6 +23,7 @@
 #include <shellapi.h>
 #include <Objbase.h>
 #include <shlwapi.h>
+#include <Winerror.h>
 
 namespace {
 
@@ -58,15 +59,68 @@ namespace {
 		return true;
 	}
 
+	// https://docs.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-checktokenmembership
+	bool isUserAdmin()
+		/*++
+		Routine Description: This routine returns TRUE if the caller's
+		process is a member of the Administrators local group. Caller is NOT
+		expected to be impersonating anyone and is expected to be able to
+		open its own process and process token.
+		Arguments: None.
+		Return Value:
+		   TRUE - Caller has Administrators local group.
+		   FALSE - Caller does not have Administrators local group. --
+		*/
+	{
+		BOOL b;
+		SID_IDENTIFIER_AUTHORITY ntAuthority = SECURITY_NT_AUTHORITY;
+		PSID administratorsGroup;
+		b = AllocateAndInitializeSid(
+			&ntAuthority,
+			2,
+			SECURITY_BUILTIN_DOMAIN_RID,
+			DOMAIN_ALIAS_RID_ADMINS,
+			0, 0, 0, 0, 0, 0,
+			&administratorsGroup);
+		if (b) {
+			if (!CheckTokenMembership(NULL, administratorsGroup, &b)) {
+				b = false;
+			}
+			FreeSid(administratorsGroup);
+		}
+
+		return b != false;
+	}
+
 }
 
 void Config::init(const TCHAR* cmdLine) {
+	constexpr const TCHAR* appKeyName = _T("SOFTWARE\\SGrottel\\KeePassHotKey");
+
 
 	if (cmdLine[0] == 0) {
 		// empty command line
 		// load file and keepass from config
 
-		// TODO: load from windows registry
+		TCHAR file[MAX_PATH + 1];
+		DWORD fileLen = MAX_PATH;
+
+		LSTATUS rr = RegGetValue(HKEY_CURRENT_USER, appKeyName, _T("kdbx"), RRF_RT_REG_SZ, NULL, file, &fileLen);
+		if (rr == ERROR_SUCCESS) {
+			if (fileLen > MAX_PATH) fileLen = MAX_PATH;
+			file[fileLen] = 0;
+			m_kdbxFile = file;
+		}
+
+		TCHAR exe[MAX_PATH + 1];
+		DWORD exeLen = MAX_PATH;
+
+		rr = RegGetValue(HKEY_CURRENT_USER, appKeyName, _T("keepass"), RRF_RT_REG_SZ, NULL, exe, &exeLen);
+		if (rr == ERROR_SUCCESS) {
+			if (exeLen > MAX_PATH) exeLen = MAX_PATH;
+			exe[exeLen] = 0;
+			m_keePassExe = exe;
+		}
 
 		if (!fileExists(m_kdbxFile)) {
 			throw std::runtime_error(toUtf8((_tstring{ _T("Unable to open file:\n\"") } + m_kdbxFile + _T("\"")).c_str()));
@@ -132,15 +186,89 @@ void Config::init(const TCHAR* cmdLine) {
 				throw std::runtime_error(toUtf8((_tstring{ _T("KeePass not found or not accessible:\n\"") } + m_keePassExe + _T("\"")).c_str()));
 			}
 
-			// TODO: elevate if needed
+			// write to windows registry
+			_tstringstream error;
+			HKEY appKey;
+			bool accessDenied = false;
+			LSTATUS rr = RegCreateKeyEx(
+				HKEY_CURRENT_USER,
+				appKeyName,
+				0, NULL, 0, KEY_WRITE, NULL, &appKey, NULL);
+			if (rr == ERROR_SUCCESS) {
+				rr = RegSetValueExW(
+					appKey, _T("kdbx"), 0, REG_SZ,
+					reinterpret_cast<const BYTE*>(m_kdbxFile.c_str()),
+					static_cast<DWORD>((m_kdbxFile.size() + 1) * sizeof(TCHAR)));
+				if (rr != ERROR_SUCCESS) {
+					error << _T("\nFailed to store kdbx file value: ") << rr;
+					accessDenied |= (rr == ERROR_ACCESS_DENIED);
+				}
+				rr = RegSetValueExW(
+					appKey, _T("keepass"), 0, REG_SZ,
+					reinterpret_cast<const BYTE*>(m_keePassExe.c_str()),
+					static_cast<DWORD>((m_keePassExe.size() + 1) * sizeof(TCHAR)));
+				if (rr != ERROR_SUCCESS) {
+					error << _T("\nFailed to store keepass path value: ") << rr;
+					accessDenied |= (rr == ERROR_ACCESS_DENIED);
+				}
+				RegCloseKey(appKey);
+			}
+			else
+			{
+				error << _T("\nFailed to open/create registry key: ") << rr;
+				accessDenied |= (rr == ERROR_ACCESS_DENIED);
+			}
 
-			// TODO: write to windows registry
+			if (accessDenied) {
+				if (!isUserAdmin()) {
+					// elevate
+					TCHAR path[MAX_PATH + 1];
+					DWORD len = GetModuleFileName(NULL, path, MAX_PATH);
+					if (len > MAX_PATH) len = MAX_PATH;
+					path[len] = 0;
 
-			MessageBox(NULL,
-				(_tstringstream{} << _T("Wrote config to Windows Registry.\nFile: ") << m_kdbxFile << _T("\nKeePass: ") << m_keePassExe).str().c_str(),
-				k_caption,
-				MB_OK | MB_ICONINFORMATION);
-			m_continue = false;
+					SHELLEXECUTEINFO sei;
+					ZeroMemory(&sei, sizeof(SHELLEXECUTEINFO));
+					sei.cbSize = sizeof(SHELLEXECUTEINFO);
+
+					sei.lpVerb = L"runas"; // elevate as admin
+					sei.lpFile = path;
+					sei.lpParameters = cmdLine;
+					sei.hwnd = NULL;
+					sei.nShow = SW_NORMAL;
+
+					BOOL ser = ::ShellExecuteEx(&sei);
+
+					if (ser == TRUE) {
+						m_continue = false;
+						return;
+					}
+					else
+					{
+						error << _T("\nFailed to start application with elevated rights: ") << GetLastError();
+					}
+				}
+			}
+
+			if (error.tellp() != 0) {
+				MessageBox(NULL,
+					(_tstringstream{} << _T("ERROR: Failed to write to Windows Registry: ") << error.str()
+						<< _T("\nFile: ") << m_kdbxFile
+						<< _T("\nKeePass : ") << m_keePassExe).str().c_str(),
+					k_caption,
+					MB_OK | MB_ICONERROR);
+				m_continue = false;
+			}
+			else
+			{
+				MessageBox(NULL,
+					(_tstringstream{} << _T("Wrote config to Windows Registry.\nFile: ")
+						<< m_kdbxFile << _T("\nKeePass: ")
+						<< m_keePassExe).str().c_str(),
+					k_caption,
+					MB_OK | MB_ICONINFORMATION);
+				m_continue = false;
+			}
 			return;
 		}
 
@@ -174,6 +302,7 @@ void Config::tryFindKeePassExe() {
 	{
 		// (only works if m_kdbxFile exists)
 		HINSTANCE exe = FindExecutable(m_kdbxFile.c_str(), NULL, outPath);
+#pragma warning(suppress: 4311 4302)
 		if (reinterpret_cast<DWORD>(exe) > 32) {
 			m_keePassExe = outPath;
 			CloseHandle(exe);
@@ -192,7 +321,6 @@ void Config::tryFindKeePassExe() {
 			return;
 		}
 	}
-
 
 	// search in path
 	{

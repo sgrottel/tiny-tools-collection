@@ -19,6 +19,7 @@
 
 #include "Common.h"
 #include "Config.h"
+#include "KeePassDetector.h"
 
 void reportException(std::string const& msgUtf8) {
 	_tstringstream text;
@@ -36,6 +37,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 		config.init(lpCmdLine);
 		if (!config.continueProgram()) return 0;
 
+		KeePassDetector detector{ config };
+		detector.Detect();
 
 		MessageBox(NULL, _T("Hello World"), k_caption, MB_OK | MB_APPLMODAL);
 

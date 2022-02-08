@@ -152,11 +152,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="KeePassDetector.cpp" />
     <ClCompile Include="KeePassHotKey.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="KeePassDetector.h" />
     <ClInclude Include="Version.h" />
   </ItemGroup>
   <ItemGroup>

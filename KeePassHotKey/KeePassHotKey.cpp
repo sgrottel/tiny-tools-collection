@@ -21,6 +21,7 @@
 #include "Config.h"
 #include "KeePassDetector.h"
 #include "KeePassRunner.h"
+#include "InstanceControl.h"
 
 void reportException(std::string const& msgUtf8) {
 	_tstringstream text;
@@ -33,14 +34,14 @@ void reportException(std::string const& msgUtf8) {
 }
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow) {
-
-	// TODO: Single instance
-	// TODO: Confirmation for keePassAutoTyping
-
 	Config config;
+	InstanceControl instCtrl;
 	try {
 		config.init(lpCmdLine);
 		if (!config.continueProgram()) return 0;
+
+		bool isMainInst = instCtrl.initOrSignal();
+		if (!isMainInst) return 0;
 
 		KeePassDetector detector{ config };
 		detector.Detect();
@@ -49,6 +50,18 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 
 		if (detector.getResult() == KeePassDetector::Result::FoundOk)
 		{
+			if (config.needConfirmationForAutoType()) {
+
+				// TODO: Confirmation UI for keePassAutoTyping
+
+				instCtrl.clearSignaled();
+
+				while (!instCtrl.tryGetSignaled()) {
+					Sleep(25);
+				}
+
+			}
+
 			runner.RunAutoTypeSelected();
 		}
 		else

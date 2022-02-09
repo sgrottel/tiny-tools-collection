@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="InstanceControl.cpp" />
     <ClCompile Include="KeePassDetector.cpp" />
     <ClCompile Include="KeePassHotKey.cpp" />
     <ClCompile Include="KeePassRunner.cpp" />
@@ -159,6 +160,7 @@
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="InstanceControl.h" />
     <ClInclude Include="KeePassDetector.h" />
     <ClInclude Include="KeePassRunner.h" />
     <ClInclude Include="Version.h" />

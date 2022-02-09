@@ -1,6 +1,6 @@
 //
 // KeePassHotKey
-// KeePassDetector.h
+// KeePassRunner.h
 //
 // Copyright 2022 SGrottel (https://www.sgrottel.de)
 //
@@ -20,25 +20,16 @@
 
 class Config;
 
-class KeePassDetector
+class KeePassRunner
 {
 public:
-	enum class Result {
-		Unknown,
-		WindowNotFound,
-		ListViewNotFound,
-		NoSelection,
-		FoundOk,
-	};
+	KeePassRunner(const Config& config);
 
-	KeePassDetector(const Config& config);
+	void OpenKdbx();
 
-	void Detect();
-
-	inline Result getResult() const { return m_result; }
+	void RunAutoTypeSelected();
 
 private:
 	const Config& m_config;
-	Result m_result;
 };
 

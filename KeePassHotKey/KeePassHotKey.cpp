@@ -20,6 +20,7 @@
 #include "Common.h"
 #include "Config.h"
 #include "KeePassDetector.h"
+#include "KeePassRunner.h"
 
 void reportException(std::string const& msgUtf8) {
 	_tstringstream text;
@@ -32,6 +33,10 @@ void reportException(std::string const& msgUtf8) {
 }
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow) {
+
+	// TODO: Single instance
+	// TODO: Confirmation for keePassAutoTyping
+
 	Config config;
 	try {
 		config.init(lpCmdLine);
@@ -40,7 +45,16 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 		KeePassDetector detector{ config };
 		detector.Detect();
 
-		MessageBox(NULL, _T("Hello World"), k_caption, MB_OK | MB_APPLMODAL);
+		KeePassRunner runner{ config };
+
+		if (detector.getResult() == KeePassDetector::Result::FoundOk)
+		{
+			runner.RunAutoTypeSelected();
+		}
+		else
+		{
+			runner.OpenKdbx();
+		}
 
 	}
 	catch (std::exception const& ex) {

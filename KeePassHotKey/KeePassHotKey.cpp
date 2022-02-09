@@ -22,6 +22,7 @@
 #include "KeePassDetector.h"
 #include "KeePassRunner.h"
 #include "InstanceControl.h"
+#include "ConfirmationDialog.h"
 
 void reportException(std::string const& msgUtf8) {
 	_tstringstream text;
@@ -51,13 +52,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 		if (detector.getResult() == KeePassDetector::Result::FoundOk)
 		{
 			if (config.needConfirmationForAutoType()) {
-
-				// TODO: Confirmation UI for keePassAutoTyping
-
-				instCtrl.clearSignaled();
-
-				while (!instCtrl.tryGetSignaled()) {
-					Sleep(25);
+				ConfirmationDialog cDlg{ config, instCtrl };
+				if (!cDlg.confirm(hInstance)) {
+					return 0;
 				}
 
 			}

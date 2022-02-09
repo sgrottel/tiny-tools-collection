@@ -18,6 +18,9 @@
 //
 #pragma once
 
+// TODO: Needs to be addressed:
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+
 #include <tchar.h>
 #include <string>
 #include <sstream>

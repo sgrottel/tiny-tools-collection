@@ -96,7 +96,7 @@ namespace {
 
 void Config::init(const TCHAR* cmdLine) {
 	constexpr const TCHAR* appKeyName = _T("SOFTWARE\\SGrottel\\KeePassHotKey");
-
+	m_continue = true;
 
 	if (cmdLine[0] == 0) {
 		// empty command line
@@ -132,6 +132,13 @@ void Config::init(const TCHAR* cmdLine) {
 
 		if (!fileExists(m_keePassExe)) {
 			throw std::runtime_error(toUtf8((_tstring{ _T("KeePass not found or not accessible:\n\"") } + m_keePassExe + _T("\"")).c_str()));
+		}
+
+		DWORD dw = 0;
+		DWORD dws = sizeof(DWORD);
+		rr = RegGetValue(HKEY_CURRENT_USER, appKeyName, _T("confirmautotype"), RRF_RT_REG_DWORD, NULL, &dw, &dws);
+		if (rr == ERROR_SUCCESS) {
+			m_needConfirmationForAutoType = dw != 0;
 		}
 
 	}
@@ -209,6 +216,14 @@ void Config::init(const TCHAR* cmdLine) {
 					static_cast<DWORD>((m_keePassExe.size() + 1) * sizeof(TCHAR)));
 				if (rr != ERROR_SUCCESS) {
 					error << _T("\nFailed to store keepass path value: ") << rr;
+					accessDenied |= (rr == ERROR_ACCESS_DENIED);
+				}
+				DWORD dw = m_needConfirmationForAutoType ? 1 : 0;
+				rr = RegSetValueExW(
+					appKey, _T("confirmautotype"), 0, REG_DWORD,
+					reinterpret_cast<const BYTE*>(&dw), sizeof(DWORD));
+				if (rr != ERROR_SUCCESS) {
+					error << _T("\nFailed to store confirmautotype settings flag: ") << rr;
 					accessDenied |= (rr == ERROR_ACCESS_DENIED);
 				}
 				RegCloseKey(appKey);

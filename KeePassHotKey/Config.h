@@ -27,6 +27,7 @@ public:
 
 	inline const _tstring& getKeePassExe() const { return m_keePassExe; }
 	inline const _tstring& getKdbxFile() const { return m_kdbxFile; }
+	inline bool needConfirmationForAutoType() const { return m_needConfirmationForAutoType; }
 	inline bool continueProgram() const { return m_continue; }
 
 private:
@@ -36,6 +37,7 @@ private:
 
 	_tstring m_keePassExe;
 	_tstring m_kdbxFile;
-	bool m_continue;
+	bool m_continue = false;
+	bool m_needConfirmationForAutoType = true;
 };
 

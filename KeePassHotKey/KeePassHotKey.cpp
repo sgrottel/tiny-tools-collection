@@ -26,7 +26,7 @@
 
 void reportException(std::string const& msgUtf8) {
 	_tstringstream text;
-	text << _T("Error: ") << fromUtf8<TCHAR>(msgUtf8.c_str());
+	text << _T("Error: ") << fromUtf8(msgUtf8.c_str());
 
 	MessageBox(NULL,
 		text.str().c_str(),

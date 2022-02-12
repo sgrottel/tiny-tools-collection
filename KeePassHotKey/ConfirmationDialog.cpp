@@ -20,6 +20,7 @@
 
 #include "Config.h"
 #include "InstanceControl.h"
+#include "TraceFile.h"
 
 #include <Commctrl.h>
 
@@ -48,10 +49,17 @@ namespace {
 		case TDN_CREATED:
 			data->m_instanceControl.clearSignaled();
 			{
+				TraceFile::Instance().log(_T("ConfirmationDialog::TDN_CREATED"));
 				LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-				exStyle |= WS_EX_NOACTIVATE | WS_EX_TOPMOST;
+				exStyle |= WS_EX_TOPMOST;
 				SetWindowLongPtr(hwnd, GWL_EXSTYLE, exStyle);
 			}
+
+			// this is needed to "snuggle" the window into the foreground, even if this process is no foreground process.
+			// Ugly
+			ShowWindow(hwnd, SW_MINIMIZE);
+			ShowWindow(hwnd, SW_NORMAL);
+
 			break;
 
 		case TDN_TIMER:
@@ -81,6 +89,7 @@ ConfirmationDialog::ConfirmationDialog(const Config& config, InstanceControl& in
 }
 
 bool ConfirmationDialog::confirm(HINSTANCE hinst) {
+	TraceFile::Instance().log(_T("Asking for confirmation"));
 
 	CallbackData data{
 		m_instanceControl
@@ -103,6 +112,8 @@ bool ConfirmationDialog::confirm(HINSTANCE hinst) {
 	if (TaskDialogIndirect(&dlg, &btn, NULL, NULL) != S_OK) {
 		throw std::runtime_error("Failed to open confirmation UI");
 	}
+
+	TraceFile::Instance().log() << "Confirmation Dialog closed with " << btn;
 
 	return btn == IDOK;
 }

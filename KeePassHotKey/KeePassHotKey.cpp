@@ -23,10 +23,13 @@
 #include "KeePassRunner.h"
 #include "InstanceControl.h"
 #include "ConfirmationDialog.h"
+#include "TraceFile.h"
 
 void reportException(std::string const& msgUtf8) {
 	_tstringstream text;
 	text << _T("Error: ") << fromUtf8(msgUtf8.c_str());
+
+	TraceFile::Instance().log(text.str());
 
 	MessageBox(NULL,
 		text.str().c_str(),
@@ -38,11 +41,19 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	Config config;
 	InstanceControl instCtrl;
 	try {
+		TraceFile::Instance().log() << _T("KeePass'HotKey started");
+
 		config.init(lpCmdLine);
-		if (!config.continueProgram()) return 0;
+		if (!config.continueProgram()) {
+			TraceFile::Instance().log() << _T("config.continueProgram == false");
+			return 0;
+		}
 
 		bool isMainInst = instCtrl.initOrSignal();
-		if (!isMainInst) return 0;
+		if (!isMainInst) {
+			TraceFile::Instance().log() << _T("(isMainInst = instCtrl.initOrSignal() ) == false");
+			return 0;
+		}
 
 		KeePassDetector detector{ config };
 		detector.Detect();
@@ -51,6 +62,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 
 		if (detector.getResult() == KeePassDetector::Result::FoundOk)
 		{
+			TraceFile::Instance().log() << _T("detector.getResult() == KeePassDetector::Result::FoundOk");
 			if (config.needConfirmationForAutoType()) {
 				ConfirmationDialog cDlg{ config, instCtrl };
 				if (!cDlg.confirm(hInstance)) {
@@ -63,6 +75,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 		}
 		else
 		{
+			TraceFile::Instance().log() << _T("detector.getResult() != KeePassDetector::Result::FoundOk\n")
+				<< _T("\tinstead: ") << static_cast<uint32_t>(detector.getResult());
 			runner.OpenKdbx();
 		}
 

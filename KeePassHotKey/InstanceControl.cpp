@@ -18,6 +18,8 @@
 //
 #include "InstanceControl.h"
 
+#include "TraceFile.h"
+
 InstanceControl::~InstanceControl() {
 	deinit();
 }
@@ -34,7 +36,9 @@ bool InstanceControl::initOrSignal() {
 
 	DWORD le = GetLastError();
 	if (le == ERROR_ALREADY_EXISTS) {
-		ReleaseSemaphore(m_instanceSemaphore, 1, NULL);
+		TraceFile::Instance().log(_T("ReleaseSemaphore(m_instanceSemaphore)"));
+		BOOL rsr = ReleaseSemaphore(m_instanceSemaphore, 1, NULL);
+		TraceFile::Instance().log() << _T("\t") << rsr;
 		return false;
 	}
 

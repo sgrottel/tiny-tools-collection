@@ -17,6 +17,8 @@
 //
 #include "Config.h"
 
+#include "TraceFile.h"
+
 #include <stdexcept>
 #include <regex>
 
@@ -97,6 +99,18 @@ namespace {
 void Config::init(const TCHAR* cmdLine) {
 	constexpr const TCHAR* appKeyName = _T("SOFTWARE\\SGrottel\\KeePassHotKey");
 	m_continue = true;
+
+	{
+		TCHAR file[MAX_PATH + 1];
+		DWORD fileLen = MAX_PATH;
+
+		LSTATUS rr = RegGetValue(HKEY_CURRENT_USER, appKeyName, _T("tracefile"), RRF_RT_REG_SZ, NULL, file, &fileLen);
+		if (rr == ERROR_SUCCESS) {
+			if (fileLen > MAX_PATH) fileLen = MAX_PATH;
+			file[fileLen] = 0;
+			TraceFile::Instance().setFile(file);
+		}
+	}
 
 	if (cmdLine[0] == 0) {
 		// empty command line

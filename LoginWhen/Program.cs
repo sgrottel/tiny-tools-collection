@@ -45,12 +45,12 @@ namespace LoginWhen
 
                 DateTime date = entry.TimeGenerated;
 
-                if ((now - date).TotalDays > 14) continue;
+                if ((now - date).TotalDays > 7) continue;
 
                 events.Add(new(date, ev));
             }
 
-            events.Sort((KeyValuePair<DateTime, EventType> a, KeyValuePair<DateTime, EventType> b) => { return -a.Key.CompareTo(b.Key); });
+            events.Sort((KeyValuePair<DateTime, EventType> a, KeyValuePair<DateTime, EventType> b) => { return a.Key.CompareTo(b.Key); });
 
             IFormatProvider form = System.Globalization.CultureInfo.CreateSpecificCulture("de-de");
             int lld = events[0].Key.Day;

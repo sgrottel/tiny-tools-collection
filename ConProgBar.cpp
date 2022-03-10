@@ -21,10 +21,10 @@
 #include <thread>
 #include <chrono>
 
-using namespace std::chrono_literals;
-
 int main()
 {
+	using namespace std::chrono_literals;
+
 	std::cout << "ConProgBar Test Application\n";
 
 	sgconutil::ConProgBar<int> bar;

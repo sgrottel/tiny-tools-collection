@@ -135,6 +135,7 @@ namespace sgconutil
 
 	template<class T>
 	void ConProgBar<T>::COutReport() {
+		using namespace std::chrono_literals;
 		float v = (static_cast<float>(m_val) - static_cast<float>(m_minVal))
 			/ (static_cast<float>(m_maxVal) - static_cast<float>(m_minVal));
 		auto now = std::chrono::high_resolution_clock::now();

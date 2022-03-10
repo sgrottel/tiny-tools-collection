@@ -16,6 +16,10 @@
 // See the License for the specific language governing permissionsand
 // limitations under the License.
 //
+// ---------------------------------
+//
+// version 0.1  -  2022-03-10
+//
 #ifndef _ConProgBar_h_included_AB27DE64_
 #define _ConProgBar_h_included_AB27DE64_
 #pragma once

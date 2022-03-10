@@ -25,11 +25,11 @@ using namespace std::chrono_literals;
 
 int main()
 {
-	std::cout << "ConProgBar Test Application\n\n";
+	std::cout << "ConProgBar Test Application\n";
 
 	sgconutil::ConProgBar<int> bar;
 
-	std::cout << "Progress in 10 steps of 100ms:\n";
+	std::cout << "\nProgress in 10 steps of 100ms:\n";
 	bar.Start(0, 10, 0);
 	for (int i = 0; i < 10; ++i) {
 		bar.SetVal(i);
@@ -37,11 +37,19 @@ int main()
 	}
 	bar.Complete();
 
-	std::cout << "Progress in 10 steps of 100ms and abort at 5:\n";
-	bar.Start(0, 10, 0);
-	for (int i = 0; i < 10; ++i) {
+	std::cout << "\nProgress in 100 steps of 100ms:\n";
+	bar.Start(0, 100, 0);
+	for (int i = 0; i < 100; ++i) {
 		bar.SetVal(i);
-		if (i == 5) {
+		std::this_thread::sleep_for(100ms);
+	}
+	bar.Complete();
+
+	std::cout << "\nProgress in 10000 steps of 100ms and abort at 50:\n";
+	bar.Start(0, 10000, 0);
+	for (int i = 0; i < 10000; ++i) {
+		bar.SetVal(i);
+		if (i == 50) {
 			bar.Abort();
 			break;
 		}
@@ -49,14 +57,13 @@ int main()
 	}
 	bar.Complete(); // will be noop, because of previous abort
 
-	std::cout << "Progress in 200 steps of 1ms:\n";
+	std::cout << "\nProgress in 200 steps of ~1ms:\n";
 	bar.Start(0, 200, 0);
 	for (int i = 0; i < 200; ++i) {
 		bar.SetVal(i);
 		std::this_thread::sleep_for(1ms);
 	}
 	bar.Complete();
-
 
 	std::cout << "\nDone.\n" << std::endl;
 	return 0;

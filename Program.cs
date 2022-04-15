@@ -82,16 +82,23 @@ namespace Redate
 							foreach (var f in files.Files) f.ComputeMd5Hash();
 
 							Console.WriteLine("Updating");
-							knownFiles.Update(files);
+							bool isUpdated = knownFiles.Update(files);
 
-							Console.WriteLine("Saving " + System.IO.Path.GetFileName(cmd.RedateFile));
-							knownFiles.SourceDirsToRelative(targetDir);
-							foreach (var f in knownFiles.Files) f.PathToRelative(targetDir);
-							knownFiles.FileDate = DateTime.Now;
-							JsonSerializerSettings s = new JsonSerializerSettings();
-							s.Culture = CultureInfo.InvariantCulture;
-							s.Formatting = Formatting.Indented;
-							System.IO.File.WriteAllText(cmd.RedateFile, JsonConvert.SerializeObject(knownFiles, s), new UTF8Encoding(false));
+							if (isUpdated || cmd.ForceFileDateUpdate)
+							{
+								Console.WriteLine("Saving " + System.IO.Path.GetFileName(cmd.RedateFile));
+								knownFiles.SourceDirsToRelative(targetDir);
+								foreach (var f in knownFiles.Files) f.PathToRelative(targetDir);
+								knownFiles.FileDate = DateTime.Now;
+								JsonSerializerSettings s = new JsonSerializerSettings();
+								s.Culture = CultureInfo.InvariantCulture;
+								s.Formatting = Formatting.Indented;
+								System.IO.File.WriteAllText(cmd.RedateFile, JsonConvert.SerializeObject(knownFiles, s), new UTF8Encoding(false));
+							}
+							else
+                            {
+								Console.WriteLine("Files unchanged - No need to save.");
+                            }
 
 						}
 						Console.WriteLine("Done");

@@ -60,8 +60,13 @@ namespace Redate
 			}
 		}
 
-		internal void Update(FileCollectionInfoData files)
+		/// <summary>
+		/// </summary>
+		/// <param name="files"></param>
+		/// <returns>True if the information of any file has been updated</returns>
+		internal bool Update(FileCollectionInfoData files)
 		{
+			bool retval = false;
 			// this is the old/known state
 			// files is the potentially new state
 
@@ -83,6 +88,7 @@ namespace Redate
 				if (newfid == null)
 				{
 					Console.WriteLine("Removed");
+					retval = true;
 					continue; // skip fid, will kill it
 				}
 
@@ -90,12 +96,14 @@ namespace Redate
 				{
 					kfs.Add(newfid);
 					Console.WriteLine("Size changed");
+					retval = true;
 					continue;
 				}
 				if (!newfid.Md5Hash.Equals(fid.Md5Hash, StringComparison.InvariantCultureIgnoreCase))
 				{
 					kfs.Add(newfid);
 					Console.WriteLine("Content changed");
+					retval = true;
 					continue;
 				}
 
@@ -122,12 +130,15 @@ namespace Redate
 				FileInfoData oldfid = Files.FirstOrDefault((FileInfoData i) => { return i.Path.Equals(fid.Path, StringComparison.InvariantCultureIgnoreCase); });
 				if (oldfid != null) continue; // already there
 				Console.WriteLine(fid.Path + " - Added");
+				retval = true;
 				kfs.Add(fid); // new --> add
 			}
 
 			Console.WriteLine();
 
 			Files = kfs.ToArray();
+
+			return retval;
 		}
 	}
 

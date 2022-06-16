@@ -29,15 +29,21 @@ public:
 	inline const _tstring& getKdbxFile() const { return m_kdbxFile; }
 	inline bool needConfirmationForAutoType() const { return m_needConfirmationForAutoType; }
 	inline bool continueProgram() const { return m_continue; }
+	inline bool playStartSound() const { return m_playStartSound; }
 
 private:
+	constexpr static const TCHAR* REGKEY_APP_KEYNAME = _T("SOFTWARE\\SGrottel\\KeePassHotKey");
 
 	void showHelp();
 	void tryFindKeePassExe();
+
+	void loadFromRegistry();
+	void writeToRegistry(const TCHAR* cmdLine);
 
 	_tstring m_keePassExe;
 	_tstring m_kdbxFile;
 	bool m_continue = false;
 	bool m_needConfirmationForAutoType = true;
+	bool m_playStartSound = false;
 };
 

@@ -55,6 +55,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 			return 0;
 		}
 
+		if (config.playStartSound()) {
+			::MessageBeep(MB_OK);
+		}
+
 		KeePassDetector detector{ config };
 		detector.Detect();
 

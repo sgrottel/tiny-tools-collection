@@ -97,45 +97,12 @@ namespace {
 }
 
 void Config::init(const TCHAR* cmdLine) {
-	constexpr const TCHAR* appKeyName = _T("SOFTWARE\\SGrottel\\KeePassHotKey");
 	m_continue = true;
 
-	{
-		TCHAR file[MAX_PATH + 1];
-		DWORD fileLen = MAX_PATH;
-
-		LSTATUS rr = RegGetValue(HKEY_CURRENT_USER, appKeyName, _T("tracefile"), RRF_RT_REG_SZ, NULL, file, &fileLen);
-		if (rr == ERROR_SUCCESS) {
-			if (fileLen > MAX_PATH) fileLen = MAX_PATH;
-			file[fileLen] = 0;
-			TraceFile::Instance().setFile(file);
-		}
-	}
+	loadFromRegistry();
 
 	if (cmdLine[0] == 0) {
 		// empty command line
-		// load file and keepass from config
-
-		TCHAR file[MAX_PATH + 1];
-		DWORD fileLen = MAX_PATH;
-
-		LSTATUS rr = RegGetValue(HKEY_CURRENT_USER, appKeyName, _T("kdbx"), RRF_RT_REG_SZ, NULL, file, &fileLen);
-		if (rr == ERROR_SUCCESS) {
-			if (fileLen > MAX_PATH) fileLen = MAX_PATH;
-			file[fileLen] = 0;
-			m_kdbxFile = file;
-		}
-
-		TCHAR exe[MAX_PATH + 1];
-		DWORD exeLen = MAX_PATH;
-
-		rr = RegGetValue(HKEY_CURRENT_USER, appKeyName, _T("keepass"), RRF_RT_REG_SZ, NULL, exe, &exeLen);
-		if (rr == ERROR_SUCCESS) {
-			if (exeLen > MAX_PATH) exeLen = MAX_PATH;
-			exe[exeLen] = 0;
-			m_keePassExe = exe;
-		}
-
 		if (!fileExists(m_kdbxFile)) {
 			throw std::runtime_error(toUtf8((_tstring{ _T("Unable to open file:\n\"") } + m_kdbxFile + _T("\"")).c_str()));
 		}
@@ -148,172 +115,121 @@ void Config::init(const TCHAR* cmdLine) {
 			throw std::runtime_error(toUtf8((_tstring{ _T("KeePass not found or not accessible:\n\"") } + m_keePassExe + _T("\"")).c_str()));
 		}
 
-		DWORD dw = 0;
-		DWORD dws = sizeof(DWORD);
-		rr = RegGetValue(HKEY_CURRENT_USER, appKeyName, _T("confirmautotype"), RRF_RT_REG_DWORD, NULL, &dw, &dws);
-		if (rr == ERROR_SUCCESS) {
-			m_needConfirmationForAutoType = dw != 0;
-		}
-
+		m_continue = true;
+		return;
 	}
-	else
-	{
-		bool isMatch = false;
-		std::match_results<const TCHAR*> result;
 
-		isMatch = std::regex_match(
-			cmdLine,
-			result,
-			std::basic_regex<TCHAR>{
-			_T(R"(\s*(?:-{1,2}|/)(?:(?:help)|\?).*)"),
-				std::regex_constants::ECMAScript | std::regex_constants::icase}
-		);
-		if (isMatch) {
-			showHelp();
-			m_continue = false;
-			return;
-		}
+	// parse non-empty command line
+	bool isMatch = false;
+	std::match_results<const TCHAR*> result;
 
-		isMatch = std::regex_match(
-			cmdLine,
-			result,
-			std::basic_regex<TCHAR>{
-			_T(R"(\s*(?:-{1,2}|/)config\s+((?:[^"]\S*)|(?:"(?:(?:"")|[^"])*"))(?:\s+((?:[^"]\S*)|(?:"(?:(?:"")|[^"])*")))?.*)"),
-				std::regex_constants::ECMAScript | std::regex_constants::icase}
-		);
-		if (isMatch) {
-			m_kdbxFile = cleanup(result[1].str());
-			if (!m_kdbxFile.empty()) {
-				makeAbsolutePath(m_kdbxFile);
-				if (!fileExists(m_kdbxFile)) {
-					throw std::runtime_error(toUtf8((_tstring{ _T("Unable to open file:\n\"") } + m_kdbxFile + _T("\"")).c_str()));
-				}
-			}
-			else
-			{
-				throw std::runtime_error(toUtf8(_T("You must specify the kdbx file, the file must exist, and the user must have read access permissions.")));
-			}
-
-			m_keePassExe = cleanup(result[2].str());
-			if (!m_keePassExe.empty()) {
-				makeAbsolutePath(m_keePassExe);
-			}
-			else
-			{
-				tryFindKeePassExe();
-			}
-
-			if (!fileExists(m_keePassExe)) {
-				throw std::runtime_error(toUtf8((_tstring{ _T("KeePass not found or not accessible:\n\"") } + m_keePassExe + _T("\"")).c_str()));
-			}
-
-			// write to windows registry
-			_tstringstream error;
-			HKEY appKey;
-			bool accessDenied = false;
-			LSTATUS rr = RegCreateKeyEx(
-				HKEY_CURRENT_USER,
-				appKeyName,
-				0, NULL, 0, KEY_WRITE, NULL, &appKey, NULL);
-			if (rr == ERROR_SUCCESS) {
-				rr = RegSetValueExW(
-					appKey, _T("kdbx"), 0, REG_SZ,
-					reinterpret_cast<const BYTE*>(m_kdbxFile.c_str()),
-					static_cast<DWORD>((m_kdbxFile.size() + 1) * sizeof(TCHAR)));
-				if (rr != ERROR_SUCCESS) {
-					error << _T("\nFailed to store kdbx file value: ") << rr;
-					accessDenied |= (rr == ERROR_ACCESS_DENIED);
-				}
-				rr = RegSetValueExW(
-					appKey, _T("keepass"), 0, REG_SZ,
-					reinterpret_cast<const BYTE*>(m_keePassExe.c_str()),
-					static_cast<DWORD>((m_keePassExe.size() + 1) * sizeof(TCHAR)));
-				if (rr != ERROR_SUCCESS) {
-					error << _T("\nFailed to store keepass path value: ") << rr;
-					accessDenied |= (rr == ERROR_ACCESS_DENIED);
-				}
-				DWORD dw = m_needConfirmationForAutoType ? 1 : 0;
-				rr = RegSetValueExW(
-					appKey, _T("confirmautotype"), 0, REG_DWORD,
-					reinterpret_cast<const BYTE*>(&dw), sizeof(DWORD));
-				if (rr != ERROR_SUCCESS) {
-					error << _T("\nFailed to store confirmautotype settings flag: ") << rr;
-					accessDenied |= (rr == ERROR_ACCESS_DENIED);
-				}
-				RegCloseKey(appKey);
-			}
-			else
-			{
-				error << _T("\nFailed to open/create registry key: ") << rr;
-				accessDenied |= (rr == ERROR_ACCESS_DENIED);
-			}
-
-			if (accessDenied) {
-				if (!isUserAdmin()) {
-					// elevate
-					TCHAR path[MAX_PATH + 1];
-					DWORD len = GetModuleFileName(NULL, path, MAX_PATH);
-					if (len > MAX_PATH) len = MAX_PATH;
-					path[len] = 0;
-
-					SHELLEXECUTEINFO sei;
-					ZeroMemory(&sei, sizeof(SHELLEXECUTEINFO));
-					sei.cbSize = sizeof(SHELLEXECUTEINFO);
-
-					sei.lpVerb = L"runas"; // elevate as admin
-					sei.lpFile = path;
-					sei.lpParameters = cmdLine;
-					sei.hwnd = NULL;
-					sei.nShow = SW_NORMAL;
-
-					BOOL ser = ::ShellExecuteEx(&sei);
-
-					if (ser == TRUE) {
-						m_continue = false;
-						return;
-					}
-					else
-					{
-						error << _T("\nFailed to start application with elevated rights: ") << GetLastError();
-					}
-				}
-			}
-
-			if (error.tellp() != 0) {
-				MessageBox(NULL,
-					(_tstringstream{} << _T("ERROR: Failed to write to Windows Registry: ") << error.str()
-						<< _T("\nFile: ") << m_kdbxFile
-						<< _T("\nKeePass : ") << m_keePassExe).str().c_str(),
-					k_caption,
-					MB_OK | MB_ICONERROR);
-				m_continue = false;
-			}
-			else
-			{
-				MessageBox(NULL,
-					(_tstringstream{} << _T("Wrote config to Windows Registry.\nFile: ")
-						<< m_kdbxFile << _T("\nKeePass: ")
-						<< m_keePassExe).str().c_str(),
-					k_caption,
-					MB_OK | MB_ICONINFORMATION);
-				m_continue = false;
-			}
-			return;
-		}
-
-		throw std::runtime_error(toUtf8((_tstring{ _T("Unexpected command line:\n\"") } + cmdLine + _T("\"")).c_str()));
-
+#pragma region -help
+	isMatch = std::regex_match(
+		cmdLine,
+		result,
+		std::basic_regex<TCHAR>{
+		_T(R"(\s*(?:-{1,2}|/)(?:(?:help)|\?).*)"),
+			std::regex_constants::ECMAScript | std::regex_constants::icase}
+	);
+	if (isMatch) {
+		showHelp();
+		m_continue = false;
+		return;
 	}
+#pragma endregion
+
+#pragma region -config <file> <exe> 
+	isMatch = std::regex_match(
+		cmdLine,
+		result,
+		std::basic_regex<TCHAR>{
+		_T(R"(\s*(?:-{1,2}|/)config\s+((?:[^"]\S*)|(?:"(?:(?:"")|[^"])*"))(?:\s+((?:[^"]\S*)|(?:"(?:(?:"")|[^"])*")))?.*)"),
+			std::regex_constants::ECMAScript | std::regex_constants::icase}
+	);
+	if (isMatch) {
+		m_kdbxFile = cleanup(result[1].str());
+		if (!m_kdbxFile.empty()) {
+			makeAbsolutePath(m_kdbxFile);
+			if (!fileExists(m_kdbxFile)) {
+				throw std::runtime_error(toUtf8((_tstring{ _T("Unable to open file:\n\"") } + m_kdbxFile + _T("\"")).c_str()));
+			}
+		}
+		else
+		{
+			throw std::runtime_error(toUtf8(_T("You must specify the kdbx file, the file must exist, and the user must have read access permissions.")));
+		}
+
+		m_keePassExe = cleanup(result[2].str());
+		if (!m_keePassExe.empty()) {
+			makeAbsolutePath(m_keePassExe);
+		}
+		else
+		{
+			tryFindKeePassExe();
+		}
+
+		if (!fileExists(m_keePassExe)) {
+			throw std::runtime_error(toUtf8((_tstring{ _T("KeePass not found or not accessible:\n\"") } + m_keePassExe + _T("\"")).c_str()));
+		}
+
+		writeToRegistry(cmdLine);
+		MessageBox(NULL,
+			(_tstringstream{} << _T("Wrote config to Windows Registry.\nFile: ")
+				<< m_kdbxFile << _T("\nKeePass: ")
+				<< m_keePassExe).str().c_str(),
+			k_caption,
+			MB_OK | MB_ICONINFORMATION);
+
+		m_continue = false;
+		return;
+	}
+#pragma endregion
+
+#pragma region -startsound (off|on)
+	isMatch = std::regex_match(
+		cmdLine,
+		result,
+		std::basic_regex<TCHAR>{
+		_T(R"(\s*(?:-{1,2}|/)startsound\s+(\S+).*)"),
+			std::regex_constants::ECMAScript | std::regex_constants::icase}
+	);
+	if (isMatch) {
+		_tstring flag = result[1].str();
+		if (_tcsicmp(flag.c_str(), _T("on")) == 0) {
+			m_playStartSound = true;
+		}
+		else if (_tcsicmp(flag.c_str(), _T("off")) == 0) {
+			m_playStartSound = false;
+		}
+		else {
+			throw std::runtime_error(toUtf8((_tstring{ _T("Invalid argument to configure startsound: ") } + flag).c_str()));
+		}
+
+		writeToRegistry(cmdLine);
+		MessageBox(NULL,
+			(_tstringstream{} << _T("Wrote startsound configuration to Windows Registry: ")
+				<< (m_playStartSound ? _T("on") : _T("off"))).str().c_str(),
+			k_caption,
+			MB_OK | MB_ICONINFORMATION);
+
+		m_continue = false;
+		return;
+	}
+#pragma endregion
+
+	throw std::runtime_error(toUtf8((_tstring{ _T("Unexpected command line:\n\"") } + cmdLine + _T("\"")).c_str()));
 }
 
 void Config::showHelp() {
 	MessageBox(NULL, _T(R"(Syntax:
 
-KeePassHotKey.exe (-help|-config <file> <exe>)
+KeePassHotKey.exe (-help | -config <file> <exe> | -startsound (off|on) )
 
 Use '-help' to show this text.
 
 Use '-config' to configure the kdbx file to open and (optionally) the KeePass executable.
+
+Use '-startsound' to configure the tool to play or not to play a sound at normal start.
 
 Use without any arguments to perform standard operation:
 - open the configured kdbx file if no KeePass instance is running, or
@@ -362,4 +278,142 @@ void Config::tryFindKeePassExe() {
 	}
 
 	// seems we did not find anything.
+}
+
+void Config::loadFromRegistry() {
+	// load file and keepass from config
+	TCHAR file[MAX_PATH + 1];
+	DWORD fileLen = MAX_PATH;
+
+	LSTATUS rr = RegGetValue(HKEY_CURRENT_USER, REGKEY_APP_KEYNAME, _T("tracefile"), RRF_RT_REG_SZ, NULL, file, &fileLen);
+	if (rr == ERROR_SUCCESS) {
+		if (fileLen > MAX_PATH) fileLen = MAX_PATH;
+		file[fileLen] = 0;
+		TraceFile::Instance().setFile(file);
+	}
+
+	rr = RegGetValue(HKEY_CURRENT_USER, REGKEY_APP_KEYNAME, _T("kdbx"), RRF_RT_REG_SZ, NULL, file, &fileLen);
+	if (rr == ERROR_SUCCESS) {
+		if (fileLen > MAX_PATH) fileLen = MAX_PATH;
+		file[fileLen] = 0;
+		m_kdbxFile = file;
+	}
+
+	TCHAR exe[MAX_PATH + 1];
+	DWORD exeLen = MAX_PATH;
+
+	rr = RegGetValue(HKEY_CURRENT_USER, REGKEY_APP_KEYNAME, _T("keepass"), RRF_RT_REG_SZ, NULL, exe, &exeLen);
+	if (rr == ERROR_SUCCESS) {
+		if (exeLen > MAX_PATH) exeLen = MAX_PATH;
+		exe[exeLen] = 0;
+		m_keePassExe = exe;
+	}
+
+	DWORD dw = 0;
+	DWORD dws = sizeof(DWORD);
+	rr = RegGetValue(HKEY_CURRENT_USER, REGKEY_APP_KEYNAME, _T("confirmautotype"), RRF_RT_REG_DWORD, NULL, &dw, &dws);
+	if (rr == ERROR_SUCCESS) {
+		m_needConfirmationForAutoType = dw != 0;
+	}
+
+	dw = 0;
+	dws = sizeof(DWORD);
+	rr = RegGetValue(HKEY_CURRENT_USER, REGKEY_APP_KEYNAME, _T("startsound"), RRF_RT_REG_DWORD, NULL, &dw, &dws);
+	if (rr == ERROR_SUCCESS) {
+		m_playStartSound = dw != 0;
+	}
+}
+
+void Config::writeToRegistry(const TCHAR* cmdLine)
+{
+	_tstringstream error;
+	HKEY appKey;
+	bool accessDenied = false;
+	LSTATUS rr = RegCreateKeyEx(
+		HKEY_CURRENT_USER,
+		REGKEY_APP_KEYNAME,
+		0, NULL, 0, KEY_WRITE, NULL, &appKey, NULL);
+	if (rr == ERROR_SUCCESS) {
+
+		rr = RegSetValueExW(
+			appKey, _T("kdbx"), 0, REG_SZ,
+			reinterpret_cast<const BYTE*>(m_kdbxFile.c_str()),
+			static_cast<DWORD>((m_kdbxFile.size() + 1) * sizeof(TCHAR)));
+		if (rr != ERROR_SUCCESS) {
+			error << _T("\nFailed to store kdbx file value: ") << rr;
+			accessDenied |= (rr == ERROR_ACCESS_DENIED);
+		}
+
+		rr = RegSetValueExW(
+			appKey, _T("keepass"), 0, REG_SZ,
+			reinterpret_cast<const BYTE*>(m_keePassExe.c_str()),
+			static_cast<DWORD>((m_keePassExe.size() + 1) * sizeof(TCHAR)));
+		if (rr != ERROR_SUCCESS) {
+			error << _T("\nFailed to store keepass path value: ") << rr;
+			accessDenied |= (rr == ERROR_ACCESS_DENIED);
+		}
+
+		DWORD dw = m_needConfirmationForAutoType ? 1 : 0;
+		rr = RegSetValueExW(
+			appKey, _T("confirmautotype"), 0, REG_DWORD,
+			reinterpret_cast<const BYTE*>(&dw), sizeof(DWORD));
+		if (rr != ERROR_SUCCESS) {
+			error << _T("\nFailed to store confirmautotype settings flag: ") << rr;
+			accessDenied |= (rr == ERROR_ACCESS_DENIED);
+		}
+
+		dw = m_playStartSound ? 1 : 0;
+		rr = RegSetValueExW(
+			appKey, _T("startsound"), 0, REG_DWORD,
+			reinterpret_cast<const BYTE*>(&dw), sizeof(DWORD));
+		if (rr != ERROR_SUCCESS) {
+			error << _T("\nFailed to store startsound settings flag: ") << rr;
+			accessDenied |= (rr == ERROR_ACCESS_DENIED);
+		}
+
+		RegCloseKey(appKey);
+	}
+	else {
+		error << _T("\nFailed to open/create registry key: ") << rr;
+		accessDenied |= (rr == ERROR_ACCESS_DENIED);
+	}
+
+	if (accessDenied) {
+		if (!isUserAdmin()) {
+			// elevate
+			TCHAR path[MAX_PATH + 1];
+			DWORD len = GetModuleFileName(NULL, path, MAX_PATH);
+			if (len > MAX_PATH) len = MAX_PATH;
+			path[len] = 0;
+
+			SHELLEXECUTEINFO sei;
+			ZeroMemory(&sei, sizeof(SHELLEXECUTEINFO));
+			sei.cbSize = sizeof(SHELLEXECUTEINFO);
+
+			sei.lpVerb = L"runas"; // elevate as admin
+			sei.lpFile = path;
+			sei.lpParameters = cmdLine;
+			sei.hwnd = NULL;
+			sei.nShow = SW_NORMAL;
+
+			BOOL ser = ::ShellExecuteEx(&sei);
+
+			if (ser == TRUE) {
+				return;
+			}
+			else
+			{
+				error << _T("\nFailed to start application with elevated rights: ") << GetLastError();
+			}
+		}
+	}
+
+	if (error.tellp() != 0) {
+		std::string msg{ toUtf8((_tstringstream {} << _T("ERROR: Failed to write to Windows Registry: ") << error.str()
+			<< _T("\nFile: ") << m_kdbxFile
+			<< _T("\nKeePass : ") << m_keePassExe
+			<< _T("\nStartSound: ") << (m_playStartSound ? _T("on") : _T("off"))
+			).str().c_str()) };
+		throw std::runtime_error(msg.c_str());
+	}
 }

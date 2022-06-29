@@ -18,5 +18,13 @@
     <ClCompile Include="HWndToFront.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BringHWndToFront.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BringHWndToFront.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

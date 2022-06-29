@@ -147,7 +147,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BringHWndToFront.c" />
     <ClCompile Include="HWndToFront.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BringHWndToFront.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

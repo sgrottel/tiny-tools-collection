@@ -15,24 +15,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#ifndef _BringHWndToFront_h_included_
-#define _BringHWndToFront_h_included_
+#ifndef _HWndToFront_Version_h_included_
+#define _HWndToFront_Version_h_included_
 #pragma once
 
-#define VC_EXTRALEAN
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#define HWND_TO_FRONT_VER_MAJOR	1
+#define HWND_TO_FRONT_VER_MINOR	1
+#define HWND_TO_FRONT_VER_PATCH	0
+#define HWND_TO_FRONT_VER_BUILD	0
 
-BOOL IsForegroundHWnd(HWND hWnd);
+#define HWND_TO_FRONT_VER_YEARSTR	"2022"
 
-BOOL BringHWndToFront(HWND hWnd, BOOL okIfUnobscured);
-
-struct PreStartInfo;
-
-struct PreStartInfo* PrepareMainWndDetectionA(const char* executable);
-
-struct PreStartInfo* PrepareMainWndDetectionW(const wchar_t* executable);
-
-HWND DetectNewMainWnd(unsigned int processId, struct PreStartInfo* preStart, int timeOutMs);
-
-#endif /* _BringHWndToFront_h_included_ */
+#endif

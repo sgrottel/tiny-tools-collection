@@ -1,19 +1,47 @@
 # HWndToFront
 Utility to bring a Window to Front
 
+## Window Mode
 Syntax:
 ```ps
-HWndToFront.exe [DEC]
+HWndToFront.exe {DEC}
 ```
 ```ps
-HWndToFront.exe x[HEX]
+HWndToFront.exe x{HEX}
 ```
 Specify the [window handle (HWND)]() of the top-level window you want to pull in front either as decimal number or as hex number prefixed by an `x`
+
+Example:
+```ps
+HWndToFront.exe x00000000000509C2
+```
+Note: leading zeros are optional, e.g. from copying the handle value from another software.
+
+## Start Call Mode
+Syntax:
+```ps
+HWndToFront.exe start (in {wd}) {exec} ({args} ...)
+```
+The first argument must be the string `start`.
+
+The next two arguments can be optionally the string `in` and the path to be used as working directory.
+If omitted, the current directory will be used as working directory.
+
+The next argument is the path of the executable to run.
+Specify the executable in a way that it can be directly found, either as full path (recommended) or relative path.
+HWndToFront will *not* search for the executable using the system's path environment variable.
+
+All remaining arguments will be passed on to the specified executable when starting.
+
+Example:
+```ps
+start in C:\dev "C:\Program Files\Notepad++\notepad++.exe" "C:\dev\HWndToFront\README.md"
+```
 
 ## Build
 Open the project solution in Visual Studio 2022 (Community Edition) or newer.
 Make sure you have C/C++ Desktop development tools and a recent Windows SDK installed.
-The solution should build automatically.
+The solution should build as is.
 
 ## License
 > Copyright 2022 SGrottel (https://github.com/sgrottel/HWndToFront)

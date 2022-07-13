@@ -361,5 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-FodyWeavers.xsd
-﻿desktop.ini
+
+# Desktop.ini for folder icon
+desktop.ini

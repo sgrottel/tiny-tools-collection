@@ -20,6 +20,7 @@
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <tlhelp32.h>
 
 #include <malloc.h>
 #include <stdio.h>
@@ -220,25 +221,32 @@ static BOOL FindWindowsForProcess(HWND hWnd, struct WindowOfProcessImageNameSear
 	return TRUE;
 }
 
+#define MAX_PROCESSIDS_SIZE 1024
+
 struct WindowOfProcessIdSearch
 {
-	DWORD processId;
+	DWORD processIds[MAX_PROCESSIDS_SIZE];
+	unsigned int processIdsCount;
 	HWND hWnd;
 };
 
 static BOOL FindWindowsForProcessId(HWND hWnd, struct WindowOfProcessIdSearch* search)
 {
 	DWORD procId;
+	unsigned int i;
 	if (!IsWindowVisible(hWnd))
 	{
 		// skip invisible windows, as they are not for user interaction
 		return TRUE;
 	}
 	GetWindowThreadProcessId(hWnd, &procId);
-	if (procId == search->processId)
+	for (i = 0; i < search->processIdsCount; ++i)
 	{
-		search->hWnd = hWnd;
-		return FALSE;
+		if (procId == search->processIds[i])
+		{
+			search->hWnd = hWnd;
+			return FALSE;
+		}
 	}
 	return TRUE;
 }
@@ -266,11 +274,18 @@ HWND DetectNewMainWnd(unsigned int processId, struct PreStartInfo* preStart, int
 	HWND hWnd = 0;
 	struct WindowList* w;
 	wchar_t name[MAX_PATH + 1];
-	int z;
+	int i, z;
 	int candidateZ = MAXINT;
 	int candidate = 4;
+	HANDLE processSnapshot;
+	PROCESSENTRY32 pe32;
+	BOOLEAN found, parentFound;
 	struct WindowOfProcessIdSearch procIdWndSearch;
-	procIdWndSearch.processId = processId;
+
+	procIdWndSearch.processIds[0] = processId;
+	procIdWndSearch.processIdsCount = 1;
+
+	pe32.dwSize = sizeof(PROCESSENTRY32);
 
 	for (; wait > 0; --wait)
 	{
@@ -286,39 +301,78 @@ HWND DetectNewMainWnd(unsigned int processId, struct PreStartInfo* preStart, int
 		}
 
 		// or check for changes in the visible top-level windows of sister processes
-		if (preStart == NULL)
+		if (preStart != NULL)
 		{
-			continue;
-		}
-		for (w = preStart->windows; w != NULL; w = w->next)
-		{
-			z = WindowZ(w->hWnd);
-			memset(name, 0, MAX_PATH + 1 * sizeof(wchar_t));
-			GetWindowTextW(w->hWnd, name, MAX_PATH);
-
-			if (z < w->depth || _wcsicmp(w->title, name) != 0)
+			for (w = preStart->windows; w != NULL; w = w->next)
 			{
-				if (z <= candidateZ)
+				z = WindowZ(w->hWnd);
+				memset(name, 0, MAX_PATH + 1 * sizeof(wchar_t));
+				GetWindowTextW(w->hWnd, name, MAX_PATH);
+
+				if (z < w->depth || _wcsicmp(w->title, name) != 0)
 				{
-					candidateZ = z;
-					if (hWnd == w->hWnd)
+					if (z <= candidateZ)
 					{
-						if (--candidate <= 0)
+						candidateZ = z;
+						if (hWnd == w->hWnd)
 						{
-							break;
+							if (--candidate <= 0)
+							{
+								break;
+							}
 						}
-					}
-					else
-					{
-						hWnd = w->hWnd;
-						candidate = 4;
+						else
+						{
+							hWnd = w->hWnd;
+							candidate = 4;
+						}
 					}
 				}
 			}
 		}
+
+		// stop looking if we found anything
 		if (hWnd != NULL)
 		{
 			break;
+		}
+
+		// try to extend search to child processes
+		processSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+		if (processSnapshot != INVALID_HANDLE_VALUE)
+		{
+			if (Process32First(processSnapshot, &pe32))
+			{
+				do
+				{
+					found = parentFound = FALSE;
+					for (i = 0; i < (int)procIdWndSearch.processIdsCount; ++i)
+					{
+						if (pe32.th32ProcessID == procIdWndSearch.processIds[i])
+						{
+							found = TRUE;
+							break;
+						}
+						if (pe32.th32ParentProcessID == procIdWndSearch.processIds[i])
+						{
+							parentFound = TRUE;
+						}
+					}
+					if (found) continue;
+					if (parentFound)
+					{
+						// depending on the order of the processes in the snapshot we could
+						// either add children of children ... in one go, or not.
+						// Both is ok, as this is an interative, heuristic check anyway.
+						if (procIdWndSearch.processIdsCount < MAX_PROCESSIDS_SIZE)
+						{
+							procIdWndSearch.processIds[procIdWndSearch.processIdsCount++] = pe32.th32ProcessID;
+						}
+					}
+
+				} while (Process32Next(processSnapshot, &pe32));
+			}
+			CloseHandle(processSnapshot);
 		}
 
 	}

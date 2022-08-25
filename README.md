@@ -1,7 +1,7 @@
 # SGrottel's Tiny Tools Collection
-Assortment of tiny, tiny tools.
-
 <img align="right" src="./_doc/swiss%20army%20cheese.png" alt="Swiss Army Cheese">
+
+Assortment of tiny, tiny tools.
 
 These are independent tools.
 Each one is too tiny to justify a repository of it's own.

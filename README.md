@@ -32,5 +32,12 @@ Queries the Windows event log to print when the user sessions logged in and logg
 Some more generic documentation files, e.g. including images.
 
 ## License
-All tools are as open source as it can gets, following the [MIT license](./LICENSE), even if the individual files not state the license text.
-You are free to do anything you like.
+All tools are open source and can be used freely.
+
+In general, and explicitly for all tools not specifying a license in their subdirectory, all code within this repositiory is published under the [MIT license](./LICENSE).
+
+Some tools explicitly specify a license, mostly Apache License version 2.0.
+In those cases, consider those tools to be dual licensed under [MIT license](./LICENSE) and the explicitly specifed license.
+You can then use the tool under the terms of one of those licences, as you choose.
+
+I doubt, feel free to ask.

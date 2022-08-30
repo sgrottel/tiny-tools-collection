@@ -28,6 +28,9 @@ Can also start an application and bring that's window to front.
 ## LoginWhen
 Queries the Windows event log to print when the user sessions logged in and logged out.
 
+## StartPwsh
+Trivial tools to start Pwsh.exe and provide an icon. Because...
+
 ## _doc
 Some more generic documentation files, e.g. including images.
 

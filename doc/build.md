@@ -1,4 +1,4 @@
-# ✨ Little Starter - How to Build
+# ✨ Little Starter™ - How to Build
 
 * Open the Visual Studio Solution
 * Make sure you have the required DotNet framework tools and sdk installed.

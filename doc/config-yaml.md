@@ -1,4 +1,4 @@
-# ✨ Little Starter Config Yaml
+# ✨ Little Starter™ Config Yaml
 Create or edit a file name `LittelStarterConfig.yaml` placed in the same directory as the executable `LittleStarter.exe` of this app.
 
 The file's content needs to be set to something like this:
@@ -37,6 +37,11 @@ For files, it is recommended to specify the full file system path.
 For executables, if no path is specified, the default search behavior of the operating system will try to find the executable.
 
 The variable `isSelectedByDefault` is a boolean value, and controls whether or not this action will be selected by default when the app starts.
+
+The variable `icon` specifies the path to an image file name to be used as icon.
+You cannot specify an executable or a dll file.
+You must use and ico file or any other square image file.
+Recommended formats are `.ico` and `.png` for their capability of transparency.
 
 Further variables control details of how the processes will be spawned by the App:
 

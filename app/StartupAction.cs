@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace LittleStarter
 {
@@ -13,6 +14,9 @@ namespace LittleStarter
 
 		private bool isSelected = false;
 		private string name = "";
+		private bool isEnabled = true;
+		private Uri? iconUri = null;
+		private ImageSource? icon = null;
 		private string filename = "";
 		private string[] argumentList = Array.Empty<string>();
 		private string workingDirectory = "";
@@ -21,7 +25,10 @@ namespace LittleStarter
 
 		public bool IsSelected
 		{
-			get => isSelected;
+			get
+			{
+				return isSelected && isEnabled;
+			}
 			set
 			{
 				if (isSelected != value)
@@ -45,6 +52,44 @@ namespace LittleStarter
 			}
 		}
 
+		public bool IsEnabled
+		{
+			get => isEnabled;
+			set
+			{
+				if (isEnabled != value)
+				{
+					isEnabled = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsEnabled)));
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+				}
+			}
+		}
+
+		public Uri? IconUri
+		{
+			get => iconUri; set
+			{
+				if (iconUri != value)
+				{
+					iconUri = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IconUri)));
+				}
+			}
+		}
+
+		public ImageSource? Icon
+		{
+			get => icon;
+			set
+			{
+				if (icon != value)
+				{
+					icon = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Icon)));
+				}
+			}
+		}
 
 		public string Filename
 		{
@@ -54,6 +99,20 @@ namespace LittleStarter
 				if (filename != value)
 				{
 					filename = value;
+
+					if (System.IO.Path.IsPathFullyQualified(filename))
+					{
+						string? root = System.IO.Path.GetPathRoot(filename);
+						if (root != null)
+						{
+							bool exists = System.IO.Directory.Exists(root);
+							if (!exists)
+							{
+								IsEnabled = false;
+							}
+						}
+					}
+
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Filename)));
 				}
 			}

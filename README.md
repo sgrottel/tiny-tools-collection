@@ -1,4 +1,4 @@
-# ✨ Little Starter
+# ✨ Little Starter™
 Automate the typical "open apps &amp; files" task when you start your working session.
 
 The idea is to simplify the stuff I do (most) every time I start my days, after booting and logging into the system.
@@ -7,6 +7,18 @@ The idea is to simplify the stuff I do (most) every time I start my days, after 
 
 ## How to Use
 You need to write a [YAML configuration file (see: `doc/config-yaml.md`)](./doc/config-yaml.md).
+
+To install the tool, just download a release zip and extract all files into a dedicated folder.
+For example:
+```
+C:\tools\little-starter\
+```
+
+To auto-start the tool create a shortcut to the tool into the auto-run start menu folder for your user.
+For example:
+```
+C:\Users\#####\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\Little Starter™.lnk
+```
 
 ## How to Build
 Using Visual Studio you can use the [build instructions (see: `doc/build.md`)](./doc/build.md) for a straight forward process.

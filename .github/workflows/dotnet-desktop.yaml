@@ -1,7 +1,12 @@
 
 name: Build Action
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches:
+      - 'main'
+      - 'develop'
+  pull_request:
 
 jobs:
   build:
@@ -47,5 +52,15 @@ jobs:
       uses: actions/upload-artifact@v3.1.0
       with:
         name: little-starter-${{env.FULL_VERSION_NUMBER}}-${{matrix.configuration}}
-        path: "app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}"
+        path: |
+          app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}
+          !app/bin/**/*.pdb
+          !app/bin/**/LittleStarterConfig.yaml
         if-no-files-found: error
+
+    - name: Upload PDB Artifacts
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        name: little-starter-${{env.FULL_VERSION_NUMBER}}-${{matrix.configuration}}-pdb
+        path: app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/*.pdb
+        if-no-files-found: ignore

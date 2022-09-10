@@ -13,6 +13,7 @@ namespace LittleStarter
 
 		private bool isSelected = false;
 		private string name = "";
+		private bool isEnabled = true;
 		private string filename = "";
 		private string[] argumentList = Array.Empty<string>();
 		private string workingDirectory = "";
@@ -21,7 +22,10 @@ namespace LittleStarter
 
 		public bool IsSelected
 		{
-			get => isSelected;
+			get
+			{
+				return isSelected && isEnabled;
+			}
 			set
 			{
 				if (isSelected != value)
@@ -45,6 +49,19 @@ namespace LittleStarter
 			}
 		}
 
+		public bool IsEnabled
+		{
+			get => isEnabled;
+			set
+			{
+				if (isEnabled != value)
+				{
+					isEnabled = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsEnabled)));
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+				}
+			}
+		}
 
 		public string Filename
 		{
@@ -54,6 +71,20 @@ namespace LittleStarter
 				if (filename != value)
 				{
 					filename = value;
+
+					if (System.IO.Path.IsPathFullyQualified(filename))
+					{
+						string? root = System.IO.Path.GetPathRoot(filename);
+						if (root != null)
+						{
+							bool exists = System.IO.Directory.Exists(root);
+							if (!exists)
+							{
+								IsEnabled = false;
+							}
+						}
+					}
+
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Filename)));
 				}
 			}

@@ -35,8 +35,18 @@
             </ListBox.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Stretch">
+                    <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}">
                         <Grid>
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Opacity" Value="1"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsEnabled}" Value="False">
+                                            <Setter Property="Opacity" Value="0.5"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
                                 <ColumnDefinition/>

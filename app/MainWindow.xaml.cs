@@ -63,7 +63,8 @@ namespace app
 			Dispatcher.Invoke(() =>
 			{
 				Actions.Clear();
-				foreach (StartupAction sa in actions) {
+				foreach (StartupAction sa in actions)
+				{
 					Actions.Add(sa);
 				}
 			});
@@ -111,6 +112,7 @@ namespace app
 			{
 				foreach (StartupAction a in Actions)
 				{
+					if (!a.IsEnabled) continue;
 					if (!a.IsSelected) continue;
 
 					ProcessStartInfo psi = new ProcessStartInfo();
@@ -136,7 +138,7 @@ namespace app
 		{
 			foreach (StartupAction a in Actions)
 			{
-				a.IsSelected = true;
+				a.IsSelected = a.IsEnabled;
 			}
 		}
 

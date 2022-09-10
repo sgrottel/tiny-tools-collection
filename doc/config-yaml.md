@@ -1,4 +1,4 @@
-# ✨ Little Starter Config Yaml
+# ✨ Little Starter™ Config Yaml
 Create or edit a file name `LittelStarterConfig.yaml` placed in the same directory as the executable `LittleStarter.exe` of this app.
 
 The file's content needs to be set to something like this:

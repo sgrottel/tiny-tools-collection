@@ -59,6 +59,7 @@ namespace LittleStarter
 			public string? WorkingDirectory { get; set; }
 			public string? Verb { get; set; }
 			public bool? UseShellExecute { get; set; }
+			public bool? IsEnabled { get; set; }
 		}
 
 		private class Config
@@ -146,6 +147,11 @@ namespace LittleStarter
 						if (ac.UseShellExecute != null)
 						{
 							sa.UseShellExecute = ac.UseShellExecute.Value;
+						}
+
+						if (ac.IsEnabled != null)
+						{
+							sa.IsEnabled = ac.IsEnabled.Value;
 						}
 
 						return sa;

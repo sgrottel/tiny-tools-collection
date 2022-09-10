@@ -3,3 +3,5 @@ Automate the typical "open apps &amp; files" task when you start your working se
 
 The idea is to simplify the stuff I do (most) every time I start my days, after booting and logging into the system.
 
+[![Build Action](https://github.com/sgrottel/little-starter/actions/workflows/dotnet-desktop.yml/badge.svg)](https://github.com/sgrottel/little-starter/actions/workflows/dotnet-desktop.yml)
+

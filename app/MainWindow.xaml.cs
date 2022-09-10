@@ -132,5 +132,20 @@ namespace app
 
 		}
 
+		private void ButtonSelectAll_Click(object sender, RoutedEventArgs e)
+		{
+			foreach (StartupAction a in Actions)
+			{
+				a.IsSelected = true;
+			}
+		}
+
+		private void ButtonSelectNone_Click(object sender, RoutedEventArgs e)
+		{
+			foreach (StartupAction a in Actions)
+			{
+				a.IsSelected = false;
+			}
+		}
 	}
 }

@@ -13,12 +13,19 @@
             <ColumnDefinition Width="auto" MinWidth="192"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*" MinHeight="20"/>
             <RowDefinition Height="4"/>
             <RowDefinition Height="auto" MinHeight="64"/>
         </Grid.RowDefinitions>
 
-        <ListView Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,0,0,4">
+            <TextBlock VerticalAlignment="Center" Margin="0,0,2,0">Select:</TextBlock>
+            <Button Margin="2,0" Padding="4,1" Click="ButtonSelectAll_Click">All</Button>
+            <Button Margin="2,0" Padding="4,1" Click="ButtonSelectNone_Click">None</Button>
+        </StackPanel>
+
+        <ListView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
                   ItemsSource="{Binding Actions, Mode=OneWay}">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
@@ -48,16 +55,16 @@
             </ListView.ItemTemplate>
         </ListView>
 
-        <GridSplitter Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Stretch"/>
+        <GridSplitter Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Stretch"/>
 
-        <TextBox Grid.Row="2" Grid.Column="0" IsReadOnly="True"
+        <TextBox Grid.Row="3" Grid.Column="0" IsReadOnly="True"
                  MinLines="3" VerticalScrollBarVisibility="Visible" TextWrapping="Wrap"
                  Text="{Binding Messages, Mode=OneWay}">
         </TextBox>
 
-        <GridSplitter Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch"/>
+        <GridSplitter Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch"/>
 
-        <Button Grid.Row="2" Grid.Column="2"
+        <Button Grid.Row="3" Grid.Column="2"
                 Margin="4" Padding="64, 16"
                 HorizontalAlignment="Center" VerticalAlignment="Center"
                 Click="ButtonAction_Click">Ok</Button>

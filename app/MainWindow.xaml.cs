@@ -65,6 +65,15 @@ namespace app
 				Actions.Clear();
 				foreach (StartupAction sa in actions)
 				{
+					if (sa.IconUri != null)
+					{
+						try
+						{
+							sa.Icon = new BitmapImage(sa.IconUri);
+						}
+						catch { }
+					}
+
 					Actions.Add(sa);
 				}
 			});

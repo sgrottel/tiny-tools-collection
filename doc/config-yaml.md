@@ -38,6 +38,11 @@ For executables, if no path is specified, the default search behavior of the ope
 
 The variable `isSelectedByDefault` is a boolean value, and controls whether or not this action will be selected by default when the app starts.
 
+The variable `icon` specifies the path to an image file name to be used as icon.
+You cannot specify an executable or a dll file.
+You must use and ico file or any other square image file.
+Recommended formats are `.ico` and `.png` for their capability of transparency.
+
 Further variables control details of how the processes will be spawned by the App:
 
 * `ArgumentList`

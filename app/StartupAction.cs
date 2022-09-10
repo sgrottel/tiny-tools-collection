@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace LittleStarter
 {
@@ -14,6 +15,8 @@ namespace LittleStarter
 		private bool isSelected = false;
 		private string name = "";
 		private bool isEnabled = true;
+		private Uri? iconUri = null;
+		private ImageSource? icon = null;
 		private string filename = "";
 		private string[] argumentList = Array.Empty<string>();
 		private string workingDirectory = "";
@@ -59,6 +62,31 @@ namespace LittleStarter
 					isEnabled = value;
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsEnabled)));
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+				}
+			}
+		}
+
+		public Uri? IconUri
+		{
+			get => iconUri; set
+			{
+				if (iconUri != value)
+				{
+					iconUri = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IconUri)));
+				}
+			}
+		}
+
+		public ImageSource? Icon
+		{
+			get => icon;
+			set
+			{
+				if (icon != value)
+				{
+					icon = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Icon)));
 				}
 			}
 		}

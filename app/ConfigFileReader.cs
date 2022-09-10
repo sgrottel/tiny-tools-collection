@@ -10,6 +10,9 @@ using System.Windows.Controls;
 using YamlDotNet.Serialization.NamingConventions;
 using YamlDotNet.Serialization;
 using System.Diagnostics.Contracts;
+using System.Windows.Annotations;
+using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace LittleStarter
 {
@@ -60,6 +63,7 @@ namespace LittleStarter
 			public string? Verb { get; set; }
 			public bool? UseShellExecute { get; set; }
 			public bool? IsEnabled { get; set; }
+			public string? Icon { get; set; }
 		}
 
 		private class Config
@@ -152,6 +156,21 @@ namespace LittleStarter
 						if (ac.IsEnabled != null)
 						{
 							sa.IsEnabled = ac.IsEnabled.Value;
+						}
+
+						if (ac.Icon != null)
+						{
+							if (File.Exists(ac.Icon))
+							{
+								try
+								{
+									Dispatcher.CurrentDispatcher.Invoke(() =>
+									{
+										sa.IconUri = new Uri(ac.Icon);
+									});
+								}
+								catch { }
+							}
 						}
 
 						return sa;

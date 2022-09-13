@@ -35,6 +35,20 @@ namespace app
 
 		private ConfigFileReader configFile;
 
+		private bool loading = true;
+		public bool IsLoading
+		{
+			get => loading;
+			set
+			{
+				if (loading != value)
+				{
+					loading = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsLoading)));
+				}
+			}
+		}
+
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -76,6 +90,7 @@ namespace app
 
 					Actions.Add(sa);
 				}
+				IsLoading = false;
 			});
 		}
 
@@ -85,6 +100,7 @@ namespace app
 			Dispatcher.Invoke(() =>
 			{
 				Actions.Clear();
+				IsLoading = false;
 			});
 		}
 
@@ -94,6 +110,7 @@ namespace app
 			Dispatcher.Invoke(() =>
 			{
 				Actions.Clear();
+				IsLoading = false;
 			});
 		}
 
@@ -119,10 +136,10 @@ namespace app
 		{
 			try
 			{
-				foreach (StartupAction a in Actions)
+				Parallel.ForEach(Actions, (StartupAction a) =>
 				{
-					if (!a.IsEnabled) continue;
-					if (!a.IsSelected) continue;
+					if (!a.IsEnabled) return;
+					if (!a.IsSelected) return;
 
 					ProcessStartInfo psi = new ProcessStartInfo();
 					psi.FileName = a.Filename;
@@ -132,7 +149,7 @@ namespace app
 					psi.UseShellExecute = a.UseShellExecute;
 
 					Process.Start(psi);
-				}
+				});
 
 				Close();
 			}

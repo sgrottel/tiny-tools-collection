@@ -26,17 +26,19 @@
         </StackPanel>
 
         <ListView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
-                  ItemsSource="{Binding Actions, Mode=OneWay}">
-            <ListBox.ItemContainerStyle>
+                  ItemsSource="{Binding Actions, Mode=OneWay}" HorizontalContentAlignment="Stretch"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  >
+            <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                     <Setter Property="VerticalContentAlignment" Value="Stretch" />
                 </Style>
-            </ListBox.ItemContainerStyle>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}">
-                        <Grid>
+                        <Grid HorizontalAlignment="Stretch">
                             <Grid.Style>
                                 <Style TargetType="Grid">
                                     <Setter Property="Opacity" Value="1"/>
@@ -48,9 +50,9 @@
                                 </Style>
                             </Grid.Style>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition/>
@@ -88,6 +90,20 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+
+        <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Label.Style>
+                <Style TargetType="Label">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsLoading}" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Label.Style>
+            ⏳ Loading...
+        </Label>
 
         <GridSplitter Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Stretch"/>
 

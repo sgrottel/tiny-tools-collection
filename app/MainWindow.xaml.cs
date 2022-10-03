@@ -175,5 +175,10 @@ namespace app
 				a.IsSelected = false;
 			}
 		}
+
+		private void ButtonRefresh_Click(object sender, RoutedEventArgs e)
+		{
+			configFile.Reload();
+		}
 	}
 }

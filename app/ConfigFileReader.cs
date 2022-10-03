@@ -202,5 +202,9 @@ namespace LittleStarter
 			}
 		}
 
+		internal void Reload()
+		{
+			lastWriteTime = DateTime.MinValue + TimeSpan.FromDays(1);
+		}
 	}
 }

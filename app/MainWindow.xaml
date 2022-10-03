@@ -19,11 +19,18 @@
             <RowDefinition Height="auto" MinHeight="64"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,0,0,4">
-            <TextBlock VerticalAlignment="Center" Margin="0,0,2,0">Select:</TextBlock>
-            <Button Margin="2,0" Padding="16,6" Click="ButtonSelectAll_Click">All</Button>
-            <Button Margin="2,0" Padding="16,6" Click="ButtonSelectNone_Click">None</Button>
-        </StackPanel>
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center" Margin="0,0,2,0">Select:</TextBlock>
+                <Button Margin="2,0" Padding="16,6" Click="ButtonSelectAll_Click">🗹 All</Button>
+                <Button Margin="2,0" Padding="16,6" Click="ButtonSelectNone_Click">☐ None</Button>
+            </StackPanel>
+            <Button Grid.Column="1" Padding="12,6" Click="ButtonRefresh_Click">🗘 Refresh</Button>
+        </Grid>
 
         <ListView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
                   ItemsSource="{Binding Actions, Mode=OneWay}" HorizontalContentAlignment="Stretch"

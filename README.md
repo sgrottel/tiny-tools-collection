@@ -21,6 +21,10 @@ Little C++ helper class to fetch a call stack, e.g. used for better error report
 A c++ progress bar for console applications.
 As usually, only semi-robust, but good enough.
 
+## GithubOverview
+A powershell script to print an overview of my stuff on Github.
+[Github CLI](https://cli.github.com/) must be installed.
+
 ## HWndToFront
 Brings a window to front in Windows 11.
 Can also start an application and bring that's window to front.
@@ -29,7 +33,7 @@ Can also start an application and bring that's window to front.
 Queries the Windows event log to print when the user sessions logged in and logged out.
 
 ## StartPwsh
-Trivial tools to start Pwsh.exe and provide an icon. Because...
+Trivial tool to start Pwsh.exe and provide an icon. Because...
 
 ## _doc
 Some more generic documentation files, e.g. including images.

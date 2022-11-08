@@ -44,7 +44,7 @@
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Stretch" IsEnabled="{Binding IsEnabled}">
+                    <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" IsEnabled="{Binding IsEnabled}">
                         <Grid HorizontalAlignment="Stretch">
                             <Grid.Style>
                                 <Style TargetType="Grid">

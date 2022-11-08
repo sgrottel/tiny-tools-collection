@@ -132,7 +132,7 @@ namespace app
 			});
 		}
 
-		private void ButtonAction_Click(object sender, RoutedEventArgs e)
+		private void ButtonAction_Click(object sender, RoutedEventArgs? e)
 		{
 			try
 			{
@@ -160,7 +160,7 @@ namespace app
 
 		}
 
-		private void ButtonSelectAll_Click(object sender, RoutedEventArgs e)
+		private void ButtonSelectAll_Click(object sender, RoutedEventArgs? e)
 		{
 			foreach (StartupAction a in Actions)
 			{
@@ -168,7 +168,7 @@ namespace app
 			}
 		}
 
-		private void ButtonSelectNone_Click(object sender, RoutedEventArgs e)
+		private void ButtonSelectNone_Click(object sender, RoutedEventArgs? e)
 		{
 			foreach (StartupAction a in Actions)
 			{
@@ -176,9 +176,39 @@ namespace app
 			}
 		}
 
-		private void ButtonRefresh_Click(object sender, RoutedEventArgs e)
+		private void ButtonRefresh_Click(object sender, RoutedEventArgs? e)
 		{
 			configFile.Reload();
+		}
+
+		private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+		{
+			switch (e.Key)
+			{
+				case Key.A:
+					ButtonSelectAll_Click(sender, null);
+					e.Handled = true;
+					break;
+				case Key.N:
+					ButtonSelectNone_Click(sender, null);
+					e.Handled = true;
+					break;
+				case Key.Escape:
+					Close();
+					e.Handled = true;
+					break;
+				case Key.F5:
+					ButtonRefresh_Click(sender, null);
+					e.Handled = true;
+					break;
+				case Key.Enter:
+					if (e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control))
+					{
+						ButtonAction_Click(sender, null);
+						e.Handled = true;
+					}
+					break;
+			}
 		}
 	}
 }

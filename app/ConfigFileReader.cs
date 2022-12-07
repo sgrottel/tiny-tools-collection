@@ -29,10 +29,12 @@ namespace LittleStarter
 		public delegate void ClearConfigEventHandler(ConfigFileReader sender);
 		public delegate void ActionsLoadedEventHandler(ConfigFileReader sender, StartupAction[] startupActions);
 		public delegate void FailedLoadingEventHandler(ConfigFileReader sender, string errorMessage);
+		public delegate void LogConfigLoadedEventHandler(ConfigFileReader sender, string logsPath);
 
 		public event ClearConfigEventHandler? ClearConfig;
 		public event ActionsLoadedEventHandler? ActionsLoaded;
 		public event FailedLoadingEventHandler? FailedLoading;
+		public event LogConfigLoadedEventHandler? LogConfigLoaded;
 
 		public string Filename
 		{
@@ -66,10 +68,16 @@ namespace LittleStarter
 			public string? Icon { get; set; }
 		}
 
+		private class LogConfig
+		{
+			public string? Path { get; set; }
+		}
+
 		private class Config
 		{
 			public string? Version { get; set; }
 			public List<ActionConfig>? Actions { get; set; }
+			public LogConfig? Log { get; set;}
 		}
 
 		private void checkFile(object? state)
@@ -177,6 +185,16 @@ namespace LittleStarter
 					}).ToArray() ?? Array.Empty<StartupAction>();
 
 					ActionsLoaded?.Invoke(this, actions);
+
+					if (config.Log != null)
+					{
+						if (!string.IsNullOrEmpty(config.Log.Path))
+						{
+							config.Log.Path = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? string.Empty, config.Log.Path);
+							LogConfigLoaded?.Invoke(this, config.Log.Path);
+						}
+					}
+
 				}
 
 			}

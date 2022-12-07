@@ -17,6 +17,9 @@ actions:
   useShellExecute: true
   isSelectedByDefault: true
 
+log:
+  path: .\log
+
 ```
 
 `version` needs to be specified as `1.0`.
@@ -83,3 +86,16 @@ The `verb` triggers the `open` behavior of the respective file type.
 `useShellExecute: true` is required to force spawning the new process from the operating system's shell, instead of directly spawning the process from the App's process.
 This is required to have the `verb` being evaluated.
 Without it `filename` is always assumed to be an executable itself.
+
+## Log Files
+You can include a log path to enable writing log files:
+
+```yaml
+log:
+  path: .\log
+```
+
+A relative path will be evaluated to the directory hosting the app's executable files.
+
+Only the ten newest log files will be kept.
+Older log files will be automatically deleted.

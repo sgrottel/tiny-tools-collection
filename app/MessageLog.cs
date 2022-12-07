@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,6 +14,11 @@ namespace LittleStarter
 		private List<string> msgs = new();
 		private object sync = new();
 		private CancellationTokenSource? cancelTokenSource = null;
+
+		/// <summary>
+		/// The file system path to the directory in which the log file will be saved
+		/// </summary>
+		public string SavePath { get; set; }
 
 		public void Add(string msg)
 		{
@@ -68,8 +74,43 @@ namespace LittleStarter
 		{
 			lock (sync)
 			{
-				// TODO: Implement
-				//throw new NotImplementedException();
+				if (!Directory.Exists(SavePath)) return;
+
+				const int maxLogFiles = 10 - 1;
+				string[] files = Directory.GetFiles(SavePath);
+				if (files.Length > maxLogFiles)
+				{
+					Array.Reverse(files);
+					DateTime[] writeTimes = new DateTime[files.Length];
+					for (int i = 0; i < files.Length; ++i)
+					{
+						writeTimes[i] = File.GetLastWriteTimeUtc(files[i]);
+					}
+					Array.Sort(writeTimes, files);
+
+					for (int i = 0; i < files.Length - maxLogFiles; ++i)
+					{
+						try
+						{
+							File.Delete(files[i]);
+						}
+						catch (Exception e)
+						{
+							Add("Failed to delete old log file \"{0}\": {1}", files[i], e);
+						}
+					}
+				}
+
+				string filename = string.Format("LittleStarter_{0}.log", DateTime.Now.ToString("yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture));
+
+				using (StreamWriter writer = new StreamWriter(Path.Combine(SavePath, filename), false, new UTF8Encoding(false)))
+				{
+					foreach (string msg in msgs)
+					{
+						writer.WriteLine(msg);
+					}
+					writer.Close();
+				}
 			}
 		}
 

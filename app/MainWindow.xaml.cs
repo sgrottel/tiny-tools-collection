@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -29,7 +30,9 @@ namespace app
 
 		public ObservableCollection<StartupAction> Actions { get; } = new ObservableCollection<StartupAction>();
 
-		public string Messages { get; private set; } = "";
+		private MessageLog log;
+
+		public string Messages { get { return log.ToString(); } }
 
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -52,6 +55,8 @@ namespace app
 		public MainWindow()
 		{
 			InitializeComponent();
+			log = new MessageLog();
+			log.Updated += Log_Updated;
 
 			configFile = new ConfigFileReader(
 				System.IO.Path.Combine(
@@ -61,9 +66,18 @@ namespace app
 			configFile.ClearConfig += ConfigFile_ClearConfig;
 			configFile.FailedLoading += ConfigFile_FailedLoading;
 			configFile.ActionsLoaded += ConfigFile_ActionsLoaded;
+			configFile.LogConfigLoaded += ConfigFile_LogConfigLoaded;
 
 			InitialWindowPlacement();
 			DataContext = this;
+		}
+
+		private void Log_Updated(object? sender, EventArgs e)
+		{
+			Dispatcher.Invoke(() =>
+			{
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Messages)));
+			});
 		}
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -73,7 +87,7 @@ namespace app
 
 		private void ConfigFile_ActionsLoaded(ConfigFileReader _, StartupAction[] actions)
 		{
-			AddMessage("Actions loaded.");
+			log.Add("Actions loaded.");
 			Dispatcher.Invoke(() =>
 			{
 				Actions.Clear();
@@ -96,7 +110,7 @@ namespace app
 
 		private void ConfigFile_ClearConfig(ConfigFileReader _)
 		{
-			AddMessage("No configuration loaded");
+			log.Add("No configuration loaded");
 			Dispatcher.Invoke(() =>
 			{
 				Actions.Clear();
@@ -106,7 +120,7 @@ namespace app
 
 		private void ConfigFile_FailedLoading(ConfigFileReader _, string errorMsg)
 		{
-			AddMessage(string.Format("Failed loading configuration: {0}", errorMsg));
+			log.Add("Failed loading configuration: {0}", errorMsg);
 			Dispatcher.Invoke(() =>
 			{
 				Actions.Clear();
@@ -122,45 +136,52 @@ namespace app
 			Top = SystemParameters.WorkArea.Top + 2 * (SystemParameters.WorkArea.Height - Height) / 5;
 		}
 
-		internal void AddMessage(string msg)
-		{
-			Dispatcher.Invoke(() =>
-			{
-				if (!string.IsNullOrEmpty(Messages)) Messages += "\n";
-				Messages += msg;
-				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Messages)));
-			});
-		}
-
-		private void ButtonAction_Click(object sender, RoutedEventArgs e)
+		private void ButtonAction_Click(object sender, RoutedEventArgs? e)
 		{
 			try
 			{
 				Parallel.ForEach(Actions, (StartupAction a) =>
 				{
-					if (!a.IsEnabled) return;
-					if (!a.IsSelected) return;
+					if (!a.IsEnabled)
+					{
+						log.Add("Skipping, not enabled {0}", a.Name);
+						return;
+					}
+					if (!a.IsSelected)
+					{
+						log.Add("Skipping, not selected {0}", a.Name);
+						return;
+					}
 
-					ProcessStartInfo psi = new ProcessStartInfo();
-					psi.FileName = a.Filename;
-					psi.WorkingDirectory = a.WorkingDirectory;
-					foreach (string aa in a.ArgumentList) psi.ArgumentList.Add(aa);
-					psi.Verb = a.Verb;
-					psi.UseShellExecute = a.UseShellExecute;
+					try
+					{
+						ProcessStartInfo psi = new ProcessStartInfo();
+						psi.FileName = a.Filename;
+						psi.WorkingDirectory = a.WorkingDirectory;
+						foreach (string aa in a.ArgumentList) psi.ArgumentList.Add(aa);
+						psi.Verb = a.Verb;
+						psi.UseShellExecute = a.UseShellExecute;
 
-					Process.Start(psi);
+						Process.Start(psi);
+
+						log.Add("Started {0}", a.Name);
+					}
+					catch (Exception ex)
+					{
+						log.Add("FAILED to start {0}: {1}", a.Name, ex);
+					}
 				});
 
 				Close();
 			}
 			catch(Exception ex)
 			{
-				AddMessage(string.Format("Failed: {0}", ex.ToString()));
+				log.Add("FAILED action: {0}", ex.ToString());
 			}
 
 		}
 
-		private void ButtonSelectAll_Click(object sender, RoutedEventArgs e)
+		private void ButtonSelectAll_Click(object sender, RoutedEventArgs? e)
 		{
 			foreach (StartupAction a in Actions)
 			{
@@ -168,7 +189,7 @@ namespace app
 			}
 		}
 
-		private void ButtonSelectNone_Click(object sender, RoutedEventArgs e)
+		private void ButtonSelectNone_Click(object sender, RoutedEventArgs? e)
 		{
 			foreach (StartupAction a in Actions)
 			{
@@ -176,9 +197,65 @@ namespace app
 			}
 		}
 
-		private void ButtonRefresh_Click(object sender, RoutedEventArgs e)
+		private void ButtonRefresh_Click(object sender, RoutedEventArgs? e)
 		{
 			configFile.Reload();
+		}
+
+		private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+		{
+			switch (e.Key)
+			{
+				case Key.A:
+					ButtonSelectAll_Click(sender, null);
+					e.Handled = true;
+					break;
+				case Key.N:
+					ButtonSelectNone_Click(sender, null);
+					e.Handled = true;
+					break;
+				case Key.Escape:
+					Close();
+					e.Handled = true;
+					break;
+				case Key.F5:
+					ButtonRefresh_Click(sender, null);
+					e.Handled = true;
+					break;
+				case Key.Enter:
+					if (e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control))
+					{
+						ButtonAction_Click(sender, null);
+						e.Handled = true;
+					}
+					break;
+			}
+		}
+
+		private void Window_Closing(object sender, CancelEventArgs e)
+		{
+			log.Save();
+		}
+
+		private void ConfigFile_LogConfigLoaded(ConfigFileReader sender, string logsPath)
+		{
+			if (!System.IO.Directory.Exists(logsPath))
+			{
+				try
+				{
+					System.IO.Directory.CreateDirectory(logsPath);
+					if (!System.IO.Directory.Exists(logsPath))
+					{
+						throw new Exception("Unknown reason");
+					}
+				}
+				catch (Exception ex)
+				{
+					log.Add("Failed to create log directory: {0}", ex);
+				}
+			}
+
+			log.SavePath = logsPath;
 		}
 	}
 }

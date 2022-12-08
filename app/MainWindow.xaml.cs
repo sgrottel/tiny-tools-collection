@@ -58,6 +58,8 @@ namespace app
 			log = new MessageLog();
 			log.Updated += Log_Updated;
 
+			log.Add("Little Starter v{0}", Assembly.GetExecutingAssembly().GetName().Version);
+
 			configFile = new ConfigFileReader(
 				System.IO.Path.Combine(
 					System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "",

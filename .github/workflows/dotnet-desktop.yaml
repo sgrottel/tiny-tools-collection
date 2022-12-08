@@ -48,6 +48,23 @@ jobs:
     - name: Build application
       run: dotnet build --configuration ${{ matrix.configuration }} --no-restore
 
+    - name: Create ComponentSource Manifest
+      shell: pwsh
+      run: |
+        @{
+        "_type" = "ComponentSourceManifest";
+        "_version" = 1;
+        "components" = @( @{
+            "name" = "Little Starter";
+            "source" = @( @{
+                "type" = "git";
+                "url" = "https://github.com/sgrottel/little-starter.git";
+                "hash" = "${{github.sha}}";
+                "version" = "${{env.FULL_VERSION_NUMBER}}";
+                "subset" = "github releases"
+            } )
+        } ) } | ConvertTo-Json -Depth 10 > "app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/ComponentSource.json"
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:

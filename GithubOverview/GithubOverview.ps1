@@ -34,6 +34,10 @@ function Write-RepoInfo($repo)
 		if ($issues -eq 1) { $issues = "1 open Issue" }
 		else { $issues = "{0} open Issues" -f $issues }
 		Write-Host "   " $issues
+		$issueInfo = (gh issue list -R "$($repo.owner.login)/$($repo.name)" --json "number,title") | ConvertFrom-Json
+		$issueInfo | foreach {
+			Write-Host "        #$($_.number)  $($_.title)"
+		}
 	}
 	$pullRequests = [int]$repo.pullRequests.totalCount
 	if ($pullRequests -gt 0) {

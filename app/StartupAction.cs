@@ -22,6 +22,7 @@ namespace LittleStarter
 		private string workingDirectory = "";
 		private string verb = "";
 		private bool useShellExecute;
+		private TimeSpan delay = TimeSpan.Zero;
 
 		public bool IsSelected
 		{
@@ -167,6 +168,17 @@ namespace LittleStarter
 				}
 			}
 		}
-
+		public TimeSpan Delay
+		{
+			get => delay;
+			set
+			{
+				if (delay != value)
+				{
+					delay = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Delay)));
+				}
+			}
+		}
 	}
 }

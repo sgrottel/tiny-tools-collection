@@ -18,7 +18,7 @@ namespace LittleStarter
 		/// <summary>
 		/// The file system path to the directory in which the log file will be saved
 		/// </summary>
-		public string SavePath { get; set; }
+		public string? SavePath { get; set; }
 
 		public void Add(string msg)
 		{
@@ -74,6 +74,7 @@ namespace LittleStarter
 		{
 			lock (sync)
 			{
+				if (string.IsNullOrEmpty(SavePath)) return;
 				if (!Directory.Exists(SavePath)) return;
 
 				const int maxLogFiles = 10 - 1;

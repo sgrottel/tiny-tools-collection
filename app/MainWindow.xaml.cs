@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -57,6 +58,8 @@ namespace app
 			InitializeComponent();
 			log = new MessageLog();
 			log.Updated += Log_Updated;
+
+			log.Add("Little Starter v{0}", Assembly.GetExecutingAssembly().GetName().Version);
 
 			configFile = new ConfigFileReader(
 				System.IO.Path.Combine(
@@ -136,49 +139,63 @@ namespace app
 			Top = SystemParameters.WorkArea.Top + 2 * (SystemParameters.WorkArea.Height - Height) / 5;
 		}
 
+		private Thread? launcher = null;
+
 		private void ButtonAction_Click(object sender, RoutedEventArgs? e)
 		{
 			try
 			{
-				Parallel.ForEach(Actions, (StartupAction a) =>
+				IsEnabled = false;
+				launcher = new Thread(() =>
 				{
-					if (!a.IsEnabled)
-					{
-						log.Add("Skipping, not enabled {0}", a.Name);
-						return;
-					}
-					if (!a.IsSelected)
-					{
-						log.Add("Skipping, not selected {0}", a.Name);
-						return;
-					}
 
-					try
+					Parallel.ForEach(Actions, (StartupAction a) =>
 					{
-						ProcessStartInfo psi = new ProcessStartInfo();
-						psi.FileName = a.Filename;
-						psi.WorkingDirectory = a.WorkingDirectory;
-						foreach (string aa in a.ArgumentList) psi.ArgumentList.Add(aa);
-						psi.Verb = a.Verb;
-						psi.UseShellExecute = a.UseShellExecute;
+						if (!a.IsEnabled)
+						{
+							log.Add("Skipping, not enabled {0}", a.Name);
+							return;
+						}
+						if (!a.IsSelected)
+						{
+							log.Add("Skipping, not selected {0}", a.Name);
+							return;
+						}
 
-						Process.Start(psi);
+						try
+						{
+							if (a.Delay > TimeSpan.Zero)
+							{
+								log.Add("Delaying {0} for {1}", a.Name, a.Delay);
+								System.Threading.Thread.Sleep(a.Delay);
+							}
 
-						log.Add("Started {0}", a.Name);
-					}
-					catch (Exception ex)
-					{
-						log.Add("FAILED to start {0}: {1}", a.Name, ex);
-					}
+							ProcessStartInfo psi = new ProcessStartInfo();
+							psi.FileName = a.Filename;
+							psi.WorkingDirectory = a.WorkingDirectory;
+							foreach (string aa in a.ArgumentList) psi.ArgumentList.Add(aa);
+							psi.Verb = a.Verb;
+							psi.UseShellExecute = a.UseShellExecute;
+
+							Process.Start(psi);
+
+							log.Add("Started {0}", a.Name);
+						}
+						catch (Exception ex)
+						{
+							log.Add("FAILED to start {0}: {1}", a.Name, ex);
+						}
+					});
+
+					Dispatcher.Invoke(() => { Close(); });
 				});
-
-				Close();
+				launcher.Start();
 			}
 			catch(Exception ex)
 			{
 				log.Add("FAILED action: {0}", ex.ToString());
+				IsEnabled = true;
 			}
-
 		}
 
 		private void ButtonSelectAll_Click(object sender, RoutedEventArgs? e)

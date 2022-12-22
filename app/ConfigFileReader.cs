@@ -66,6 +66,8 @@ namespace LittleStarter
 			public bool? UseShellExecute { get; set; }
 			public bool? IsEnabled { get; set; }
 			public string? Icon { get; set; }
+			public string? IsSelectedIf { get; set; }
+			public double? Delay { get; set; }
 		}
 
 		private class LogConfig
@@ -127,64 +129,85 @@ namespace LittleStarter
 
 					config.Actions?.RemoveAll((ActionConfig ac) => ac == null);
 
-					StartupAction[] actions = config.Actions?.ConvertAll((ActionConfig ac) =>
+					if (config.Actions != null)
 					{
-
-						StartupAction sa = new StartupAction();
-
-						sa.Name = ac.Name ?? "Unnamed";
-
-						if (ac.Filename != null)
+						StartupAction[] actions = config.Actions.ConvertAll((ActionConfig ac) =>
 						{
-							sa.Filename = ac.Filename;
-						}
 
-						if (ac.IsSelectedByDefault != null)
-						{
-							sa.IsSelected = ac.IsSelectedByDefault.Value;
-						}
+							StartupAction sa = new StartupAction();
 
-						sa.ArgumentList = (ac.ArgumentList?.ToArray()) ?? Array.Empty<string>();
+							sa.Name = ac.Name ?? "Unnamed";
 
-						if (ac.WorkingDirectory != null)
-						{
-							sa.WorkingDirectory = ac.WorkingDirectory;
-						}
-
-						if (ac.Verb != null)
-						{
-							sa.Verb = ac.Verb;
-						}
-
-						if (ac.UseShellExecute != null)
-						{
-							sa.UseShellExecute = ac.UseShellExecute.Value;
-						}
-
-						if (ac.IsEnabled != null)
-						{
-							sa.IsEnabled = ac.IsEnabled.Value;
-						}
-
-						if (ac.Icon != null)
-						{
-							if (File.Exists(ac.Icon))
+							if (ac.Filename != null)
 							{
-								try
-								{
-									Dispatcher.CurrentDispatcher.Invoke(() =>
-									{
-										sa.IconUri = new Uri(ac.Icon);
-									});
-								}
-								catch { }
+								sa.Filename = ac.Filename;
 							}
+
+							if (ac.IsSelectedByDefault != null)
+							{
+								sa.IsSelected = ac.IsSelectedByDefault.Value;
+							}
+
+							sa.ArgumentList = (ac.ArgumentList?.ToArray()) ?? Array.Empty<string>();
+
+							if (ac.WorkingDirectory != null)
+							{
+								sa.WorkingDirectory = ac.WorkingDirectory;
+							}
+
+							if (ac.Verb != null)
+							{
+								sa.Verb = ac.Verb;
+							}
+
+							if (ac.UseShellExecute != null)
+							{
+								sa.UseShellExecute = ac.UseShellExecute.Value;
+							}
+
+							if (ac.IsEnabled != null)
+							{
+								sa.IsEnabled = ac.IsEnabled.Value;
+							}
+
+							if (ac.Icon != null)
+							{
+								if (File.Exists(ac.Icon))
+								{
+									try
+									{
+										Dispatcher.CurrentDispatcher.Invoke(() =>
+										{
+											sa.IconUri = new Uri(ac.Icon);
+										});
+									}
+									catch { }
+								}
+							}
+
+							if (ac.Delay != null)
+							{
+								sa.Delay = TimeSpan.FromSeconds(ac.Delay.Value);
+							}
+
+							return sa;
+						}).ToArray();
+
+						foreach (var ac in config.Actions)
+						{
+							if (string.IsNullOrEmpty(ac.Name) || string.IsNullOrEmpty(ac.IsSelectedIf)) continue;
+							StartupAction? a1 = actions.First((a) => a.Name == ac.Name);
+							StartupAction? a2 = actions.First((a) => a.Name == ac.IsSelectedIf);
+							if (a1 == null || a2 == null) continue;
+							a1.IsSelected = a2.IsSelected;
 						}
 
-						return sa;
-					}).ToArray() ?? Array.Empty<StartupAction>();
-
-					ActionsLoaded?.Invoke(this, actions);
+						ActionsLoaded?.Invoke(this, actions);
+					}
+					else
+					{
+						ActionsLoaded?.Invoke(this, Array.Empty<StartupAction>());
+					}
 
 					if (config.Log != null)
 					{

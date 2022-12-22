@@ -1,12 +1,11 @@
-
 name: Build Action
 
 on:
   push:
-    branches:
-      - 'main'
-      - 'develop'
+    branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -47,6 +46,33 @@ jobs:
 
     - name: Build application
       run: dotnet build --configuration ${{ matrix.configuration }} --no-restore
+
+    - name: Create and Copy Release Files
+      shell: pwsh
+      run: |
+        @{
+        "_type" = "ComponentSourceManifest";
+        "_version" = 1;
+        "components" = @( @{
+            "name" = "Little Starter";
+            "source" = @( @{
+                "type" = "git";
+                "url" = "https://github.com/sgrottel/little-starter.git";
+                "hash" = "${{github.sha}}";
+                "version" = "${{env.FULL_VERSION_NUMBER}}";
+                "subset" = "github releases"
+            } )
+        } ) } | ConvertTo-Json -Depth 10 > "app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/ComponentSource.json"
+
+        copy ".\LICENSE" "app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/LICENSE"
+
+        $lines = [System.Collections.ArrayList](get-content ".\README.md")
+        $lines.Insert(2, "Version ${{env.FULL_VERSION_NUMBER}}")
+        $lines = ( $lines | foreach { $_ -replace '\]\(\./','](https://github.com/sgrottel/little-starter/blob/main/' } )
+        $newLines = @()
+        $inc = $true
+        $lines | foreach { if ($_ -match "\s*<!---\s+START\s+STRIP\s+-->\s*") { $inc = $false; } elseif ($_ -match "\s*<!---\s+END\s+STRIP\s+-->\s*") { $inc = $true } elseif ($inc) { $newLines += $_ } }
+        set-content "app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/README.md" $newLines
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3

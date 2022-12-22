@@ -3,8 +3,10 @@ Automate the typical "open apps &amp; files" task when you start your working se
 
 The idea is to simplify the stuff I do (most) every time I start my days, after booting and logging into the system.
 
+<!--- START STRIP -->
 [![Build Action](https://github.com/sgrottel/little-starter/actions/workflows/dotnet-desktop.yaml/badge.svg)](https://github.com/sgrottel/little-starter/actions/workflows/dotnet-desktop.yaml)
 
+<!--- END STRIP -->
 ## How to Use
 You need to write a [YAML configuration file (see: `doc/config-yaml.md`)](./doc/config-yaml.md).
 
@@ -20,11 +22,13 @@ For example:
 C:\Users\#####\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\Little Starter™.lnk
 ```
 
+<!--- START STRIP -->
 ## How to Build
 Using Visual Studio you can use the [build instructions (see: `doc/build.md`)](./doc/build.md) for a straight forward process.
 
+<!--- END STRIP -->
 ## License
-This project is freely available under the terms of the [Apache License v.2.0](./LICENSE):
+This project is freely available under the terms of the [Apache License v.2.0](LICENSE):
 
 > Copyright 2022 SGrottel
 >

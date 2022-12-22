@@ -66,6 +66,8 @@ namespace LittleStarter
 			public bool? UseShellExecute { get; set; }
 			public bool? IsEnabled { get; set; }
 			public string? Icon { get; set; }
+			public string? IsSelectedIf { get; set; }
+			public double? Delay { get; set; }
 		}
 
 		private class LogConfig

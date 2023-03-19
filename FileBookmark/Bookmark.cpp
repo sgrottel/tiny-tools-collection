@@ -109,7 +109,7 @@ void Bookmark::Open(std::filesystem::path const& bookmarkFile)
 				fileSplits.push_back(std::pair<std::wstring, std::wstring>{ matches[1].str(), matches[2].str() });
 				filename = matches[3].str();
 			}
-			if (!filename.empty()) fileSplits.push_back(std::pair<std::wstring, std::wstring>{ filename, L"0" });
+			fileSplits.push_back(std::pair<std::wstring, std::wstring>{ filename, L"0" });
 			filesSegs.push_back(std::move(fileSplits));
 		}
 		std::sort(

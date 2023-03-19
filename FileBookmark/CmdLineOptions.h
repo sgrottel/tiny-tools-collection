@@ -27,7 +27,9 @@ namespace filebookmark
 			None,
 			OpenBookmark,
 			RegisterFileType,
-			UnregisterFileType
+			UnregisterFileType,
+			SetBookmark,
+			SetBookmarkAndOpen
 		};
 
 		inline Mode GetMode() const {

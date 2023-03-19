@@ -31,20 +31,25 @@
 
 #include <stdexcept>
 #include <sstream>
+#include <filesystem>
 
 namespace
 {
 	static const wchar_t* appName = L"FileBookmark";
+	static HINSTANCE hInstance;
 }
 
-void AskForAction(HINSTANCE hInstance);
+void AskForAction();
 void RegisterFileType();
 void UnregisterFileType();
-void OpenBookmarkFile(std::wstring const& filepath);
+void MainWithBookmarkFile(std::wstring const& filepath);
+std::wstring SetBookmark(std::wstring const& filepath);
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
 	using filebookmark::CmdLineOptions;
+
+	::hInstance = hInstance;
 
 	SetProcessDPIAware();
 	CmdLineOptions cmdLine;
@@ -54,7 +59,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		switch (cmdLine.GetMode())
 		{
 		case CmdLineOptions::Mode::None:
-			AskForAction(hInstance);
+			AskForAction();
 			break;
 
 		case CmdLineOptions::Mode::RegisterFileType:
@@ -70,7 +75,32 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			{
 				throw std::runtime_error{"Bookmark file not specified"};
 			}
-			OpenBookmarkFile(cmdLine.GetBookmarkFile());
+			MainWithBookmarkFile(cmdLine.GetBookmarkFile());
+			break;
+
+		case CmdLineOptions::Mode::SetBookmark:
+			// no break;
+		case CmdLineOptions::Mode::SetBookmarkAndOpen:
+			if (cmdLine.GetBookmarkFile().empty())
+			{
+				throw std::runtime_error{"File to bookmark not specified"};
+			}
+			{
+				std::wstring bookmark = SetBookmark(cmdLine.GetBookmarkFile());
+				if (bookmark.empty())
+				{
+					throw std::runtime_error{"Failed to set bookmark"};
+				}
+				if (!std::filesystem::is_regular_file(bookmark))
+				{
+					throw std::runtime_error{"Failed to set bookmark -- type error"};
+				}
+
+				if (cmdLine.GetMode() == CmdLineOptions::Mode::SetBookmarkAndOpen)
+				{
+					MainWithBookmarkFile(bookmark);
+				}
+			}
 			break;
 
 		default:
@@ -91,14 +121,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	return 0;
 }
 
-void AskForAction(HINSTANCE hInstance)
+void AskForAction()
 {
 	int buttonPressed = 0;
 
 	TASKDIALOGCONFIG config = { 0 };
 
-	std::wstring regText{L"Register \".bookmark\" File Type"};
-	std::wstring unregText{L"Unregister \".bookmark\" File Type"};
+	std::wstring regText{L"Register the \".bookmark\" File Type"};
+	std::wstring unregText{L"Unregister the \".bookmark\" File Type"};
 
 	if (!filebookmark::Registation::HasAccess())
 	{
@@ -116,10 +146,10 @@ void AskForAction(HINSTANCE hInstance)
 	}
 
 	const TASKDIALOG_BUTTON buttons[] = {
+		{ 102, L"Open a \".bookmark\" File..." },
+		{ 103, L"Set \".bookmark\" on a File..." },
 		{ 100, regText.c_str() },
 		{ 101, unregText.c_str() },
-		{ 102, L"Open \".bookmark\" File..." },
-		{ 103, L"Create a \".bookmark\" on a File..." }
 	};
 
 	config.cbSize = sizeof(config);
@@ -128,7 +158,7 @@ void AskForAction(HINSTANCE hInstance)
 	config.dwFlags = TDF_USE_COMMAND_LINKS | TDF_USE_HICON_MAIN;
 	config.pszWindowTitle = appName;
 	config.hMainIcon = LoadIconW(hInstance, MAKEINTRESOURCEW(100));
-	config.pszMainInstruction = L"Bookmark File Type Registration";
+	config.pszMainInstruction = L"File Bookmark Actions";
 	config.pszContent = L"You did not open a bookmark file. In this mode, you can register the file type.";
 	config.nDefaultButton = IDCANCEL;
 	config.pButtons = buttons;
@@ -149,8 +179,10 @@ void AskForAction(HINSTANCE hInstance)
 		UnregisterFileType();
 		break;
 	//case 102:
+	//	TODO: Implement
 	//	break;
 	//case 103:
+	//	TODO: Implement
 	//	break;
 	case IDCANCEL:
 		break;
@@ -193,7 +225,22 @@ void UnregisterFileType()
 	MessageBoxW(nullptr, L"Successfully unregistered the file type `.bookmark`.", appName, MB_OK);
 }
 
-void OpenBookmarkFile(std::wstring const& filepath)
+void MainWithBookmarkFile(std::wstring const& filepath)
 {
+
+	// TODO: Implement
 	throw std::logic_error{"Not Implemented"};
+
+}
+
+std::wstring SetBookmark(std::wstring const& filepath)
+{
+	if (!std::filesystem::is_regular_file(filepath))
+	{
+		throw std::logic_error{"File to bookmark must exist"};
+	}
+
+
+
+	return L"";
 }

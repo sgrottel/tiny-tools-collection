@@ -69,6 +69,16 @@ void CmdLineOptions::Parse(const wchar_t* pCmdLine)
 				m_mode = Mode::UnregisterFileType;
 				continue;
 			}
+			if (opt == L"--set")
+			{
+				m_mode = Mode::SetBookmark;
+				continue;
+			}
+			if (opt == L"--setandopen")
+			{
+				m_mode = Mode::SetBookmarkAndOpen;
+				continue;
+			}
 		}
 
 		// likely a file
@@ -90,7 +100,7 @@ void CmdLineOptions::Parse(const wchar_t* pCmdLine)
 
 	}
 
-	if (m_mode == Mode::OpenBookmark && m_bookmarkFile.empty())
+	if ((m_mode == Mode::OpenBookmark || m_mode == Mode::SetBookmark || m_mode == Mode::SetBookmarkAndOpen) && m_bookmarkFile.empty())
 	{
 		m_mode = Mode::None;
 	}

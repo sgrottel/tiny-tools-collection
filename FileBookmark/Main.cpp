@@ -17,6 +17,7 @@
 #include "CmdLineOptions.h"
 #include "Registation.h"
 #include "CallElevated.h"
+#include "Bookmark.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
@@ -28,6 +29,10 @@
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 #include <Commctrl.h>
+#include <commdlg.h>
+
+#include <shellapi.h>
+#include <Objbase.h>
 
 #include <stdexcept>
 #include <sstream>
@@ -43,7 +48,6 @@ void AskForAction();
 void RegisterFileType();
 void UnregisterFileType();
 void MainWithBookmarkFile(std::wstring const& filepath);
-std::wstring SetBookmark(std::wstring const& filepath);
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
@@ -71,34 +75,37 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			break;
 
 		case CmdLineOptions::Mode::OpenBookmark:
-			if (cmdLine.GetBookmarkFile().empty())
+			if (cmdLine.GetFilePath().empty())
 			{
 				throw std::runtime_error{"Bookmark file not specified"};
 			}
-			MainWithBookmarkFile(cmdLine.GetBookmarkFile());
+			MainWithBookmarkFile(cmdLine.GetFilePath());
 			break;
 
 		case CmdLineOptions::Mode::SetBookmark:
 			// no break;
 		case CmdLineOptions::Mode::SetBookmarkAndOpen:
-			if (cmdLine.GetBookmarkFile().empty())
+			if (cmdLine.GetFilePath().empty())
 			{
 				throw std::runtime_error{"File to bookmark not specified"};
 			}
 			{
-				std::wstring bookmark = SetBookmark(cmdLine.GetBookmarkFile());
-				if (bookmark.empty())
+				filebookmark::Bookmark bookmark;
+				bookmark.Set(cmdLine.GetFilePath());
+
+				if (bookmark.GetPath().empty())
 				{
 					throw std::runtime_error{"Failed to set bookmark"};
 				}
-				if (!std::filesystem::is_regular_file(bookmark))
+				if (!std::filesystem::is_regular_file(bookmark.GetPath()))
 				{
 					throw std::runtime_error{"Failed to set bookmark -- type error"};
 				}
 
 				if (cmdLine.GetMode() == CmdLineOptions::Mode::SetBookmarkAndOpen)
 				{
-					MainWithBookmarkFile(bookmark);
+					// continue and open in GUI
+					MainWithBookmarkFile(bookmark.GetPath());
 				}
 			}
 			break;
@@ -119,6 +126,56 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	}
 
 	return 0;
+}
+
+std::wstring SetBookmarkViaFileDlg()
+{
+	wchar_t filename[MAX_PATH + 1];
+	filename[0] = 0;
+
+	OPENFILENAMEW dlg{ 0 };
+	dlg.lStructSize = sizeof(OPENFILENAMEW);
+	dlg.hInstance = hInstance;
+	dlg.lpstrFilter = L"All Files\0*.*\0\0";
+	dlg.lpstrFile = filename;
+	dlg.nMaxFile = MAX_PATH;
+	dlg.lpstrTitle = L"Set Bookmark On...";
+	dlg.Flags = OFN_FILEMUSTEXIST;
+
+	// control on which monitor the dlg opens
+	if (GetOpenFileNameW(&dlg))
+	{
+		filebookmark::Bookmark bookmark;
+		bookmark.Set(filename);
+		return bookmark.GetPath();
+	}
+
+	return L"";
+}
+
+std::wstring OpenBookmarkFileDlg()
+{
+	wchar_t filename[MAX_PATH + 1];
+	filename[0] = 0;
+
+	OPENFILENAMEW dlg{ 0 };
+	dlg.lStructSize = sizeof(OPENFILENAMEW);
+	dlg.hInstance = hInstance;
+	dlg.lpstrFilter = L"Bookmark Files\0*.bookmark\0All Files\0*.*\0\0";
+	dlg.lpstrFile = filename;
+	dlg.nMaxFile = MAX_PATH;
+	dlg.lpstrTitle = L"Open Bookmark...";
+	dlg.Flags = OFN_FILEMUSTEXIST;
+
+	// control on which monitor the dlg opens
+	if (GetOpenFileNameW(&dlg))
+	{
+		filebookmark::Bookmark bookmark;
+		bookmark.Open(filename);
+		return bookmark.GetPath();
+	}
+
+	return L"";
 }
 
 void AskForAction()
@@ -164,6 +221,7 @@ void AskForAction()
 	config.pButtons = buttons;
 	config.cButtons = ARRAYSIZE(buttons);
 
+	// control on which monitor the dlg opens
 	HRESULT res = TaskDialogIndirect(&config, &buttonPressed, nullptr, nullptr);
 	if (res != S_OK)
 	{
@@ -175,17 +233,34 @@ void AskForAction()
 	case 100:
 		RegisterFileType();
 		break;
+
 	case 101:
 		UnregisterFileType();
 		break;
-	//case 102:
-	//	TODO: Implement
-	//	break;
-	//case 103:
-	//	TODO: Implement
-	//	break;
+
+	case 102:
+		{
+			std::wstring path = OpenBookmarkFileDlg();
+			if (!path.empty())
+			{
+				MainWithBookmarkFile(path);
+			}
+		}
+		break;
+
+	case 103:
+		{
+			std::wstring path = SetBookmarkViaFileDlg();
+			if (!path.empty())
+			{
+				MainWithBookmarkFile(path);
+			}
+		}
+		break;
+
 	case IDCANCEL:
 		break;
+
 	default:
 		throw std::logic_error{"Handling of UI Dialog result not implemented: " + std::to_string(buttonPressed)};
 	}
@@ -225,22 +300,101 @@ void UnregisterFileType()
 	MessageBoxW(nullptr, L"Successfully unregistered the file type `.bookmark`.", appName, MB_OK);
 }
 
+void OpenBookmarkedFile(std::wstring const& file)
+{
+	CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	ShellExecuteW(nullptr, L"open", file.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+	CoUninitialize();
+}
+
 void MainWithBookmarkFile(std::wstring const& filepath)
 {
 
-	// TODO: Implement
-	throw std::logic_error{"Not Implemented"};
-
-}
-
-std::wstring SetBookmark(std::wstring const& filepath)
-{
-	if (!std::filesystem::is_regular_file(filepath))
+	std::filesystem::path path{filepath};
+	if (path.empty() || !std::filesystem::is_regular_file(path))
 	{
-		throw std::logic_error{"File to bookmark must exist"};
+		throw std::runtime_error{"Bookmark file error"};
 	}
 
+	while (!path.empty() && std::filesystem::is_regular_file(path))
+	{
+		int buttonPressed = 0;
 
+		std::wstring filename = path.filename().wstring();
+		std::wstring context = L"in: " + path.parent_path().wstring();
 
-	return L"";
+		filebookmark::Bookmark bookmark;
+		bookmark.Open(path);
+
+		std::vector<TASKDIALOG_BUTTON> buttons;
+		buttons.reserve(4);
+
+		std::wstring openFileStr, nextFileStr;
+		if (!bookmark.GetBookmarkedFile().empty() && std::filesystem::is_regular_file(bookmark.GetBookmarkedFile()))
+		{
+			openFileStr = L"Open Bookmarked File\n" + bookmark.GetBookmarkedFile().wstring();
+			buttons.push_back(TASKDIALOG_BUTTON{ 100, openFileStr.c_str() });
+		}
+		else
+		{
+			context += L"\nThe bookmark is invalid and does not reference an file.";
+		}
+
+		if (!bookmark.GetNextFile().empty() && std::filesystem::is_regular_file(bookmark.GetNextFile()))
+		{
+			nextFileStr = L"Bookmark Next File\n" + bookmark.GetNextFile().wstring();
+			buttons.push_back(TASKDIALOG_BUTTON{ 101, nextFileStr.c_str() });
+		}
+
+		buttons.push_back(TASKDIALOG_BUTTON{ 102, L"Open a \".bookmark\" File..." });
+		buttons.push_back(TASKDIALOG_BUTTON{ 103, L"Set \".bookmark\" on a File..." });
+
+		// TODO: Button for Bookmark-Detail-App
+
+		TASKDIALOGCONFIG config = { 0 };
+		config.cbSize = sizeof(config);
+		config.hInstance = hInstance;
+		config.dwCommonButtons = TDCBF_CANCEL_BUTTON;
+		config.dwFlags = TDF_USE_COMMAND_LINKS | TDF_USE_HICON_MAIN;
+		config.pszWindowTitle = appName;
+		config.hMainIcon = LoadIconW(hInstance, MAKEINTRESOURCEW(100));
+		config.pszMainInstruction = filename.c_str();
+		config.pszContent = context.c_str();
+		config.nDefaultButton = IDCANCEL;
+		config.pButtons = buttons.data();
+		config.cButtons = static_cast<unsigned int>(buttons.size());
+		config.cxWidth = 0;
+
+		// control on which monitor the dlg opens
+		HRESULT res = TaskDialogIndirect(&config, &buttonPressed, nullptr, nullptr);
+
+		switch (buttonPressed)
+		{
+		case 100:
+			OpenBookmarkedFile(bookmark.GetBookmarkedFile());
+			path.clear();
+			break;
+
+		case 101:
+			path = bookmark.GetNextFile();
+			bookmark.Set(path);
+			path = bookmark.GetPath();
+			break;
+
+		case 102:
+			path = OpenBookmarkFileDlg();
+			break;
+
+		case 103:
+			path = SetBookmarkViaFileDlg();
+			break;
+
+		case IDCANCEL:
+			path.clear();
+			break;
+
+		default:
+			throw std::logic_error{"Handling of UI Dialog result not implemented: " + std::to_string(buttonPressed)};
+		}
+	}
 }

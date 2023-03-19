@@ -15,35 +15,35 @@
 //
 #pragma once
 
-#include <string>
+#include <filesystem>
 
 namespace filebookmark
 {
-	class CmdLineOptions
+
+	class Bookmark
 	{
 	public:
 
-		enum class Mode {
-			None,
-			OpenBookmark,
-			RegisterFileType,
-			UnregisterFileType,
-			SetBookmark,
-			SetBookmarkAndOpen
-		};
-
-		inline Mode GetMode() const {
-			return m_mode;
+		inline std::filesystem::path const& GetPath() const
+		{
+			return m_path;
 		}
-		inline std::wstring const& GetFilePath() const {
-			return m_filePath;
+		inline std::filesystem::path const& GetBookmarkedFile() const
+		{
+			return m_bookmarkedFile;
+		}
+		inline std::filesystem::path const& GetNextFile() const
+		{
+			return m_nextFile;
 		}
 
-		void Parse(const wchar_t* pCmdLine);
+		void Set(std::filesystem::path const& file);
+		void Open(std::filesystem::path const& bookmarkFile);
 
 	private:
-		Mode m_mode{ Mode::None };
-		std::wstring m_filePath{};
+		std::filesystem::path m_path;
+		std::filesystem::path m_bookmarkedFile;
+		std::filesystem::path m_nextFile;
 	};
 
 }

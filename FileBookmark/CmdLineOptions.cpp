@@ -35,7 +35,7 @@ void CmdLineOptions::Parse(const wchar_t* pCmdLine)
 		// early out.
 		// Otherwise `CommandLineToArgvW` will add the executable name.
 		m_mode = Mode::None;
-		m_bookmarkFile.clear();
+		m_filePath.clear();
 		return;
 	}
 
@@ -93,19 +93,19 @@ void CmdLineOptions::Parse(const wchar_t* pCmdLine)
 		}
 		filePath = std::filesystem::canonical(filePath);
 
-		if (m_bookmarkFile.empty())
+		if (m_filePath.empty())
 		{
-			m_bookmarkFile = filePath.wstring();
+			m_filePath = filePath.wstring();
 		}
 
 	}
 
-	if ((m_mode == Mode::OpenBookmark || m_mode == Mode::SetBookmark || m_mode == Mode::SetBookmarkAndOpen) && m_bookmarkFile.empty())
+	if ((m_mode == Mode::OpenBookmark || m_mode == Mode::SetBookmark || m_mode == Mode::SetBookmarkAndOpen) && m_filePath.empty())
 	{
 		m_mode = Mode::None;
 	}
 
-	if (!m_bookmarkFile.empty() && m_mode == Mode::None)
+	if (!m_filePath.empty() && m_mode == Mode::None)
 	{
 		m_mode = Mode::OpenBookmark;
 	}

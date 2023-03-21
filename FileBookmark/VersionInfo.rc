@@ -45,7 +45,7 @@ BEGIN
 		BLOCK "000004b0"
 		BEGIN
 			VALUE "CompanyName", "SGrottel"
-			VALUE "FileDescription", "Utility to manage File Bookmarks directly"
+			VALUE "FileDescription", "File Bookmark Utility"
 			VALUE "FileVersion", _str(FILEBOOKMARK_VER_MAJOR.FILEBOOKMARK_VER_MINOR.FILEBOOKMARK_VER_PATCH.FILEBOOKMARK_VER_BUILD)
 			VALUE "InternalName", "FileBookmark"
 			VALUE "LegalCopyright", "Copyright " FILEBOOKMARK_VER_YEARSTR ", SGrottel"

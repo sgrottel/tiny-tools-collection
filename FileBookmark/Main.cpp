@@ -18,6 +18,7 @@
 #include "Registation.h"
 #include "CallElevated.h"
 #include "Bookmark.h"
+#include "DialogWindowPlacer.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
@@ -142,6 +143,8 @@ std::wstring SetBookmarkViaFileDlg()
 	dlg.lpstrTitle = L"Set Bookmark On...";
 	dlg.Flags = OFN_FILEMUSTEXIST;
 
+	filebookmark::DialogWindowPlacer placer;
+
 	// control on which monitor the dlg opens
 	if (GetOpenFileNameW(&dlg))
 	{
@@ -166,6 +169,8 @@ std::wstring OpenBookmarkFileDlg()
 	dlg.nMaxFile = MAX_PATH;
 	dlg.lpstrTitle = L"Open Bookmark...";
 	dlg.Flags = OFN_FILEMUSTEXIST;
+
+	filebookmark::DialogWindowPlacer placer;
 
 	// control on which monitor the dlg opens
 	if (GetOpenFileNameW(&dlg))
@@ -220,6 +225,8 @@ void AskForAction()
 	config.nDefaultButton = IDCANCEL;
 	config.pButtons = buttons;
 	config.cButtons = ARRAYSIZE(buttons);
+
+	filebookmark::DialogWindowPlacer placer;
 
 	// control on which monitor the dlg opens
 	HRESULT res = TaskDialogIndirect(&config, &buttonPressed, nullptr, nullptr);
@@ -364,6 +371,8 @@ void MainWithBookmarkFile(std::wstring const& filepath)
 		config.pButtons = buttons.data();
 		config.cButtons = static_cast<unsigned int>(buttons.size());
 		config.cxWidth = 0;
+
+		filebookmark::DialogWindowPlacer placer;
 
 		// control on which monitor the dlg opens
 		HRESULT res = TaskDialogIndirect(&config, &buttonPressed, nullptr, nullptr);

@@ -154,6 +154,7 @@
     <ClCompile Include="Bookmark.cpp" />
     <ClCompile Include="CallElevated.cpp" />
     <ClCompile Include="CmdLineOptions.cpp" />
+    <ClCompile Include="DialogWindowPlacer.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Registation.cpp" />
     <ClCompile Include="utility.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="Bookmark.h" />
     <ClInclude Include="CallElevated.h" />
     <ClInclude Include="CmdLineOptions.h" />
+    <ClInclude Include="DialogWindowPlacer.h" />
     <ClInclude Include="Registation.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>

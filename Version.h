@@ -1,5 +1,4 @@
-// FileBookmark  Version.h
-//
+// FileBookmark
 // Copyright 2023, SGrottel
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,4 +20,4 @@
 #define FILEBOOKMARK_VER_PATCH	0
 #define FILEBOOKMARK_VER_BUILD	0
 
-#define FILEBOOKMARK_VER_YEARSTR	"2023"
+#define FILEBOOKMARK_VER_YEARSTR	"2011-2023"

@@ -2,6 +2,7 @@
 A simply way to bookmark a file in a directory.
 
 [![GitHub](https://img.shields.io/github/license/sgrottel/FileBookmark)](/LICENSE)
+[![Build Native](https://github.com/sgrottel/FileBookmark/actions/workflows/build_native.yaml/badge.svg)](https://github.com/sgrottel/FileBookmark/actions/workflows/build_native.yaml)
 
 This is not a Windows Explorer shell extension.
 It is a simple, normal application which writes to the right places in the registry.
@@ -41,7 +42,7 @@ In doubt, feel free to contact me with any questions.
 ## License
 This project is freely available as open source under the terms of the [Apache License, Version 2.0](LICENSE)
 
-> Copyright 2023, SGrottel
+> Copyright 2011-2023, SGrottel
 >
 > Licensed under the Apache License, Version 2.0 (the "License");
 > you may not use this file except in compliance with the License.

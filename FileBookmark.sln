@@ -5,6 +5,11 @@ VisualStudioVersion = 17.6.33513.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileBookmark", "FileBookmark\FileBookmark.vcxproj", "{515F98DF-1518-4430-9EC0-CADFADF6B79E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github_workflows", ".github_workflows", "{91B208A3-0D9F-459F-B8AE-EF1D8A46BC02}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build_native.yaml = .github\workflows\build_native.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

@@ -1,4 +1,4 @@
-namespace MonShade
+namespace DimMon
 {
 	internal static class Program
 	{

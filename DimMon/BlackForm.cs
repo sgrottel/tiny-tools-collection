@@ -1,4 +1,4 @@
-namespace MonShade
+namespace DimMon
 {
 	public partial class BlackForm : Form
 	{

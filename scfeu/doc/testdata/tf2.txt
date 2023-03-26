@@ -1,0 +1,2 @@
+﻿This is a test text äß€
+utf-8 w bom

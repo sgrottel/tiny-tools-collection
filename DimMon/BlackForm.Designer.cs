@@ -48,6 +48,8 @@
 			TopMost = true;
 			Click += BlackForm_Click;
 			KeyUp += BlackForm_KeyUp;
+			MouseLeave += BlackForm_MouseLeave;
+			MouseMove += BlackForm_MouseMove;
 			ResumeLayout(false);
 		}
 

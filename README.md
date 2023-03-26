@@ -32,6 +32,9 @@ Can also start an application and bring that's window to front.
 ## LoginWhen
 Queries the Windows event log to print when the user sessions logged in and logged out.
 
+## scfeu
+Source Code Files Encoding Unifier -- encoding and line endings fixed in code files. Sort of.
+
 ## StartPwsh
 Trivial tool to start Pwsh.exe and provide an icon. Because...
 

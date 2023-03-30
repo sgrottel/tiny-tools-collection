@@ -42,6 +42,9 @@ Queries the Windows event log to print when the user sessions logged in and logg
 ## scfeu
 Source Code Files Encoding Unifier -- encoding and line endings fixed in code files. Sort of.
 
+## Scripts
+Unsorted useful scripts, e.g. Pwsh.
+
 ## StartPwsh
 Trivial tool to start Pwsh.exe and provide an icon. Because...
 

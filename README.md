@@ -21,6 +21,9 @@ Little C++ helper class to fetch a call stack, e.g. used for better error report
 A c++ progress bar for console applications.
 As usually, only semi-robust, but good enough.
 
+## Dib
+Desktop Icon Backup
+
 ## DimMon
 C# app to dim monitors by displaying an transparent black overlaying window.
 The idea is to dim "other" monitors when watching a video or playing a game one only one of the monitors.

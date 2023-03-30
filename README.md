@@ -48,6 +48,9 @@ Unsorted useful scripts, e.g. Pwsh.
 ## StartPwsh
 Trivial tool to start Pwsh.exe and provide an icon. Because...
 
+## UrlCollector
+Tool to collect urls from clipboard, one by one.
+
 ## _doc
 Some more generic documentation files, e.g. including images.
 

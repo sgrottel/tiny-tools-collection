@@ -1,0 +1,10 @@
+#ifdef APSTUDIO_INVOKED
+// This will prevent the VC++ Resource Editor user from saving this file
+#error "This file can be edited in code. Do not open in Visual Studio Resource Editor."
+1 TEXTINCLUDE DISCARDABLE
+BEGIN
+"< This file can be edited in code. Do not open in Visual Studio Resource Editor. >\0"
+END
+#endif // APSTUDIO_INVOKED
+
+100 ICON "Powershell_black.ico"

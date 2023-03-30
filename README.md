@@ -45,6 +45,9 @@ Source Code Files Encoding Unifier -- encoding and line endings fixed in code fi
 ## Scripts
 Unsorted useful scripts, e.g. Pwsh.
 
+## shutdownplannergui
+A small GUI, slapped together in C#, around the Shutdown command-line utility.
+
 ## StartPwsh
 Trivial tool to start Pwsh.exe and provide an icon. Because...
 

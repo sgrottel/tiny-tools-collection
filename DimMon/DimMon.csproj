@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Title>DimMon</Title>
+    <ApplicationIcon>images\sunglasses.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <Authors>SGrottel</Authors>
+    <Description>Dims monitors by transparent black overlaying windows.</Description>
+    <Copyright>2023, by SGrottel</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="images\sunglasses.ico" />
+  </ItemGroup>
+
+</Project>

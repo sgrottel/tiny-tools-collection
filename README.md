@@ -51,6 +51,10 @@ A small GUI, slapped together in C#, around the Shutdown command-line utility.
 ## StartPwsh
 Trivial tool to start Pwsh.exe and provide an icon. Because...
 
+## ToggleDisplay
+Command line tool to enable/disable/toggle connected displays.
+My scenario is to toggle a TV connected to my PC as `\\.\DISPLAY3`
+
 ## UrlCollector
 Tool to collect urls from clipboard, one by one.
 

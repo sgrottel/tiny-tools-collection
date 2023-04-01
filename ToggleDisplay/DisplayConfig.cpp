@@ -66,6 +66,26 @@ DisplayConfig::ReturnCode DisplayConfig::Query(QueryScope scope, PathsVector& ou
     return MapReturnCode(result);
 }
 
+DisplayConfig::ReturnCode DisplayConfig::Apply(PathsVector& paths)
+{
+    // clear modeInfoIdx fields, as the API will be requested to newly align the mode info data
+    for (PathInfo& path : paths)
+    {
+        path.sourceInfo.modeInfoIdx = DISPLAYCONFIG_PATH_MODE_IDX_INVALID;
+        path.targetInfo.modeInfoIdx = DISPLAYCONFIG_PATH_MODE_IDX_INVALID;
+    }
+
+    // validate
+    long result = SetDisplayConfig(static_cast<uint32_t>(paths.size()), paths.data(), 0, nullptr, SDC_VALIDATE | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES);
+    if (result != ERROR_SUCCESS)
+    {
+        return MapReturnCode(result);
+    }
+
+    result = SetDisplayConfig(static_cast<uint32_t>(paths.size()), paths.data(), 0, nullptr, SDC_APPLY | SDC_TOPOLOGY_SUPPLIED | SDC_ALLOW_PATH_ORDER_CHANGES);
+    return MapReturnCode(result);
+}
+
 void DisplayConfig::FilterPaths(PathsVector& paths)
 {
     // Remove all paths without available target
@@ -143,6 +163,27 @@ void DisplayConfig::FilterPaths(PathsVector& paths)
 
 }
 
+DisplayConfig::PathInfo* DisplayConfig::FindPath(PathsVector& paths, std::wstring const& id)
+{
+    std::wstring needle{id};
+    std::transform(needle.begin(), needle.end(), needle.begin(), std::tolower);
+
+    for (PathInfo& path : paths)
+    {
+        std::wstring srcName = GetGdiDeviceName(path);
+        std::transform(srcName.begin(), srcName.end(), srcName.begin(), std::tolower);
+        if (needle == srcName) return &path;
+
+        DisplayConfig::TargetDeviceName tarName = GetTargetDeviceName(path);
+        std::transform(tarName.name.begin(), tarName.name.end(), tarName.name.begin(), std::tolower);
+        if (needle == tarName.name) return &path;
+        std::transform(tarName.path.begin(), tarName.path.end(), tarName.path.begin(), std::tolower);
+        if (needle == tarName.path) return &path;
+    }
+
+    return nullptr;
+}
+
 std::wstring DisplayConfig::GetGdiDeviceName(PathInfo const& path)
 {
     DISPLAYCONFIG_SOURCE_DEVICE_NAME sourceName = {};
@@ -197,6 +238,16 @@ uint32_t DisplayConfig::GetTargetPreferedModeId(PathInfo const& path)
 bool DisplayConfig::IsEnabled(PathInfo const& path)
 {
     return (path.flags & DISPLAYCONFIG_PATH_ACTIVE) != 0;
+}
+
+void DisplayConfig::SetEnabled(PathInfo& path)
+{
+    path.flags |= DISPLAYCONFIG_PATH_ACTIVE;
+}
+
+void DisplayConfig::SetDisabled(PathInfo& path)
+{
+    path.flags &= ~DISPLAYCONFIG_PATH_ACTIVE;
 }
 
 std::string DisplayConfig::to_string(ReturnCode code)

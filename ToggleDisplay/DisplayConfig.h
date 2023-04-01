@@ -66,10 +66,17 @@ public:
     // https://stackoverflow.com/a/62038912/552373
     static void FilterPaths(PathsVector& paths);
 
+    static ReturnCode Apply(PathsVector& paths);
+
+    static PathInfo* FindPath(PathsVector& paths, std::wstring const& id);
+
     static std::wstring GetGdiDeviceName(PathInfo const& path);
     static TargetDeviceName GetTargetDeviceName(PathInfo const& path);
     static uint32_t GetTargetPreferedModeId(PathInfo const& path);
+
     static bool IsEnabled(PathInfo const& path);
+    static void SetEnabled(PathInfo& path);
+    static void SetDisabled(PathInfo& path);
 
     static std::string to_string(ReturnCode code);
 

@@ -69,7 +69,6 @@ namespace app
 			configFile.ClearConfig += ConfigFile_ClearConfig;
 			configFile.FailedLoading += ConfigFile_FailedLoading;
 			configFile.ActionsLoaded += ConfigFile_ActionsLoaded;
-			configFile.LogConfigLoaded += ConfigFile_LogConfigLoaded;
 
 			InitialWindowPlacement();
 			DataContext = this;
@@ -77,10 +76,14 @@ namespace app
 
 		private void Log_Updated(object? sender, EventArgs e)
 		{
-			Dispatcher.Invoke(() =>
+			try
 			{
-				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Messages)));
-			});
+				Dispatcher.Invoke(() =>
+				{
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Messages)));
+				});
+			}
+			catch { }
 		}
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -247,32 +250,6 @@ namespace app
 					}
 					break;
 			}
-		}
-
-		private void Window_Closing(object sender, CancelEventArgs e)
-		{
-			log.Save();
-		}
-
-		private void ConfigFile_LogConfigLoaded(ConfigFileReader sender, string logsPath)
-		{
-			if (!System.IO.Directory.Exists(logsPath))
-			{
-				try
-				{
-					System.IO.Directory.CreateDirectory(logsPath);
-					if (!System.IO.Directory.Exists(logsPath))
-					{
-						throw new Exception("Unknown reason");
-					}
-				}
-				catch (Exception ex)
-				{
-					log.Add("Failed to create log directory: {0}", ex);
-				}
-			}
-
-			log.SavePath = logsPath;
 		}
 	}
 }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:app"
         mc:Ignorable="d"
-        Title="Little Starter™" Height="450" Width="800" Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown" Closing="Window_Closing">
+        Title="Little Starter™" Height="450" Width="800" Loaded="Window_Loaded" PreviewKeyDown="Window_PreviewKeyDown">
     <Grid Margin="4">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" MinWidth="60"/>

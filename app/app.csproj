@@ -16,7 +16,7 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>0.7</Version>
+    <Version>0.7.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

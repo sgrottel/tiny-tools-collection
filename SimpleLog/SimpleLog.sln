@@ -4,8 +4,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.6.33513.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SimpleLog", "SimpleLog", "{40DCD3BD-7896-4A27-BCE6-E97AAB9F7C46}"
+	ProjectSection(SolutionItems) = preProject
+		SimpleLog\ComponentSource.json = SimpleLog\ComponentSource.json
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestCSharp", "TestCSharp\TestCSharp.csproj", "{CEE09A3B-608D-45F4-8913-74879474DE06}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestCSharp", "TestCSharp\TestCSharp.csproj", "{CEE09A3B-608D-45F4-8913-74879474DE06}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

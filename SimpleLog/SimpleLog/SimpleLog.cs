@@ -18,8 +18,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-// Version: 2.0.0
+// Version: 2.1.0
 
+#nullable enable
+
+using System;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -30,7 +34,7 @@ namespace SGrottel
 	/// <summary>
 	/// SimpleLog interface for writing a message
 	/// </summary>
-	interface ISimpleLog
+	public interface ISimpleLog
 	{
 		/// <summary>
 		/// Flag message as warning
@@ -46,14 +50,20 @@ namespace SGrottel
 		/// Write a message to the log
 		/// </summary>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="flags">The optional message flags</param>
-		void Write(string message, uint flags = 0);
+		void Write(string message);
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		void Write(uint flags, string message);
 	}
 
 	/// <summary>
 	/// SimpleLog implementation
 	/// </summary>
-	class SimpleLog : ISimpleLog
+	public class SimpleLog : ISimpleLog
 	{
 
 		#region Static Write Convenience Functions
@@ -62,16 +72,16 @@ namespace SGrottel
 		static public void Write(ISimpleLog log, string format, object? arg0, object? arg1) { log.Write(string.Format(format, arg0, arg1)); }
 		static public void Write(ISimpleLog log, string format, object? arg0, object? arg1, object? arg2) { log.Write(string.Format(format, arg0, arg1, arg2)); }
 		static public void Write(ISimpleLog log, string format, object?[] args) { log.Write(string.Format(format, args)); }
-		static public void Warning(ISimpleLog log, string message) { log.Write(message, ISimpleLog.FlagWarning); }
-		static public void Warning(ISimpleLog log, string format, object? arg0) { log.Write(string.Format(format, arg0), ISimpleLog.FlagWarning); }
-		static public void Warning(ISimpleLog log, string format, object? arg0, object? arg1) { log.Write(string.Format(format, arg0, arg1), ISimpleLog.FlagWarning); }
-		static public void Warning(ISimpleLog log, string format, object? arg0, object? arg1, object? arg2) { log.Write(string.Format(format, arg0, arg1, arg2), ISimpleLog.FlagWarning); }
-		static public void Warning(ISimpleLog log, string format, object?[] args) { log.Write(string.Format(format, args), ISimpleLog.FlagWarning); }
-		static public void Error(ISimpleLog log, string message) { log.Write(message, ISimpleLog.FlagError); }
-		static public void Error(ISimpleLog log, string format, object? arg0) { log.Write(string.Format(format, arg0), ISimpleLog.FlagError); }
-		static public void Error(ISimpleLog log, string format, object? arg0, object? arg1) { log.Write(string.Format(format, arg0, arg1), ISimpleLog.FlagError); }
-		static public void Error(ISimpleLog log, string format, object? arg0, object? arg1, object? arg2) { log.Write(string.Format(format, arg0, arg1, arg2), ISimpleLog.FlagError); }
-		static public void Error(ISimpleLog log, string format, object?[] args) { log.Write(string.Format(format, args), ISimpleLog.FlagError); }
+		static public void Warning(ISimpleLog log, string message) { log.Write(ISimpleLog.FlagWarning, message); }
+		static public void Warning(ISimpleLog log, string format, object? arg0) { log.Write(ISimpleLog.FlagWarning, string.Format(format, arg0)); }
+		static public void Warning(ISimpleLog log, string format, object? arg0, object? arg1) { log.Write(ISimpleLog.FlagWarning, string.Format(format, arg0, arg1)); }
+		static public void Warning(ISimpleLog log, string format, object? arg0, object? arg1, object? arg2) { log.Write(ISimpleLog.FlagWarning, string.Format(format, arg0, arg1, arg2)); }
+		static public void Warning(ISimpleLog log, string format, object?[] args) { log.Write(ISimpleLog.FlagWarning, string.Format(format, args)); }
+		static public void Error(ISimpleLog log, string message) { log.Write(ISimpleLog.FlagError, message); }
+		static public void Error(ISimpleLog log, string format, object? arg0) { log.Write(ISimpleLog.FlagError, string.Format(format, arg0)); }
+		static public void Error(ISimpleLog log, string format, object? arg0, object? arg1) { log.Write(ISimpleLog.FlagError, string.Format(format, arg0, arg1)); }
+		static public void Error(ISimpleLog log, string format, object? arg0, object? arg1, object? arg2) { log.Write(ISimpleLog.FlagError, string.Format(format, arg0, arg1, arg2)); }
+		static public void Error(ISimpleLog log, string format, object?[] args) { log.Write(ISimpleLog.FlagError, string.Format(format, args)); }
 		#endregion
 
 		#region Ctor
@@ -285,8 +295,14 @@ namespace SGrottel
 		/// Write a message to the log
 		/// </summary>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="flags">The optional message flags</param>
-		public virtual void Write(string message, uint flags = 0)
+		public virtual void Write(string message) { Write(0, message); }
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public virtual void Write(uint flags, string message)
 		{
 			if (writer == null) return;
 			string type = "";
@@ -302,7 +318,7 @@ namespace SGrottel
 	/// <summary>
 	/// Extention to SimpleLog which, which echoes all messages to the console
 	/// </summary>
-	class EchoingSimpleLog : SimpleLog
+	public class EchoingSimpleLog : SimpleLog
 	{
 		/// <summary>
 		/// Creates a EchoingSimpleLog with default values for directory, name, and retention
@@ -332,10 +348,16 @@ namespace SGrottel
 		/// Write a message to the log and echoes the message to the console.
 		/// </summary>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public override void Write(string message) { Write(0, message); }
+
+		/// <summary>
+		/// Write a message to the log and echoes the message to the console.
+		/// </summary>
 		/// <param name="flags">The optional message flags</param>
-		public override void Write(string message, uint flags = 0)
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public override void Write(uint flags, string message)
 		{
-			base.Write(message, flags);
+			base.Write(flags, message);
 			bool isError = (flags & ISimpleLog.FlagError) == ISimpleLog.FlagError;
 			bool isWarning = (flags & ISimpleLog.FlagWarning) == ISimpleLog.FlagWarning;
 

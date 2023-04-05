@@ -8,8 +8,8 @@
 				{
 					"type": "git",
 					"url": "https://www.github.com/sgrottel/tiny-tools-collection",
-					"hash": "8ebe6dd044b79dd3287a1edfa2699b06c75c0b96",
-					"version": "2.1.0",
+					"hash": "3786b47cb4c4c6d39a0829a91f735f14d4864896",
+					"version": "2.2.0",
 					"path": "SimpleLog/SimpleLog"
 				}
 			]

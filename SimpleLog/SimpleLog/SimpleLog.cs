@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-// Version: 2.1.0
+// Version: 2.2.0
 
 #nullable enable
 
@@ -217,7 +217,7 @@ namespace SGrottel
 		/// <returns>The default name for log files of this process</returns>
 		public static string GetDefaultName()
 		{
-			Assembly asm = Assembly.GetExecutingAssembly();
+			Assembly asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
 			return asm.GetName().Name ?? Path.GetFileNameWithoutExtension(asm.Location);
 		}
 

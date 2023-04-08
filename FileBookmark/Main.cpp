@@ -50,7 +50,7 @@ void RegisterFileType();
 void UnregisterFileType();
 void MainWithBookmarkFile(std::wstring const& filepath);
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PWSTR pCmdLine, _In_ int nCmdShow)
 {
 	using filebookmark::CmdLineOptions;
 
@@ -76,23 +76,23 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			break;
 
 		case CmdLineOptions::Mode::OpenBookmark:
-			if (cmdLine.GetFilePath().empty())
+			if (cmdLine.GetPath().empty())
 			{
 				throw std::runtime_error{"Bookmark file not specified"};
 			}
-			MainWithBookmarkFile(cmdLine.GetFilePath());
+			MainWithBookmarkFile(cmdLine.GetPath());
 			break;
 
 		case CmdLineOptions::Mode::SetBookmark:
 			// no break;
 		case CmdLineOptions::Mode::SetBookmarkAndOpen:
-			if (cmdLine.GetFilePath().empty())
+			if (cmdLine.GetPath().empty())
 			{
 				throw std::runtime_error{"File to bookmark not specified"};
 			}
 			{
 				filebookmark::Bookmark bookmark;
-				bookmark.Set(cmdLine.GetFilePath());
+				bookmark.Set(cmdLine.GetPath());
 
 				if (bookmark.GetPath().empty())
 				{
@@ -108,6 +108,28 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 					// continue and open in GUI
 					MainWithBookmarkFile(bookmark.GetPath());
 				}
+			}
+			break;
+
+		case CmdLineOptions::Mode::OpenDirectory:
+			if (cmdLine.GetPath().empty())
+			{
+				throw std::runtime_error{"Directory not specified"};
+			}
+			{
+				filebookmark::Bookmark bookmark;
+				bookmark.OpenDirectory(cmdLine.GetPath());
+
+				if (bookmark.GetPath().empty())
+				{
+					throw std::runtime_error{"Failed to set bookmark"};
+				}
+				if (!std::filesystem::is_regular_file(bookmark.GetPath()))
+				{
+					throw std::runtime_error{"Failed to set bookmark -- type error"};
+				}
+
+				MainWithBookmarkFile(bookmark.GetPath());
 			}
 			break;
 

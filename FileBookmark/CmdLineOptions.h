@@ -29,21 +29,22 @@ namespace filebookmark
 			RegisterFileType,
 			UnregisterFileType,
 			SetBookmark,
-			SetBookmarkAndOpen
+			SetBookmarkAndOpen,
+			OpenDirectory
 		};
 
 		inline Mode GetMode() const {
 			return m_mode;
 		}
-		inline std::wstring const& GetFilePath() const {
-			return m_filePath;
+		inline std::wstring const& GetPath() const {
+			return m_path;
 		}
 
 		void Parse(const wchar_t* pCmdLine);
 
 	private:
 		Mode m_mode{ Mode::None };
-		std::wstring m_filePath{};
+		std::wstring m_path{};
 	};
 
 }

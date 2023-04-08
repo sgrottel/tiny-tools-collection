@@ -16,6 +16,7 @@
 #pragma once
 
 #include <filesystem>
+#include <vector>
 
 namespace filebookmark
 {
@@ -40,7 +41,13 @@ namespace filebookmark
 		void Set(std::filesystem::path const& file);
 		void Open(std::filesystem::path const& bookmarkFile);
 
+		// If no bookmark file is in folder, set bookmark on the first one
+		// Open bookmark
+		void OpenDirectory(std::filesystem::path const& directory);
+
 	private:
+		std::vector<std::filesystem::path> GetFiles(std::filesystem::path const& directory);
+
 		std::filesystem::path m_path;
 		std::filesystem::path m_bookmarkedFile;
 		std::filesystem::path m_nextFile;

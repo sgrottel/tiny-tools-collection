@@ -35,7 +35,7 @@ void CmdLineOptions::Parse(const wchar_t* pCmdLine)
 		// early out.
 		// Otherwise `CommandLineToArgvW` will add the executable name.
 		m_mode = Mode::None;
-		m_filePath.clear();
+		m_path.clear();
 		return;
 	}
 
@@ -79,34 +79,52 @@ void CmdLineOptions::Parse(const wchar_t* pCmdLine)
 				m_mode = Mode::SetBookmarkAndOpen;
 				continue;
 			}
+			if (opt == L"--dir")
+			{
+				m_mode = Mode::OpenDirectory;
+				continue;
+			}
 		}
 
-		// likely a file
-		std::filesystem::path filePath{arg};
-		if (!std::filesystem::is_regular_file(filePath))
+		// likely a file or a directory
+		std::filesystem::path path{arg};
+		if (std::filesystem::is_regular_file(path) || std::filesystem::is_directory(path))
 		{
-			continue;
-		}
-		if (!filePath.is_absolute())
-		{
-			filePath = std::filesystem::absolute(filePath);
-		}
-		filePath = std::filesystem::canonical(filePath);
+			if (!path.is_absolute())
+			{
+				path = std::filesystem::absolute(path);
+			}
+			path = std::filesystem::canonical(path);
 
-		if (m_filePath.empty())
-		{
-			m_filePath = filePath.wstring();
+			if (m_path.empty())
+			{
+				m_path = path.wstring();
+			}
 		}
 
 	}
 
-	if ((m_mode == Mode::OpenBookmark || m_mode == Mode::SetBookmark || m_mode == Mode::SetBookmarkAndOpen) && m_filePath.empty())
+	if ((m_mode == Mode::OpenBookmark || m_mode == Mode::SetBookmark || m_mode == Mode::SetBookmarkAndOpen)
+		&& (m_path.empty() || !std::filesystem::is_regular_file(m_path)))
 	{
 		m_mode = Mode::None;
 	}
 
-	if (!m_filePath.empty() && m_mode == Mode::None)
+	if ((m_mode == Mode::OpenDirectory)
+		&& (m_path.empty() || !std::filesystem::is_directory(m_path)))
 	{
-		m_mode = Mode::OpenBookmark;
+		m_mode = Mode::None;
+	}
+
+	if (!m_path.empty() && m_mode == Mode::None)
+	{
+		if (std::filesystem::is_regular_file(m_path))
+		{
+			m_mode = Mode::OpenBookmark;
+		}
+		else if (std::filesystem::is_directory(m_path))
+		{
+			m_mode = Mode::OpenDirectory;
+		}
 	}
 }

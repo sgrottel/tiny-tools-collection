@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-// Version: 2.2.0
+// Version: 2.3.0
 
 #nullable enable
 
@@ -168,7 +168,7 @@ namespace SGrottel
 			}
 
 
-			parent = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+			parent = AppContext.BaseDirectory;
 			if (Directory.Exists(parent))
 			{
 				path = Path.Combine(parent, "logs");
@@ -218,7 +218,12 @@ namespace SGrottel
 		public static string GetDefaultName()
 		{
 			Assembly asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-			return asm.GetName().Name ?? Path.GetFileNameWithoutExtension(asm.Location);
+			string? name = asm.GetName().Name;
+			if (name == null)
+			{
+				name = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+			}
+			return name;
 		}
 
 		/// <summary>

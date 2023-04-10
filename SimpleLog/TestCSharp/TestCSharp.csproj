@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\SimpleLog\SimpleLog.cs" Link="SimpleLog.cs" />
+    <Compile Include="..\csharp\SimpleLog\SimpleLog.cs" Link="SimpleLog.cs" />
   </ItemGroup>
 
 </Project>

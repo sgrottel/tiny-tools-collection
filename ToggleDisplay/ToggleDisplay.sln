@@ -5,6 +5,8 @@ VisualStudioVersion = 17.6.33513.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ToggleDisplay", "ToggleDisplay.vcxproj", "{EF13A894-970A-47B8-B301-EB3975600A43}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DynamicIconProvider", "DynamicIconProvider\DynamicIconProvider.vcxproj", "{713A5DDE-5756-4E0B-909B-FED01C68A5C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{EF13A894-970A-47B8-B301-EB3975600A43}.Release|x64.Build.0 = Release|x64
 		{EF13A894-970A-47B8-B301-EB3975600A43}.Release|x86.ActiveCfg = Release|Win32
 		{EF13A894-970A-47B8-B301-EB3975600A43}.Release|x86.Build.0 = Release|Win32
+		{713A5DDE-5756-4E0B-909B-FED01C68A5C3}.Debug|x64.ActiveCfg = Debug|x64
+		{713A5DDE-5756-4E0B-909B-FED01C68A5C3}.Debug|x64.Build.0 = Debug|x64
+		{713A5DDE-5756-4E0B-909B-FED01C68A5C3}.Debug|x86.ActiveCfg = Debug|Win32
+		{713A5DDE-5756-4E0B-909B-FED01C68A5C3}.Debug|x86.Build.0 = Debug|Win32
+		{713A5DDE-5756-4E0B-909B-FED01C68A5C3}.Release|x64.ActiveCfg = Release|x64
+		{713A5DDE-5756-4E0B-909B-FED01C68A5C3}.Release|x64.Build.0 = Release|x64
+		{713A5DDE-5756-4E0B-909B-FED01C68A5C3}.Release|x86.ActiveCfg = Release|Win32
+		{713A5DDE-5756-4E0B-909B-FED01C68A5C3}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

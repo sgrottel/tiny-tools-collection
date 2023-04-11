@@ -13,23 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#pragma once
+#ifdef APSTUDIO_INVOKED
+// This will prevent the VC++ Resource Editor user from saving this file
+#error "This file can be edited in code. Do not open in Visual Studio Resource Editor."
+1 TEXTINCLUDE DISCARDABLE
+BEGIN
+"< This file can be edited in code. Do not open in Visual Studio Resource Editor. >\0"
+END
+#endif    // APSTUDIO_INVOKED
 
-#include <string>
-
-struct CmdLineArgs
-{
-    enum class Command {
-        Unknown,
-        List,
-        Toggle,
-        Enable,
-        Disable,
-    };
-
-    Command command;
-    std::wstring id;
-
-    bool Parse(int argc, const wchar_t* argv[]);
-    void PrintHelp();
-};
+1 ICON "../images/ToggleDisplay.ico"

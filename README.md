@@ -39,6 +39,9 @@ Can also start an application and bring that's window to front.
 ## LoginWhen
 Queries the Windows event log to print when the user sessions logged in and logged out.
 
+## MakeIco
+Powershell script using [IcoTools](https://github.com/jtippet/IcoTools) to make an `.ico` file from multiple image files in one call.
+
 ## scfeu
 Source Code Files Encoding Unifier -- encoding and line endings fixed in code files. Sort of.
 

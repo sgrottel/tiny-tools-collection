@@ -51,9 +51,6 @@ Unsorted useful scripts, e.g. Pwsh.
 ## shutdownplannergui
 A small GUI, slapped together in C#, around the Shutdown command-line utility.
 
-## SimpleLog
-➡️ SimpleLog moved into it's own repository: https://github.com/sgrottel/simplelog
-
 ## StartPwsh
 Trivial tool to start Pwsh.exe and provide an icon. Because...
 

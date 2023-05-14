@@ -7,10 +7,10 @@
 			"source": [
 				{
 					"type": "git",
-					"url": "https://www.github.com/sgrottel/tiny-tools-collection",
-					"hash": "7a4956de3752c7f51008796b7bb2d415929f589f",
-					"version": "2.3.0",
-					"path": "SimpleLog/SimpleLog"
+					"url": "https://www.github.com/sgrottel/simplelog",
+					"hash": "60c2244d343676bfcec3df4377463bcc2e87ce12",
+					"version": "2.3.1",
+					"path": "csharp/SimpleLog"
 				}
 			]
 		}

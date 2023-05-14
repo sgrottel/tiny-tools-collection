@@ -52,9 +52,7 @@ Unsorted useful scripts, e.g. Pwsh.
 A small GUI, slapped together in C#, around the Shutdown command-line utility.
 
 ## SimpleLog
-A very simple log implementation.
-Nothing fancy, only log strings to log files and log file retention.
-Usable as source component, not a lib.
+➡️ SimpleLog moved into it's own repository: https://github.com/sgrottel/simplelog
 
 ## StartPwsh
 Trivial tool to start Pwsh.exe and provide an icon. Because...

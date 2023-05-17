@@ -17,7 +17,7 @@ function Write-RepoInfo($repo)
 		Write-Host "]" -NoNewLine -F DarkGray -B Black
 	}
 	Write-Host " - " -NoNewLine -F DarkGray -B Black
-	$age = -(New-TimeSpan –Start (Get-Date) –End ([datetime]$repo.updatedAt)).TotalDays
+	$age = -(New-TimeSpan -Start (Get-Date) -End ([datetime]$repo.updatedAt)).TotalDays
 	$ageCol = 'DarkGray'
 	if ($age -lt 1) { $age = "Today (<1 day)"; $ageCol = 'darkgreen' }
 	elseif ($age -lt 2) { $age = "Yesterday (<2 days)"; $ageCol = 'darkgreen' }

@@ -3,7 +3,7 @@ Write-Host "🦑 Checking Github CLI authentication status"
 gh auth status
 Write-Host "If not logged in, please run: gh auth login"
 
-$repos = (gh repo list -L 10000 --json "description,id,isArchived,isFork,isPrivate,issues,latestRelease,licenseInfo,name,owner,parent,pullRequests,url,updatedAt") | ConvertFrom-Json
+$repos = (gh repo list -L 10000 --json "description,id,isArchived,isFork,isPrivate,issues,latestRelease,licenseInfo,name,owner,parent,pullRequests,url,updatedAt,pushedAt") | ConvertFrom-Json
 $repos = $repos | Sort-Object -Property @{Expression="isArchived";Descending=$false},@{Expression="isFork";Descending=$false},@{Expression="name";Descending=$false}
 
 function Write-RepoInfo($repo)
@@ -17,7 +17,7 @@ function Write-RepoInfo($repo)
 		Write-Host "]" -NoNewLine -F DarkGray -B Black
 	}
 	Write-Host " - " -NoNewLine -F DarkGray -B Black
-	$age = -(New-TimeSpan -Start (Get-Date) -End ([datetime]$repo.updatedAt)).TotalDays
+	$age = -(New-TimeSpan -Start (Get-Date) -End ([datetime]$repo.pushedAt)).TotalDays
 	$ageCol = 'DarkGray'
 	if ($age -lt 1) { $age = "Today (<1 day)"; $ageCol = 'darkgreen' }
 	elseif ($age -lt 2) { $age = "Yesterday (<2 days)"; $ageCol = 'darkgreen' }

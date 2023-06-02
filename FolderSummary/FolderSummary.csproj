@@ -5,6 +5,16 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Title>Folder Summary Application</Title>
+    <Version>0.1.0</Version>
+    <Authors>SGrottel</Authors>
+    <Description>Folder Summary Application</Description>
+    <Copyright>Copyright 2023 SGrottel</Copyright>
+    <PackageProjectUrl>https://github.com/sgrottel/tiny-tools-collection</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/sgrottel/tiny-tools-collection</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>en</NeutralLanguage>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>

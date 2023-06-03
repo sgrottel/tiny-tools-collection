@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -30,7 +31,7 @@ namespace FolderSummary
 			public Dictionary<string, FileData>? Files { get; set; } = null;
 		}
 
-		internal static void Scan(DirectoryData data, DirectoryInfo dir)
+		internal static void ScanViaFileSystem(DirectoryData data, DirectoryInfo dir)
 		{
 			if (data.Files == null) data.Files = new();
 			data.Files.Clear();
@@ -59,10 +60,65 @@ namespace FolderSummary
 				}
 
 				DirectoryData dd = new();
-				Scan(dd, info);
+				ScanViaFileSystem(dd, info);
 				data.Directories[info.Name] = dd;
 			}
 			if (!data.Directories.Any()) data.Directories = null;
+
+		}
+
+		[SupportedOSPlatform("windows")]
+		private static void ScanViaEverything(DirectoryData d, DirectoryInfo dir)
+		{
+			DirectoryData root = d;
+			for (DirectoryInfo? di = dir;di != null; di = di.Parent)
+			{
+				DirectoryData dd = root;
+				root = new() { Directories = new() };
+				root.Directories[di.Name.Trim(Path.DirectorySeparatorChar)] = dd;
+			}
+
+			EverythingSearchClient.SearchClient everything = new();
+			var res = everything.Search($"{dir.FullName}\\ ");
+
+			foreach (EverythingSearchClient.Result.Item file in res.Items)
+			{
+				var attr = file.FileAttributes ?? EverythingSearchClient.Result.ItemFileAttributes.None;
+				if (attr.HasFlag(EverythingSearchClient.Result.ItemFileAttributes.Hidden)
+					|| attr.HasFlag(EverythingSearchClient.Result.ItemFileAttributes.System))
+				{
+					continue;
+				}
+
+				DirectoryData dd = root;
+				DirectoryData? ndd = null;
+				foreach (string p in file.Path.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries))
+				{
+					if (!(dd.Directories?.TryGetValue(p, out ndd) ?? false))
+					{
+						ndd = new DirectoryData();
+						if (dd.Directories == null) dd.Directories = new();
+						dd.Directories[p] = ndd;
+					}
+					dd = ndd;
+				}
+
+				if (file.Flags.HasFlag(EverythingSearchClient.Result.ItemFlags.Folder))
+				{
+					if (!(dd.Directories?.TryGetValue(file.Name, out ndd) ?? false))
+					{
+						ndd = new DirectoryData();
+						if (dd.Directories == null) dd.Directories = new();
+						dd.Directories[file.Name] = ndd;
+					}
+				}
+				else
+				{
+					if (dd.Files == null) dd.Files = new();
+					FileData newFile = new() { Size = file.Size ?? 0, Date = file.LastWriteTime ?? DateTime.MinValue };
+					dd.Files[file.Name] = newFile;
+				}
+			}
 
 		}
 
@@ -70,9 +126,15 @@ namespace FolderSummary
 		{
 			DirectoryData d = new();
 
-			Scan(d, dir);
-
-			// TODO: Implement
+			if (OperatingSystem.IsWindows() &&
+				EverythingSearchClient.SearchClient.IsEverythingAvailable())
+			{
+				ScanViaEverything(d, dir);
+			}
+			else
+			{
+				ScanViaFileSystem(d, dir);
+			}
 
 			return d;
 		}

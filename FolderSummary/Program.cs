@@ -38,6 +38,8 @@ internal class Program
 		var compareCommand = new Command("compare", description: "Compares a summary to a folder");
 		compareCommand.AddArgument(jsonFileArgument);
 		compareCommand.AddArgument(folderArgument);
+		var ignoreDateOption = new Option<bool>("--ignore-date", description: "Does not report differences in file dates");
+		compareCommand.AddOption(ignoreDateOption);
 		compareCommand.AddValidator(result =>
 		{
 			var json = result.GetValueForArgument(jsonFileArgument);
@@ -46,12 +48,12 @@ internal class Program
 				result.ErrorMessage = $"File does not exist: '{json.FullName}'.";
 			}
 		});
-		compareCommand.SetHandler((json, folder) =>
+		compareCommand.SetHandler((json, folder, ignoreDate) =>
 		{
 
 			throw new NotImplementedException();
 
-		}, jsonFileArgument, folderArgument);
+		}, jsonFileArgument, folderArgument, ignoreDateOption);
 		rootCommand.AddCommand(compareCommand);
 
 		return rootCommand.Invoke(args);

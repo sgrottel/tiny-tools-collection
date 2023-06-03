@@ -15,7 +15,12 @@
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <ApplicationIcon>Custom-Icon-Design-Flatastic-8-Content-tree.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Custom-Icon-Design-Flatastic-8-Content-tree.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="EverythingSearchClient" Version="0.4.0.37" />

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 
 namespace FolderSummary
@@ -14,61 +16,61 @@ namespace FolderSummary
 
 		public class FileData
 		{
-			public string Name { get; set; } = string.Empty;
+			[JsonPropertyName("s")]
 			public ulong Size { get; set; } = 0;
+			[JsonPropertyName("t")]
 			public DateTime Date { get; set; } = DateTime.MinValue;
 		}
 
 		public class DirectoryData
 		{
-			public string Name { get; set; } = string.Empty;
+			[JsonPropertyName("d")]
+			public Dictionary<string, DirectoryData>? Directories { get; set; } = null;
+			[JsonPropertyName("f")]
+			public Dictionary<string, FileData>? Files { get; set; } = null;
+		}
 
-			[JsonIgnore]
-			public List<DirectoryData> Directories { get; set; } = new();
-			
-			[JsonIgnore]
-			public List<FileData> Files { get; set; } = new();
-
-			[JsonPropertyName("Directories")]
-			public DirectoryData[]? JsonDirectories
+		internal static void Scan(DirectoryData data, DirectoryInfo dir)
+		{
+			if (data.Files == null) data.Files = new();
+			data.Files.Clear();
+			foreach (var info in dir.GetFiles())
 			{
-				get
+				if (info.Attributes.HasFlag(FileAttributes.System)
+					|| info.Attributes.HasFlag(FileAttributes.Temporary)
+					|| info.Attributes.HasFlag(FileAttributes.Hidden))
 				{
-					if (Directories.Count == 0) return null;
-					return Directories.ToArray();
+					continue;
 				}
-				set
-				{
-					Directories.Clear();
-					if (value != null)
-					{
-						Directories.AddRange(value);
-					}
-				}
-			}
 
-			[JsonPropertyName("Files")]
-			public FileData[]? JsonFiles {
-				get
-				{
-					if (Files.Count == 0) return null;
-					return Files.ToArray();
-				}
-				set
-				{
-					Files.Clear();
-					if (value != null)
-					{
-						Files.AddRange(value);
-					}
-				}
+				data.Files[info.Name] = new FileData() { Size = (ulong)info.Length, Date = info.LastWriteTimeUtc };
 			}
+			if (!data.Files.Any()) data.Files = null;
+
+			if (data.Directories == null) data.Directories = new();
+			data.Directories.Clear();
+			foreach (var info in dir.GetDirectories())
+			{
+				if (info.Attributes.HasFlag(FileAttributes.System)
+					|| info.Attributes.HasFlag(FileAttributes.Temporary)
+					|| info.Attributes.HasFlag(FileAttributes.Hidden))
+				{
+					continue;
+				}
+
+				DirectoryData dd = new();
+				Scan(dd, info);
+				data.Directories[info.Name] = dd;
+			}
+			if (!data.Directories.Any()) data.Directories = null;
+
 		}
 
 		public static DirectoryData Scan(DirectoryInfo dir)
 		{
-			DirectoryData d = new() { Name = dir.Name };
-			d.Files.Add(new FileData() { Name = "Dummy", Date = DateTime.Now });
+			DirectoryData d = new();
+
+			Scan(d, dir);
 
 			// TODO: Implement
 
@@ -78,9 +80,10 @@ namespace FolderSummary
 		public static void SaveJson(DirectoryData data, FileInfo filename)
 		{
 			JsonSerializerOptions opt = new() {
-				WriteIndented = true,
+				//WriteIndented = true,
 				MaxDepth = 200,
 				DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+				Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, // ok, because file is meant to be only read by this application again
 			};
 			using (FileStream file = new(filename.FullName, FileMode.Create, FileAccess.Write))
 			JsonSerializer.Serialize(file, data, opt);

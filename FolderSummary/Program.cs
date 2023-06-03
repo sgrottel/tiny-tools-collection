@@ -1,5 +1,6 @@
 ﻿using FolderSummary;
 using System.CommandLine;
+using System.Text;
 
 internal class Program
 {
@@ -51,10 +52,13 @@ internal class Program
 		});
 		compareCommand.SetHandler((json, folder, ignoreDate) =>
 		{
+			Console.OutputEncoding = new UTF8Encoding(false);
+
 			var found = Summary.Scan(folder);
 			var expected = Summary.LoadJson(json);
-
-			throw new NotImplementedException();
+			Comparer comp = new(json, folder);
+			comp.IgnoreDate = ignoreDate;
+			comp.Compare(expected, found);
 
 		}, jsonFileArgument, folderArgument, ignoreDateOption);
 		rootCommand.AddCommand(compareCommand);

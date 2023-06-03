@@ -28,6 +28,10 @@ Desktop Icon Backup
 C# app to dim monitors by displaying an transparent black overlaying window.
 The idea is to dim "other" monitors when watching a video or playing a game one only one of the monitors.
 
+## FolderSummary
+Simple C# app to summarize the content of a folder (recursively) into a Json file, or compares the content of a folder (recursively) to a Json file reporting differences in file existance, size, and write date.
+Can use Everything, if available.
+
 ## GithubOverview
 A powershell script to print an overview of my stuff on Github.
 [Github CLI](https://cli.github.com/) must be installed.

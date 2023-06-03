@@ -365,3 +365,4 @@ FodyWeavers.xsd
 # Desktop.ini for folder icon
 desktop.ini
 DimMon/Properties
+FolderSummary/Properties/launchSettings.json

@@ -1,4 +1,5 @@
-﻿using System.CommandLine;
+﻿using FolderSummary;
+using System.CommandLine;
 
 internal class Program
 {
@@ -27,12 +28,12 @@ internal class Program
 				}
 			}
 		});
-		createCommand.SetHandler((json, folder, overwrite) =>
+		createCommand.SetHandler((json, folder) =>
 		{
+			var data = Summary.Scan(folder);
+			Summary.SaveJson(data, json);
 
-			throw new NotImplementedException();
-
-		}, jsonFileArgument, folderArgument, overwriteOption);
+		}, jsonFileArgument, folderArgument);
 		rootCommand.AddCommand(createCommand);
 
 		var compareCommand = new Command("compare", description: "Compares a summary to a folder");
@@ -50,6 +51,8 @@ internal class Program
 		});
 		compareCommand.SetHandler((json, folder, ignoreDate) =>
 		{
+			var found = Summary.Scan(folder);
+			var expected = Summary.LoadJson(json);
 
 			throw new NotImplementedException();
 

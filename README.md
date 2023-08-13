@@ -46,6 +46,9 @@ Queries the Windows event log to print when the user sessions logged in and logg
 ## MakeIco
 Powershell script using [IcoTools](https://github.com/jtippet/IcoTools) to make an `.ico` file from multiple image files in one call.
 
+## poltermouse
+Little tool to move the mouse around by itself, faking activity.
+
 ## scfeu
 Source Code Files Encoding Unifier -- encoding and line endings fixed in code files. Sort of.
 

@@ -1,5 +1,4 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -145,13 +144,12 @@ namespace scfeu {
 		}
 
 		private void BrowseDirButton_Click(object sender, RoutedEventArgs e) {
-			var dialog = new CommonOpenFileDialog();
-			dialog.IsFolderPicker = true;
-			dialog.InitialDirectory = JobSetup.Directory;
-			CommonFileDialogResult result = dialog.ShowDialog();
-			if (result == CommonFileDialogResult.Ok) {
-				if (System.IO.Directory.Exists(dialog.FileName)) {
-					JobSetup.Directory = dialog.FileName;
+			System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
+			dialog.SelectedPath = JobSetup.Directory;
+			System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+			if (result == System.Windows.Forms.DialogResult.OK) {
+				if (System.IO.Directory.Exists(dialog.SelectedPath)) {
+					JobSetup.Directory = dialog.SelectedPath;
 				}
 			}
 		}

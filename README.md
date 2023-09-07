@@ -61,6 +61,10 @@ A small GUI, slapped together in C#, around the Shutdown command-line utility.
 ## StartPwsh
 Trivial tool to start Pwsh.exe and provide an icon. Because...
 
+## TestConApp
+Simple little console application usable in tests, to check whether a process is correctly called.
+It echoes it's command line arguments and a couple of diagnostic properties.
+
 ## ToggleDisplay
 Command line tool to enable/disable/toggle connected displays.
 My scenario is to toggle a TV connected to my PC as `\\.\DISPLAY3`

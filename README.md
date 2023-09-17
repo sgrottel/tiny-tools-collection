@@ -17,6 +17,10 @@ Powershell script to iterate over all git repositories and print some configurat
 ## CallStackUtility
 Little C++ helper class to fetch a call stack, e.g. used for better error reporting and logging.
 
+## ColorVariantsWheel
+Utility C# class to generate distinguishable colors and luminance variants.
+These color can be used for multiple plot lines in diagrams.
+
 ## ConProgBar
 A c++ progress bar for console applications.
 As usually, only semi-robust, but good enough.

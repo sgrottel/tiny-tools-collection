@@ -1,0 +1,17 @@
+{
+	"_type": "ComponentSourceManifest",
+	"_version": 1,
+	"components": [
+		{
+			"name": "SGrottel ColorVariantsWheel",
+			"source": [
+				{
+					"type": "git",
+					"url": "https://www.github.com/sgrottel/tiny-tools-collection",
+					"hash": "4b0f51fbf99c87817ef174dcb052063210e11b1d",
+					"path": "ColorVariantsWheel/src"
+				}
+			]
+		}
+	]
+}

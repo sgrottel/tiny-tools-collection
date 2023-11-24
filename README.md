@@ -32,6 +32,10 @@ Desktop Icon Backup
 C# app to dim monitors by displaying an transparent black overlaying window.
 The idea is to dim "other" monitors when watching a video or playing a game one only one of the monitors.
 
+## FindExecutable
+Little C# utility to find the full path of an executable file based on it's name (similar to `locate` or `get-command`), by searching the search paths.
+The code is compatible with Windows and Linux (and likely modern MacOS).
+
 ## FolderSummary
 Simple C# app to summarize the content of a folder (recursively) into a Json file, or compares the content of a folder (recursively) to a Json file reporting differences in file existance, size, and write date.
 Can use Everything, if available.

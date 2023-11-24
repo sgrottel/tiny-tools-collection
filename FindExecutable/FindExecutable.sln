@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34310.174
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FindExecutable", "FindExecutable.csproj", "{3AC6C972-D1EF-435E-B095-301CA31E29DE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3AC6C972-D1EF-435E-B095-301CA31E29DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AC6C972-D1EF-435E-B095-301CA31E29DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AC6C972-D1EF-435E-B095-301CA31E29DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AC6C972-D1EF-435E-B095-301CA31E29DE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {198621ED-211E-4F97-B66F-CA181F3F4330}
+	EndGlobalSection
+EndGlobal

@@ -5,6 +5,9 @@
 // docker run --rm sgr/findexecutable
 //
 
+using System;
+using System.IO;
+
 namespace FindExecutable
 {
 	internal class Program

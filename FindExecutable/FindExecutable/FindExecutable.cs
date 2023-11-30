@@ -1,4 +1,4 @@
-﻿//
+//
 // FindExecutable.cs
 // Copyright, by SGrottel.de  https://www.github.com/sgrottel/tiny-tools-collection
 // Open Source under the `MIT license`
@@ -74,6 +74,8 @@ namespace FindExecutable
 			{
 				foreach (string path in paths)
 				{
+					if (string.IsNullOrWhiteSpace(path)) continue;
+					if (!Directory.Exists(path)) continue;
 					string p = Path.GetFullPath(path);
 					if (!Directory.Exists(p)) continue;
 

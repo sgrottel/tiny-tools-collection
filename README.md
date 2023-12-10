@@ -92,4 +92,4 @@ Some tools explicitly specify a license, mostly Apache License version 2.0.
 In those cases, consider those tools to be dual licensed under [MIT license](./LICENSE) and the explicitly specifed license.
 You can then use the tool under the terms of one of those licences, as you choose.
 
-I doubt, feel free to ask.
+In doubt, just ask.

@@ -23,6 +23,7 @@ namespace ConProgBarSharp
 					{
 						Clear();
 					}
+					SetOrResetEtaTimer();
 				}
 			}
 		}
@@ -88,6 +89,7 @@ namespace ConProgBarSharp
 				if (progressValue != v)
 				{
 					progressValue = v;
+					eta.Push(v);
 					if (show)
 					{
 						Update();
@@ -96,8 +98,93 @@ namespace ConProgBarSharp
 			}
 		}
 
+		private bool showEta = false;
+		public bool ShowEta
+		{
+			get => showEta;
+			set
+			{
+				if (showEta != value)
+				{
+					showEta = value;
+					if (show)
+					{
+						Update();
+						SetOrResetEtaTimer();
+					}
+				}
+			}
+		}
+
+		private Timer? updateOnEta;
+		private void SetOrResetEtaTimer()
+		{
+			if (show && showEta)
+			{
+				if (updateOnEta == null)
+				{
+					updateOnEta = new Timer(Update, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+				}
+			}
+			else
+			{
+				if (updateOnEta != null)
+				{
+					updateOnEta.Change(Timeout.Infinite, Timeout.Infinite);
+					updateOnEta.Dispose();
+					updateOnEta = null;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Very simple estimator.
+		/// Assumes linear progression without hickups.
+		/// </summary>
+		private class EtaEstimator
+		{
+			private DateTime start = DateTime.Now;
+			private DateTime end = DateTime.Now;
+
+			internal void Push(double v)
+			{
+				v = Math.Clamp(v, 0.0, 1.0);
+
+				if (v <= 0.0001)
+				{
+					start = end = DateTime.Now;
+				}
+				else if (v <= 0.01)
+				{
+					// don't update 'start'
+					end = start; // reset eta to zero to hide it
+				}
+				else
+				{
+					TimeSpan dur = DateTime.Now - start;
+					dur *= 1.0 / v;
+					end = start + dur;
+				}
+			}
+
+			internal TimeSpan Value
+			{
+				get
+				{
+					TimeSpan d = end - DateTime.Now;
+					if (d <= TimeSpan.Zero)
+					{
+						return TimeSpan.Zero;
+					}
+					return d;
+				}
+			}
+
+		};
+
 		private int lastLineLen = 0;
 		private string lastText = string.Empty;
+		private EtaEstimator eta = new();
 
 		private void Clear()
 		{
@@ -107,9 +194,34 @@ namespace ConProgBarSharp
 			lastText = string.Empty;
 		}
 
-		private void Update()
+		private void Update(object? _ = null)
 		{
 			string p = $"{progressValue:P1}";
+
+			if (showEta)
+			{
+				int etaSec = (int)eta.Value.TotalSeconds;
+				if (etaSec > 60 * 60)
+				{
+					p += $" - {etaSec / 60 * 60}:{(etaSec / 60) % 60:00}h";
+				}
+				else
+				if (etaSec > 60)
+				{
+					p += $" - {etaSec / 60}:{etaSec % 60:00}";
+				}
+				else
+				if (etaSec > 5)
+				{
+					p += $" - {etaSec}s";
+				}
+				else
+				if (etaSec > 1)
+				{
+					p += " - <5s";
+				}
+			}
+
 			string t = text;
 			if (3 + p.Length + t.Length > maxWidth)
 			{

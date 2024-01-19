@@ -25,6 +25,10 @@ These color can be used for multiple plot lines in diagrams.
 A c++ progress bar for console applications.
 As usually, only semi-robust, but good enough.
 
+## ConProgBarSharp
+A C# progress bare for console applications.
+Also, good enough.
+
 ## Dib
 Desktop Icon Backup
 

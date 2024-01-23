@@ -55,6 +55,8 @@ namespace TestConApp
             Console.Error.WriteLine("Line 2 on StdErr");
             Console.WriteLine("Line 3 on StdOut");
 
+            Console.WriteLine("Writing multiple\nLines in one\nCall.");
+
             Console.Write($"{args.Length} command line argument");
             if (args.Length != 1) Console.Write("s");
             Console.WriteLine((args.Length > 0) ? ":" : ".");
@@ -63,7 +65,7 @@ namespace TestConApp
                 Console.WriteLine($"[{i}] {args[i]}");
             }
 
-            Console.WriteLine("End.");
+            Console.Write("End");
         }
     }
 }

@@ -1,0 +1,18 @@
+{
+	"_type": "ComponentSourceManifest",
+	"_version": 1,
+	"components": [
+		{
+			"name": "SGrottel SimpleLog CSharp",
+			"source": [
+				{
+					"type": "git",
+					"url": "https://www.github.com/sgrottel/simplelog",
+					"hash": "ddc07541bade40c1c2a3da1f896729cb6a208190",
+					"version": "2.4.1",
+					"path": "csharp/SimpleLog"
+				}
+			]
+		}
+	]
+}

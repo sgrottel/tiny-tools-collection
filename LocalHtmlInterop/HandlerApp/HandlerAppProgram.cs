@@ -2,6 +2,7 @@
 
 namespace LocalHtmlInterop.Handler
 {
+
 	internal class HandlerAppProgram
 	{
 		static void Main(string[] args)
@@ -11,11 +12,36 @@ namespace LocalHtmlInterop.Handler
 			{
 				log = new SimpleLog();
 
+				ServerPortConfig port = new();
+				port.SetValue(ServerPortConfig.DefaultPort);
+
 
 				log.Write($"Called:\n\t{string.Join("\n\t", args)}");
 
-				CustomUrlProtocol.RegisterAsHandler(Path.Combine(AppContext.BaseDirectory, "LocalHtmlInterop.exe"));
 
+				Server server = new() { Port = port.GetValue(), Log = log };
+				server.OnNewClient += (_, c) => {
+
+					c.OnClosed += (_, _) => { log.Write("Client closed"); };
+
+					c.OnDataMessageReceived += (_, d) => { log.Write($"Data message of {d.Length} bytes received"); };
+
+					c.OnTextMessageReceived += (c, t) =>
+					{
+						log.Write($"Text message received: {t}");
+						((Server.Client?)c)!.SendText($"Got: \"{t}\" with a smile");
+					};
+
+				};
+
+				server.Running = true;
+
+				Thread.Sleep(TimeSpan.FromSeconds(30));
+
+				server.Running = false;
+				server.CloseAllClient();
+
+				// CustomUrlProtocol.RegisterAsHandler(Path.Combine(AppContext.BaseDirectory, "LocalHtmlInterop.exe"));
 
 				log.Write("done.");
 			}
@@ -24,5 +50,6 @@ namespace LocalHtmlInterop.Handler
 				log?.Write(ISimpleLog.FlagError, $"EXCEPTION: {ex}");
 			}
 		}
+
 	}
 }

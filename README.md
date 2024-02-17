@@ -52,7 +52,9 @@ A powershell script to print an overview of my stuff on Github.
 Brings a window to front in Windows 11.
 Can also start an application and bring that's window to front.
 
-## LoginWhen
+## LoginWhen  <img align="left" src="./LoginWhen/PunchCardClockx48.png" style="height:1em" alt="LoginWhen">
+[![LoginWhen Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/LoginWhen.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/LoginWhen.yaml)
+
 Queries the Windows event log to print when the user sessions logged in and logged out.
 
 ## MakeIco

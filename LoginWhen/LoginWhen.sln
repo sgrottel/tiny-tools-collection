@@ -5,6 +5,11 @@ VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoginWhen", "LoginWhen.csproj", "{11625FF5-B052-454F-8989-9020DEACCADC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2E9C0A01-AE12-4D4D-B180-C1F62D4EE0B5}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\workflows\LoginWhen.yaml = ..\.github\workflows\LoginWhen.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

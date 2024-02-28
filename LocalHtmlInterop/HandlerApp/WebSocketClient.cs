@@ -28,13 +28,21 @@ namespace LocalHtmlInterop.Handler
 
 		protected TcpClient client;
 
-		public override int? Port { get => ((IPEndPoint?)(client.Client?.LocalEndPoint))?.Port; }
+		public override int? Port { get => ((IPEndPoint?)(client.Client?.RemoteEndPoint))?.Port; }
 
 		public override void Close()
 		{
 			silentExceptions = true;
-			client.Close();
+			try
+			{
+				client.Close();
+			}
+			catch { }
 			FireOnClosed();
+			if (client.Connected)
+			{
+				Log?.Write(ISimpleLog.FlagError, "Client seems connected after close");
+			}
 		}
 
 		public override void SendText(string text)
@@ -179,6 +187,7 @@ namespace LocalHtmlInterop.Handler
 							}
 							break;
 						case 8: // close
+							silentExceptions = true;
 							SendImpl(0x08, Array.Empty<byte>()); // ping back control frame, then close
 							break;
 						case 9: // ping
@@ -200,7 +209,7 @@ namespace LocalHtmlInterop.Handler
 				{
 					Log?.Write(ISimpleLog.FlagError, $"EXCEPTION: Client {Port} closed; {ex}");
 				}
-	
+				Close();
 			}
 
 			if (client?.Connected ?? false)

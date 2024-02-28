@@ -332,7 +332,7 @@ namespace LocalHtmlInterop.Handler
 
 		private List<Client> clients = new();
 
-		public void CloseAllClient()
+		public void CloseAllClients()
 		{
 			Client[] cs;
 			lock (listenerLock)
@@ -346,10 +346,12 @@ namespace LocalHtmlInterop.Handler
 				{
 					c.OnClosed -= Client_OnClosed;
 					OnClientClosed?.Invoke(this, c);
+					Log?.Write($"Unlisting client {c.Port}");
 					c.Close();
 				}
 				catch { }
 			}
+			Log?.Write($"All clients closed.");
 		}
 
 		private void OnNewClientHandshake(IAsyncResult ar)
@@ -405,10 +407,10 @@ namespace LocalHtmlInterop.Handler
 				nclc.OnClosed += Client_OnClosed;
 
 				clients.Add(nclc);
-
-				OnNewClient?.Invoke(this, nclc);
 				Log?.Write($"Accepted client {nclc.Port} after handshake\tNow {clients.Count} clients listed.");
 			}
+
+			OnNewClient?.Invoke(this, nclc);
 		}
 
 	}

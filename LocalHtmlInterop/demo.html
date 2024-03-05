@@ -1,76 +1,180 @@
 <!doctype html>
 <html lang="en">
 <head>
+    <meta charset="utf-8">
+    <title>Local&hairsp;Html&hairsp;Interop Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        textarea {
-            vertical-align: bottom;
-        }
-
-        #output {
+        #output, #preview {
             overflow: auto;
+            background-color: whitesmoke;
+            color: #111;
+            font-family: 'Cascadia Mono', monospace;
+            padding: 6px;
+            font-size: 14px
         }
-
         #output > p {
             overflow-wrap: break-word;
+            margin: 0px;
         }
-
         #output span {
             color: blue;
         }
-
         #output span.error {
             color: red;
         }
     </style>
 </head>
 <body>
-    <h2>WebSocket Test</h2>
-    <textarea cols="60" rows="6"></textarea>
-    <button>send</button>
-    <div id="output"></div>
+    <h1>Local&hairsp;Html&hairsp;Interop Demo</h1>
+
+    <h2>Action</h2>
+    <div id="preview">sgrlhiop:callback-id:demo.dummy?fancy=seeing+you+here&tell+me=more</div>
+    <form onchange="updatePreview()">
+        <ul>
+            <li>
+                <input type="checkbox" id="withCallback" name="withCallback" checked />
+                <label for="withCallback">Callback via Websocket</label>
+                <ul>
+                    <li>
+                        <label for="wsPort">Websocket Port</label>
+                        <input type="text" id="wsPort" name="wsPort" width="16" value="18245" oninput="updatePreview()" />
+                    </li>
+                    <li>
+                        <label for="callbackId">Callback Id</label>
+                        <input type="text" id="callbackId" name="callbackId" width="32" value="callback-id" oninput="updatePreview()" />
+                    </li>
+                    <li>
+                        <input type="checkbox" id="randomCallbackId" name="randomCallbackId" checked />
+                        <label for="randomCallbackId">Randomize Callback Id</label>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <label for="command">Command</label>
+                <input type="text" id="command" name="command" width="32" value="echo" oninput="updatePreview()" />
+            </li>
+            <li>
+                <label for="parameters">Parameters (one per line, using '=')<br /></label>
+                <textarea id="parameters" name="parameters" cols="80" rows="4" oninput="updatePreview()">
+fancy=seeing you here
+tell me=more
+</textarea>
+            </li>
+        </ul>
+    </form>
+    <iframe id="invoker" src="about:blank" style="visibility:collapse;display:none"></iframe>
     <script>
-        // http://www.websocket.org/echo.html
-        const button = document.querySelector("button");
-        const output = document.querySelector("#output");
-        const textarea = document.querySelector("textarea");
-        const wsUri = "ws://127.0.0.1:18245/";
-        const websocket = new WebSocket(wsUri);
+        const preview = document.querySelector('#preview');
 
-        button.addEventListener("click", onClickButton);
+        const inputWithCallback = document.querySelector('#withCallback');
+        const inputWsPort = document.querySelector('#wsPort');
+        const inputCallbackId = document.querySelector('#callbackId');
+        const inputRandomCallbackId = document.querySelector('#randomCallbackId');
+        const inputCommand = document.querySelector('#command');
+        const inputParameters = document.querySelector('#parameters');
 
-        websocket.onopen = (e) => {
-            writeToScreen("CONNECTED");
-            doSend("WebSocket rocks");
-        };
-
-        websocket.onclose = (e) => {
-            writeToScreen("DISCONNECTED");
-        };
-
-        websocket.onmessage = (e) => {
-            writeToScreen(`<span>RESPONSE: ${e.data}</span>`);
-        };
-
-        websocket.onerror = (e) => {
-            writeToScreen(`<span class="error">ERROR:</span> ${e} ${e.data}`);
-        };
-
-        function doSend(message) {
-            writeToScreen(`SENT: ${message}`);
-            websocket.send(message);
+        function withCallback() {
+            return inputWithCallback.checked;
         }
 
-        function writeToScreen(message) {
-            output.insertAdjacentHTML("afterbegin", `<p>${message}</p>`);
+        function getWsPort() {
+            const i = parseInt(inputWsPort.value);
+            if (isNaN(i)) return 18245;
+            return i;
         }
 
-        function onClickButton() {
-            const text = textarea.value;
+        function makeRandomCallbackId() {
+            const a = new Uint32Array(4);
+            crypto.getRandomValues(a);
+            let b = '';
+            for (let i = 0; i < a.length; i++) {
+                b += ("00000000" + (a[i].toString(16))).substr(-8);
+            }
+            return b;
+        }
 
-            text && doSend(text);
-            textarea.value = "";
-            textarea.focus();
+        var randomCallbackId = makeRandomCallbackId();
+        const saveRegex = /[^a-z0-9_\.-]/gi;
+        function getCallbackId() {
+            if (!withCallback()) {
+                return '';
+            }
+            if (!inputRandomCallbackId.checked) {
+                return inputCallbackId.value.replaceAll(saveRegex, '_');
+            }
+            return randomCallbackId;
+        }
+
+        const paramRegex = /(^[^=]*[a-z]+[^=]*)=(.*$)/i;
+        function buildCallUri(callbackId) {
+            let u = `sgrlhiop:${callbackId}:${inputCommand.value.replaceAll(saveRegex, '_')}`;
+            const pi = inputParameters.value.split(/\r?\n/).filter(function (el) { return (el.match(paramRegex) || []).length >= 1; });
+            if (pi.length > 0) {
+                u += '?' + pi.map(function (el) {
+                    const m = paramRegex.exec(el);
+                    return (encodeURIComponent(m[1].trim()) + "=" + encodeURIComponent(m[2]));
+                }).join('&');
+            }
+            return u;
+        }
+
+        function updatePreview() {
+            preview.innerText = buildCallUri(getCallbackId());
+        }
+
+        updatePreview();
+
+        const invokerFrame = document.getElementById("invoker");
+        var callbackId = null;
+        var websocket = null;
+        function InvokeLocalHtmlInterop() {
+            callbackId = getCallbackId();
+            callUri = buildCallUri(callbackId);
+
+            writeOutputLog(`Calling: ${callUri}`);
+
+            // call local url
+            invokerFrame.src = callUri;
+
+            if (withCallback()) {
+                // open websocket to recieve callback
+                writeOutputLog("Opening Websocket for callback");
+
+                websocket = new WebSocket(`ws://127.0.0.1:${getWsPort()}/`);
+                websocket.onopen = (e) => {
+                    writeOutputLog('WS CONNECTED');
+                    websocket.send('Hello world');
+                }
+                websocket.onclose = (e) => {
+                    writeOutputLog('WS DISCONNECTED');
+                }
+                websocket.onmessage = (e) => {
+                    writeOutputLog(`<span>RESPONSE: ${e.data}</span>`);
+                }
+                websocket.onerror = (e) => {
+                    writeOutputLog(`<span class="error">ERROR:</span> ${e} ${e.data}`);
+                }
+            }
+
+            randomCallbackId = makeRandomCallbackId();
+            updatePreview();
         }
     </script>
+    <button onclick="InvokeLocalHtmlInterop()">Invoke</button>
+
+    <h2>Log & Output</h2>
+    <div>Newest on top. <button onclick="clearOutputLog()">Clear</button></div>
+    <div id="output"></div>
+    <script>
+        const output = document.querySelector('#output');
+        function writeOutputLog(message) {
+            output.insertAdjacentHTML("afterbegin", `<p>${message}</p>`);
+        }
+        function clearOutputLog() {
+            output.innerHTML = '';
+        }
+    </script>
+
 </body>
 </html>

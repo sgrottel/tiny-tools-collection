@@ -66,7 +66,7 @@ namespace LocalHtmlInterop.Handler
 			public abstract void Close();
 			public event EventHandler? OnClosed;
 
-			public abstract int? Port { get; }
+			public int Port { get; protected set; } = 0;
 			public ISimpleLog? Log { get; set; }
 
 			public event EventHandler<byte[]>? OnDataMessageReceived;
@@ -97,14 +97,15 @@ namespace LocalHtmlInterop.Handler
 		{
 			protected TcpClient client;
 			private byte[] handshakeData = new byte[3];
-			public override int? Port { get => ((IPEndPoint?)(client.Client?.LocalEndPoint))?.Port; }
 			public event EventHandler<Func<Client>>? OnHandshakeComplete;
 
 			public int ListeningPort { get; set; }
 
-			public PreHandshakeClient(TcpClient client, int listeningPort, int readTimeoutMs = 1000)
+			public PreHandshakeClient(TcpClient client, int listeningPort, ISimpleLog? log = null, int readTimeoutMs = 3000)
 			{
+				Log = log;
 				this.client = client;
+				Port = ((IPEndPoint?)(client.Client?.RemoteEndPoint))?.Port ?? 0;
 				ListeningPort = listeningPort;
 				Log?.Write($"Incoming connection {Port}");
 				var stream = client.GetStream();
@@ -369,7 +370,7 @@ namespace LocalHtmlInterop.Handler
 			{
 				lock (listenerLock)
 				{
-					PreHandshakeClient c = new PreHandshakeClient(client, Port) { Log = Log };
+					PreHandshakeClient c = new PreHandshakeClient(client, Port, Log);
 					c.OnClosed += Client_OnClosed;
 					c.OnHandshakeComplete += Client_OnHandshakeComplete;
 					clients.Add(c);
@@ -389,7 +390,10 @@ namespace LocalHtmlInterop.Handler
 				Log?.Write($"Unlisting client {clc.Port}\tNow {clients.Count} clients listed.");
 			}
 
-			OnClientClosed?.Invoke(this, clc);
+			if (clc.GetType() != typeof(PreHandshakeClient))
+			{
+				OnClientClosed?.Invoke(this, clc);
+			}
 		}
 
 		private void Client_OnHandshakeComplete(object? sender, Func<Client> e)

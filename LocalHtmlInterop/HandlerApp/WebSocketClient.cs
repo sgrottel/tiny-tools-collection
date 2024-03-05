@@ -22,13 +22,12 @@ namespace LocalHtmlInterop.Handler
 		protected WebSocketClient(TcpClient client)
 		{
 			this.client = client;
+			Port = ((IPEndPoint?)(client.Client?.RemoteEndPoint))?.Port ?? 0;
 			receiver = new Thread(RunReceiverWorker);
 			receiver.Start();
 		}
 
 		protected TcpClient client;
-
-		public override int? Port { get => ((IPEndPoint?)(client.Client?.RemoteEndPoint))?.Port; }
 
 		public override void Close()
 		{

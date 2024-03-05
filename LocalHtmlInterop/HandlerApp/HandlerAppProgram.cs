@@ -56,6 +56,7 @@ namespace LocalHtmlInterop.Handler
 
 		private static void Server_OnNewClient(object? server, Server.Client client)
 		{
+			log?.Write($"OnNewClient({client.Port})");
 			lock (clientCountLock)
 			{
 				clientCount++;
@@ -87,6 +88,7 @@ namespace LocalHtmlInterop.Handler
 
 		private static void Server_OnClientClosed(object? sender, Server.Client e)
 		{
+			log?.Write($"OnClientClosed({e.Port})");
 			lock (clientCountLock)
 			{
 				if (clientCount > 0) clientCount--;

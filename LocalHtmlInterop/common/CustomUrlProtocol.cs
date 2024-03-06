@@ -14,14 +14,19 @@ namespace LocalHtmlInterop
 	/// Utility to manage the custom protocol
 	/// </summary>
 	/// <example>
-	///   sgrlhiop:TODO
+	///   sgrlhiop:16c1d49fff02d53fbccd9147a21791d0:echo?fancy=seeing%20you%20here&tell%20me=more
+	///   ^        ^                                ^    ^
+	///   |        |                                |    +--  command parameters, url encoded
+	///   |        |                                +-------  the command to execute
+	///   |        +----------------------------------------  The callback Id (optional) to connect via websocket
+	///   +-------------------------------------------------  The protocol name
 	/// </example>
 	static public class CustomUrlProtocol
 	{
 		/// <summary>
 		/// The custom protocol
 		/// </summary>
-		const string protocolSchema = "sgrlhiop";
+		public const string ProtocolSchema = "sgrlhiop";
 
 		/// <summary>
 		/// Registers an executable as handler for this custom url protocol.
@@ -40,8 +45,8 @@ namespace LocalHtmlInterop
 		[SupportedOSPlatform("windows")]
 		static public void RegisterAsHandler(string execPath)
 		{
-			var crKey = Registry.ClassesRoot.CreateSubKey(protocolSchema, true);
-			crKey.SetValue(null, $"URL:{protocolSchema} Protocol");
+			var crKey = Registry.ClassesRoot.CreateSubKey(ProtocolSchema, true);
+			crKey.SetValue(null, $"URL:{ProtocolSchema} Protocol");
 			crKey.SetValue("URL Protocol", "");
 			var shell = crKey.CreateSubKey("shell");
 			var open = shell.CreateSubKey("open");

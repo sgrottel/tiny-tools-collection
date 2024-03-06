@@ -1,4 +1,8 @@
 ﻿using SGrottel;
+using System.Diagnostics;
+using System.IO.Pipes;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace LocalHtmlInterop.Handler
 {
@@ -12,6 +16,51 @@ namespace LocalHtmlInterop.Handler
 		{
 			try
 			{
+				CmdLineArgs cmdLine = new();
+				if (!cmdLine.Parse(args))
+				{
+					throw new Exception($"\n\nThe Handler application \"LocalHtmlInterop.Handler.exe\" should not be called directly.\n"
+						+ "Call the command line utility \"LocalHtmlInterop.exe\" instead.\n");
+				}
+
+				switch (cmdLine.AppOperation)
+				{
+					case CmdLineArgs.Operation.None:
+						throw new Exception($"\n\nHandler application invoke parameters invalid:\n\"{string.Join("\" \"", args)}\"\n");
+
+					case CmdLineArgs.Operation.InteropCall:
+						break;
+
+					case CmdLineArgs.Operation.RegisterHandler:
+						RunOperationAndReportViaPipe(
+							cmdLine.AppOperation.ToString(),
+							cmdLine.CallbackId,
+							(output) =>
+							{
+								output.WriteLine("Writing entry to windows registry.");
+								CustomUrlProtocol.RegisterAsHandler(Path.Combine(AppContext.BaseDirectory, "LocalHtmlInterop.Handler.exe"));
+								// todo: read back registry to check
+								output.WriteLine("Complete");
+							});
+						return;
+
+					case CmdLineArgs.Operation.UnregisterHandler:
+						RunOperationAndReportViaPipe(
+							cmdLine.AppOperation.ToString(),
+							cmdLine.CallbackId,
+							(output) =>
+							{
+								// todo: implement
+								throw new NotImplementedException();
+							});
+						return;
+
+					default:
+						throw new Exception($"\n\nHandler application invoke parameters invalid:\n\"{string.Join("\" \"", args)}\"\n");
+				}
+
+				// main operation
+				Debug.Assert(cmdLine.AppOperation == CmdLineArgs.Operation.InteropCall);
 				log = new SimpleLog();
 
 				ServerPortConfig port = new();
@@ -41,15 +90,30 @@ namespace LocalHtmlInterop.Handler
 				server.Running = false;
 				server.CloseAllClients();
 
-				// CustomUrlProtocol.RegisterAsHandler(Path.Combine(AppContext.BaseDirectory, "LocalHtmlInterop.exe"));
+
 
 				log.Write("done.");
 			}
 			catch (Exception ex)
 			{
-				log?.Write(ISimpleLog.FlagError, $"EXCEPTION: {ex}");
+				if (log != null)
+				{
+					log.Write(ISimpleLog.FlagError, $"EXCEPTION: {ex}");
+				}
+				else
+				{
+					MessageBox(IntPtr.Zero, ex.ToString(), AppDomain.CurrentDomain.FriendlyName, MB_OK | MB_ICONERROR);
+				}
 			}
 		}
+
+		private const uint MB_OK = 0x00000000;
+		private const uint MB_ICONERROR = 0x00000010;
+		private const uint MB_ICONQUESTION = 0x00000020;
+		private const uint MB_ICONWARNING = 0x00000030;
+		private const uint MB_ICONINFORMATION = 0x00000040;
+		[DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+		private static extern int MessageBox(IntPtr hWnd, string lpText, string lpCaption, uint uType);
 
 		private static int clientCount = 0;
 		private static object clientCountLock = new();
@@ -92,6 +156,35 @@ namespace LocalHtmlInterop.Handler
 			lock (clientCountLock)
 			{
 				if (clientCount > 0) clientCount--;
+			}
+		}
+
+		private static void RunOperationAndReportViaPipe(string operationName, string? pipeName, Action<StreamWriter> operation)
+		{
+			try
+			{
+				if (string.IsNullOrEmpty(pipeName)) throw new ArgumentNullException(paramName: nameof(pipeName));
+
+				NamedPipeClientStream pipeClient = new(".", pipeName, PipeDirection.Out);
+				pipeClient.Connect();
+				using (StreamWriter writer = new(pipeClient, Encoding.UTF8))
+				{
+					writer.AutoFlush = true;
+					try
+					{
+						operation(writer);
+					}
+					catch (Exception iex)
+					{
+						writer.WriteLine($"ERROR: failed to run {operationName}\nEXCEPTION: {iex}");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				log = new SimpleLog();
+				log.Write($"Called {operationName} with pipe {pipeName}");
+				log.Write(ISimpleLog.FlagError, $"EXCEPTION: {ex}");
 			}
 		}
 

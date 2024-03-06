@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "HandlerApp": {
+      "commandName": "Project",
+      "commandLineArgs": "sgrlhiop::echo?fancy=seeing%20you%20here&tell%20me=more\r\n"
+    }
+  }
+}

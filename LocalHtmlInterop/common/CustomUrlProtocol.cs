@@ -41,17 +41,62 @@ namespace LocalHtmlInterop
 		///   network.protocol-handler.expose.sgrlhiop = true
 		///   network.protocol-handler.external.sgrlhiop = true
 		/// </summary>
-		/// <param name="execPath">The full file system path to the executable to be used as custom protocol handler</param>
+		/// <param name="exePath">The full file system path to the executable to be used as custom protocol handler</param>
 		[SupportedOSPlatform("windows")]
-		static public void RegisterAsHandler(string execPath)
+		static public void RegisterAsHandler(string exePath)
 		{
-			var crKey = Registry.ClassesRoot.CreateSubKey(ProtocolSchema, true);
-			crKey.SetValue(null, $"URL:{ProtocolSchema} Protocol");
-			crKey.SetValue("URL Protocol", "");
-			var shell = crKey.CreateSubKey("shell");
-			var open = shell.CreateSubKey("open");
-			var cmd = open.CreateSubKey("command");
-			cmd.SetValue(null, "\"" + execPath + "\" \"%1\"");
+			using (var crKey = Registry.ClassesRoot.CreateSubKey(ProtocolSchema, true))
+			{
+				crKey.SetValue(null, $"URL:{ProtocolSchema} Protocol");
+				crKey.SetValue("URL Protocol", "");
+				using (var shell = crKey.CreateSubKey("shell"))
+				using (var open = shell.CreateSubKey("open"))
+				using (var cmd = open.CreateSubKey("command"))
+					cmd.SetValue(null, "\"" + exePath + "\" \"%1\"");
+			}
+		}
+
+		/// <summary>
+		/// Returns the path of the handler executable registered for this custom url protocol,
+		/// or null if there is no valid registration.
+		/// </summary>
+		/// <returns>The full file system path to the executable to be used as custom protocol handler</returns>
+		static public string? GetRegisteredHandlerExe()
+		{
+			if (!OperatingSystem.IsWindows()) return null;
+
+			using (var crKey = Registry.ClassesRoot.OpenSubKey(ProtocolSchema))
+			{
+				if (crKey == null) return null;
+				if (!crKey.GetValueNames().Contains("URL Protocol")) return null; // ill-registered handler
+
+				using (var cmdKey = crKey.OpenSubKey(@"shell\open\command"))
+				{
+					string? cmdLine = (string?)cmdKey?.GetValue(null);
+					if (string.IsNullOrEmpty(cmdLine)) return null;
+
+					return cmdLine.Split(
+						(cmdLine[0] == '"') ? '"' : ' ',
+						2,
+						StringSplitOptions.RemoveEmptyEntries
+						)[0];
+				}
+			}
+		}
+
+		/// <summary>
+		/// Removes the registration of this custom url protocol.
+		/// </summary>
+		/// <remarks>
+		/// This does not test if the registration matches the executing application.
+		/// </remarks>
+		[SupportedOSPlatform("windows")]
+		static public void UnregisterHandler()
+		{
+			if (Registry.ClassesRoot.GetSubKeyNames().Contains(ProtocolSchema))
+			{
+				Registry.ClassesRoot.DeleteSubKeyTree(ProtocolSchema);
+			}
 		}
 
 	}

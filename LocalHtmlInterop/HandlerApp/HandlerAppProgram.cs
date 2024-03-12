@@ -29,6 +29,7 @@ namespace LocalHtmlInterop.Handler
 						throw new Exception($"\n\nHandler application invoke parameters invalid:\n\"{string.Join("\" \"", args)}\"\n");
 
 					case CmdLineArgs.Operation.InteropCall:
+						// continue with implementation below this switch...
 						break;
 
 					case CmdLineArgs.Operation.RegisterHandler:
@@ -38,8 +39,35 @@ namespace LocalHtmlInterop.Handler
 							(output) =>
 							{
 								output.WriteLine("Writing entry to windows registry.");
-								CustomUrlProtocol.RegisterAsHandler(Path.Combine(AppContext.BaseDirectory, "LocalHtmlInterop.Handler.exe"));
-								// todo: read back registry to check
+
+								string path = Path.Combine(AppContext.BaseDirectory, "LocalHtmlInterop.Handler.exe");
+
+								string? rbPath = CustomUrlProtocol.GetRegisteredHandlerExe();
+								if (rbPath != null)
+								{
+									if (!path.Equals(rbPath, StringComparison.CurrentCultureIgnoreCase))
+									{
+										output.WriteLine("WARNING: another handler is already registered. Registration will be overwritten:");
+										output.WriteLine($"\told value: {rbPath}");
+									}
+								}
+
+								CustomUrlProtocol.RegisterAsHandler(path);
+								rbPath = CustomUrlProtocol.GetRegisteredHandlerExe();
+
+								if (rbPath == null)
+								{
+									output.WriteLine("FAILED: handler was not written to windows registry.");
+									return;
+								}
+								if (!path.Equals(rbPath, StringComparison.CurrentCultureIgnoreCase))
+								{
+									output.WriteLine("FAILED: registered handler is different from stored and read-back handler:");
+									output.WriteLine($"\tselected: {path}");
+									output.WriteLine($"\tstored: {rbPath}");
+									return;
+								}
+
 								output.WriteLine("Complete");
 							});
 						return;
@@ -50,8 +78,31 @@ namespace LocalHtmlInterop.Handler
 							cmdLine.CallbackId,
 							(output) =>
 							{
-								// todo: implement
-								throw new NotImplementedException();
+								output.WriteLine("Removing entry from windows registry.");
+
+								string path = Path.Combine(AppContext.BaseDirectory, "LocalHtmlInterop.Handler.exe");
+
+								string? rbPath = CustomUrlProtocol.GetRegisteredHandlerExe();
+								if (rbPath != null)
+								{
+									if (!path.Equals(rbPath, StringComparison.CurrentCultureIgnoreCase))
+									{
+										output.WriteLine("WARNING: registered handler mismatches this handler path:");
+										output.WriteLine($"\told value: {rbPath}");
+									}
+								}
+
+								CustomUrlProtocol.UnregisterHandler();
+								rbPath = CustomUrlProtocol.GetRegisteredHandlerExe();
+
+								if (rbPath != null)
+								{
+									output.WriteLine("FAILED: handler is still registered");
+									output.WriteLine($"\tvalue: {rbPath}");
+									return;
+								}
+
+								output.WriteLine("Complete");
 							});
 						return;
 
@@ -61,36 +112,53 @@ namespace LocalHtmlInterop.Handler
 
 				// main operation
 				Debug.Assert(cmdLine.AppOperation == CmdLineArgs.Operation.InteropCall);
+#if DEBUG
+				log = new DebugEchoLog<SimpleLog>();
+#else
 				log = new SimpleLog();
+#endif
 
-				ServerPortConfig port = new();
-				port.SetValue(ServerPortConfig.DefaultPort);
+				SingleInstance singleInstance = new();
+				if (singleInstance.Failed)
+				{
+					// Another handler instance exist.
+					// Try handing off the task.
 
+					// TODO: Implement
+					throw new NotImplementedException();
+
+				}
 
 				log.Write($"Called:\n\t{string.Join("\n\t", args)}");
 
+				// TODO: Hand off to job manager
 
+				// Opening server, regardless of whether or not the request contains a callback id.
+				// Additional requests from secondary handler instance will come in via the same server socket.
+				ServerPortConfig port = new();
 				Server server = new() { Port = port.GetValue(), Log = log };
+
 				server.OnNewClient += Server_OnNewClient;
 				server.OnClientClosed += Server_OnClientClosed;
+
 				server.Running = true;
+
 				TimeSpan noClientCloseTimeout = TimeSpan.FromSeconds(10);
-				DateTime noClientSince = DateTime.Now;
-				while (DateTime.Now - noClientSince <= noClientCloseTimeout)
+				DateTime disconnectTime = DateTime.Now + noClientCloseTimeout;
+				while (DateTime.Now < disconnectTime)
 				{
 					Thread.Sleep(TimeSpan.FromSeconds(1));
 					lock (clientCountLock)
 					{
 						if (clientCount > 0)
 						{
-							noClientSince = DateTime.Now + TimeSpan.FromSeconds(1);
+							disconnectTime = DateTime.Now + noClientCloseTimeout;
 						}
 					}
 				}
+
 				server.Running = false;
 				server.CloseAllClients();
-
-
 
 				log.Write("done.");
 			}
@@ -102,18 +170,10 @@ namespace LocalHtmlInterop.Handler
 				}
 				else
 				{
-					MessageBox(IntPtr.Zero, ex.ToString(), AppDomain.CurrentDomain.FriendlyName, MB_OK | MB_ICONERROR);
+					MessageBox.Show(IntPtr.Zero, ex.ToString(), AppDomain.CurrentDomain.FriendlyName, MessageBox.MB_OK | MessageBox.MB_ICONERROR);
 				}
 			}
 		}
-
-		private const uint MB_OK = 0x00000000;
-		private const uint MB_ICONERROR = 0x00000010;
-		private const uint MB_ICONQUESTION = 0x00000020;
-		private const uint MB_ICONWARNING = 0x00000030;
-		private const uint MB_ICONINFORMATION = 0x00000040;
-		[DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-		private static extern int MessageBox(IntPtr hWnd, string lpText, string lpCaption, uint uType);
 
 		private static int clientCount = 0;
 		private static object clientCountLock = new();

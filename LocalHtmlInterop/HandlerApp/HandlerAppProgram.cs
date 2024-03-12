@@ -1,8 +1,9 @@
 ﻿using SGrottel;
 using System.Diagnostics;
 using System.IO.Pipes;
-using System.Runtime.InteropServices;
+using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 
 namespace LocalHtmlInterop.Handler
 {
@@ -118,18 +119,31 @@ namespace LocalHtmlInterop.Handler
 				log = new SimpleLog();
 #endif
 
+				log.Write($"Called:\n\t{string.Join("\n\t", args)}");
+
 				SingleInstance singleInstance = new();
 				if (singleInstance.Failed)
 				{
 					// Another handler instance exist.
 					// Try handing off the task.
+					if (HandoffTask(cmdLine))
+					{
+						log.Write("Handed off task to single instance");
+						return;
+					}
 
-					// TODO: Implement
-					throw new NotImplementedException();
-
+					// Handoff failed.
+					// The main instance might have shut down by now.
+					Thread.Sleep(TimeSpan.FromSeconds(1));
+					singleInstance = new();
+					if (singleInstance.Failed)
+					{
+						// still not good. giving up
+						log.Write(ISimpleLog.FlagError, "Failed to hand off task to single instance");
+						throw new Exception("Critical Error");
+					}
+					// else, we now are the main instance. continue.
 				}
-
-				log.Write($"Called:\n\t{string.Join("\n\t", args)}");
 
 				// TODO: Hand off to job manager
 
@@ -185,13 +199,28 @@ namespace LocalHtmlInterop.Handler
 			{
 				clientCount++;
 
-				client.OnDataMessageReceived += (_, d) =>
+				client.OnDataMessageReceived += (c, d) =>
 				{
+					if (c!.GetType() == typeof(AppTcpClient))
+					{
+						AppTcpClient.Data? data = JsonSerializer.Deserialize<AppTcpClient.Data>(Encoding.UTF8.GetString(d));
+						if (data != null)
+						{
+							log?.Write($"Received call:\n\t{data.Command}\n\t=>{data.CallbackId}\n\t#{data.CommandParameters.Count} Parameters");
+
+							// TODO: Hand off to job manager
+
+							return;
+						}
+					}
+#if DEBUG
 					log?.Write($"Data message of {d.Length} bytes received");
+#endif
 				};
 
 				client.OnTextMessageReceived += (c, t) =>
 				{
+#if DEBUG
 					log?.Write($"Text message received: {t}");
 					if (t.Trim().ToLower() == "exit")
 					{
@@ -206,6 +235,7 @@ namespace LocalHtmlInterop.Handler
 					{
 						((Server.Client?)c)!.SendText($"Got: \"{t}\" with a smile");
 					}
+#endif
 				};
 			}
 		}
@@ -246,6 +276,45 @@ namespace LocalHtmlInterop.Handler
 				log.Write($"Called {operationName} with pipe {pipeName}");
 				log.Write(ISimpleLog.FlagError, $"EXCEPTION: {ex}");
 			}
+		}
+
+		private static bool HandoffTask(CmdLineArgs cmdLine)
+		{
+			try
+			{
+				ServerPortConfig port = new();
+				using (TcpClient tcp = new TcpClient("localhost", port.GetValue()))
+				{
+					var stream = tcp.GetStream();
+					stream.Write(Encoding.UTF8.GetBytes("SGR"));
+
+					AppTcpClient.Data data = new()
+					{
+						Command = cmdLine.Command,
+						CommandParameters = cmdLine.CommandParameters,
+						CallbackId = cmdLine.CallbackId
+					};
+
+					byte[] rawData = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data));
+					byte[] rawDataLen = BitConverter.GetBytes((uint)rawData.Length);
+					Debug.Assert(rawDataLen.Length == 4);
+
+					stream.Write(rawDataLen);
+					stream.Write(rawData);
+
+					int conf = stream.ReadByte();
+					if (conf == 1)
+					{
+						// confirmation byte signaled success
+						return true;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				log?.Write(ISimpleLog.FlagError, $"EXCEPTION trying to connect for task handoff: {ex}");
+			}
+			return false;
 		}
 
 	}

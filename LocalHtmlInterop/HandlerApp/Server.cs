@@ -160,11 +160,23 @@ namespace LocalHtmlInterop.Handler
 					}).ContinueWith(HttpHeaderReceived);
 
 				}
+				else if (handshakeMarker.Equals("SGR"))
+				{
+					// custom app TCP handshake
+					if (OnHandshakeComplete != null)
+					{
+						OnHandshakeComplete(this, () => new AppTcpClient(client, Log));
+					}
+					else
+					{
+						Log?.Write("Cannot complete handshake, as now acceptor callback is set");
+						Close();
+					}
+				}
 				else
 				{
-					// try custom TCP handshake
-					Log?.Write(ISimpleLog.FlagError, "Custom TCP handshake NotImplementedException");
-					// throw new NotImplementedException();
+					// unknown data
+					Log?.Write(ISimpleLog.FlagError, "First data did not match a known handshake");
 					Close();
 				}
 

@@ -12,6 +12,7 @@ namespace LocalHtmlInterop.Handler
 	{
 
 		private static ISimpleLog? log = null;
+		private static CommandManager cmdMan = new();
 
 		internal static void Main(string[] args)
 		{
@@ -118,6 +119,7 @@ namespace LocalHtmlInterop.Handler
 #else
 				log = new SimpleLog();
 #endif
+				cmdMan.Log = log;
 
 				log.Write($"Called:\n\t{string.Join("\n\t", args)}");
 
@@ -145,7 +147,12 @@ namespace LocalHtmlInterop.Handler
 					// else, we now are the main instance. continue.
 				}
 
-				// TODO: Hand off to job manager
+				cmdMan.Push(new()
+				{
+					Command = cmdLine.Command,
+					CallbackId = cmdLine.CallbackId,
+					CommandParameters = cmdLine.CommandParameters
+				});
 
 				// Opening server, regardless of whether or not the request contains a callback id.
 				// Additional requests from secondary handler instance will come in via the same server socket.
@@ -162,12 +169,25 @@ namespace LocalHtmlInterop.Handler
 				while (DateTime.Now < disconnectTime)
 				{
 					Thread.Sleep(TimeSpan.FromSeconds(1));
+
+					bool active = false;
+
 					lock (clientCountLock)
 					{
 						if (clientCount > 0)
 						{
-							disconnectTime = DateTime.Now + noClientCloseTimeout;
+							active = true;
 						}
+					}
+
+					if (cmdMan.CoundRunningCommands() > 0)
+					{
+						active = true;
+					}
+
+					if (active)
+					{
+						disconnectTime = DateTime.Now + noClientCloseTimeout;
 					}
 				}
 
@@ -199,44 +219,54 @@ namespace LocalHtmlInterop.Handler
 			{
 				clientCount++;
 
-				client.OnDataMessageReceived += (c, d) =>
+				if (client!.GetType() == typeof(AppTcpClient))
 				{
-					if (c!.GetType() == typeof(AppTcpClient))
+					client.OnDataMessageReceived += (c, d) =>
 					{
-						AppTcpClient.Data? data = JsonSerializer.Deserialize<AppTcpClient.Data>(Encoding.UTF8.GetString(d));
+						CommandInfo? data = JsonSerializer.Deserialize<CommandInfo>(Encoding.UTF8.GetString(d));
 						if (data != null)
 						{
-							log?.Write($"Received call:\n\t{data.Command}\n\t=>{data.CallbackId}\n\t#{data.CommandParameters.Count} Parameters");
-
-							// TODO: Hand off to job manager
-
-							return;
+							cmdMan.Push(data);
 						}
-					}
-#if DEBUG
-					log?.Write($"Data message of {d.Length} bytes received");
-#endif
-				};
-
-				client.OnTextMessageReceived += (c, t) =>
+					};
+				}
+				else
 				{
 #if DEBUG
-					log?.Write($"Text message received: {t}");
-					if (t.Trim().ToLower() == "exit")
+					client.OnDataMessageReceived += (c, d) =>
 					{
-						((Server?)server)!.CloseAllClients();
-					}
-					else
-					if (t.Trim().ToLower() == "close")
-					{
-						((Server.Client?)c)!.Close();
-					}
-					else
-					{
-						((Server.Client?)c)!.SendText($"Got: \"{t}\" with a smile");
-					}
+						log?.Write($"Data message of {d.Length} bytes received");
+					};
 #endif
-				};
+
+					client.OnTextMessageReceived += (c, t) =>
+					{
+						if (t.StartsWith("reqCallback:", StringComparison.CurrentCultureIgnoreCase))
+						{
+							string id = t[12..].Trim();
+							string resp = cmdMan.GetCallbackResponse(id);
+							((Server.Client?)c)!.SendText(resp);
+							return;
+						}
+
+#if DEBUG
+						log?.Write($"Text message received: {t}");
+						if (t.Trim().ToLower() == "exit")
+						{
+							((Server?)server)!.CloseAllClients();
+						}
+						else
+						if (t.Trim().ToLower() == "close")
+						{
+							((Server.Client?)c)!.Close();
+						}
+						else
+						{
+							((Server.Client?)c)!.SendText($"Got: \"{t}\" with a smile");
+						}
+#endif
+					};
+				}
 			}
 		}
 
@@ -288,7 +318,7 @@ namespace LocalHtmlInterop.Handler
 					var stream = tcp.GetStream();
 					stream.Write(Encoding.UTF8.GetBytes("SGR"));
 
-					AppTcpClient.Data data = new()
+					CommandInfo data = new()
 					{
 						Command = cmdLine.Command,
 						CommandParameters = cmdLine.CommandParameters,

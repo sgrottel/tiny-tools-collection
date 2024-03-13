@@ -128,7 +128,24 @@ tell me=more
         const invokerFrame = document.getElementById("invoker");
         var callbackId = null;
         var websocket = null;
+        var callbackPullInterval = 0;
+
+        function RequestCallbackUpdate() {
+            if (websocket != null) {
+                websocket.send(`reqCallback:${callbackId}`);
+            }
+        }
+
         function InvokeLocalHtmlInterop() {
+            if (callbackPullInterval != 0) {
+                clearInterval(callbackPullInterval);
+                callbackPullInterval = 0;
+            }
+            if (websocket != null) {
+                const ws = websocket;
+                websocket = null;
+                ws.close();
+            }
             callbackId = getCallbackId();
             callUri = buildCallUri(callbackId);
 
@@ -142,17 +159,34 @@ tell me=more
                 writeOutputLog("Opening Websocket for callback");
 
                 websocket = new WebSocket(`ws://127.0.0.1:${getWsPort()}/`);
+
                 websocket.onopen = (e) => {
                     writeOutputLog('WS CONNECTED');
-                    websocket.send('Hello world');
+                    callbackPullInterval = setInterval(RequestCallbackUpdate, 1000);
                 }
+
                 websocket.onclose = (e) => {
+                    if (e.target != websocket) { return; }
+
                     writeOutputLog('WS DISCONNECTED');
+                    websocket = null;
+
+                    clearInterval(callbackPullInterval);
+                    callbackPullInterval = 0;
                 }
+
                 websocket.onmessage = (e) => {
-                    writeOutputLog(`<span>RESPONSE: ${e.data}</span>`);
+                    if (e.target != websocket) { return; }
+                    try {
+                        resp = JSON.parse(e.data);
+                        writeOutputLog(`<span>RESPONSE: ${JSON.stringify(resp)}</span>`);
+                    } catch (ex) {
+                        writeOutputLog(`<span>NON-JSON Response: ${e.data}</span>`);
+                    }
                 }
+
                 websocket.onerror = (e) => {
+                    if (e.target != websocket) { return; }
                     writeOutputLog(`<span class="error">ERROR:</span> ${e} ${e.data}`);
                 }
             }

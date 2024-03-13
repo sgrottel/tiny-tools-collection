@@ -5,13 +5,6 @@ namespace LocalHtmlInterop.Handler
 {
 	internal sealed class AppTcpClient : Server.Client
 	{
-		internal class Data
-		{
-			public string? Command { get; set; }
-			public string? CallbackId { get; set; }
-			public Dictionary<string, string>? CommandParameters { get; set; }
-		}
-
 		private ISimpleLog? log;
 		private TcpClient client;
 		private Thread worker;

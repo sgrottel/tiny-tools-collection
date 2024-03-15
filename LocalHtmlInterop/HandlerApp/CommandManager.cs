@@ -41,9 +41,14 @@ namespace LocalHtmlInterop.Handler
 			{
 				Info = info;
 
+				Result.Status = CommandStatus.Pending;
+
 				// TODO: Implement
-				Result.Status = CommandStatus.Error;
-				Result.Output = $"{new NotImplementedException()}";
+				Task.Delay(TimeSpan.FromSeconds(4)).ContinueWith((_) =>
+				{
+					Result.Status = CommandStatus.Error;
+					Result.Output = $"{new NotImplementedException()}";
+				});
 			}
 
 		};

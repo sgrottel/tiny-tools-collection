@@ -12,7 +12,9 @@ namespace LoginWhen
         enum EventType
         {
             Logon,
-            Logoff
+            Logoff,
+            Lock,
+            Unlock
         }
 
         static string EventTypeName(EventType et)
@@ -23,6 +25,10 @@ namespace LoginWhen
                     return "[  -->] Log On";
                 case EventType.Logoff:
                     return "[<--  ] Log Off";
+                case EventType.Lock:
+                    return "[<-   ] Lock";
+                case EventType.Unlock:
+                    return "[   ->] Unlock";
             }
             return "";
         }
@@ -32,39 +38,62 @@ namespace LoginWhen
             CmdLineArgs cmdLineArgs = new();
             if (!cmdLineArgs.Parse(args)) return;
 
+            const long SystemEventIdLogon = 7001;
+            const long SystemEventIdLogoff = 7002;
+            const long SecurityEventIdLock = 4800;
+            const long SecurityEventIdUnlock = 4801;
+
             DateTime now = DateTime.Now;
-            EventLog systemLog = new("System");
+            List<(DateTime time, EventType type)> events = new();
 
-            List<KeyValuePair<DateTime, EventType>> events = new();
-
-            foreach (EventLogEntry entry in systemLog.Entries)
+            using (EventLog systemLog = new("System"))
             {
-                if (entry.Source != "Microsoft-Windows-Winlogon") continue;
+                foreach (EventLogEntry entry in systemLog.Entries)
+                {
+                    if (entry.Source != "Microsoft-Windows-Winlogon") continue;
 
-                EventType ev;
-                if (entry.InstanceId == 7001) ev = EventType.Logon;
-                else if (entry.InstanceId == 7002) ev = EventType.Logoff;
-                else continue;
+                    EventType ev;
+                    if (entry.InstanceId == SystemEventIdLogon) ev = EventType.Logon;
+                    else if (entry.InstanceId == SystemEventIdLogoff) ev = EventType.Logoff;
+                    else continue;
 
-                DateTime date = entry.TimeGenerated;
+                    DateTime date = entry.TimeGenerated;
+                	if ((now - date).TotalDays > cmdLineArgs.HistoryMaxDays) continue;
 
-                if ((now - date).TotalDays > cmdLineArgs.HistoryMaxDays) continue;
+                    events.Add(new(date, ev));
+                }
+            }
+            // Needs read access to `REG: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\EventLog\Security`
+            // Added 'read' of 'Authenticated Users'
+            using (EventLog securityLog = new("Security"))
+            {
+                // Needs further access rights
+                foreach (EventLogEntry entry in securityLog.Entries)
+                {
+                    EventType ev;
+                    if (entry.InstanceId == SecurityEventIdLock) ev = EventType.Lock;
+                    else if (entry.InstanceId == SecurityEventIdUnlock) ev = EventType.Unlock;
+                    else continue;
 
-                events.Add(new(date, ev));
+                    DateTime date = entry.TimeGenerated;
+                	if ((now - date).TotalDays > cmdLineArgs.HistoryMaxDays) continue;
+
+                    events.Add(new(date, ev));
+                }
             }
 
-            events.Sort((KeyValuePair<DateTime, EventType> a, KeyValuePair<DateTime, EventType> b) => { return a.Key.CompareTo(b.Key); });
+            events.Sort(((DateTime time, EventType type) a, (DateTime time, EventType type) b) => { return a.time.CompareTo(b.time); });
 
             IFormatProvider form = System.Globalization.CultureInfo.CreateSpecificCulture("de-de");
-            int lld = events[0].Key.Day;
+            int lld = events[0].time.Day;
             foreach (var e in events)
             {
-                if (lld != e.Key.Day)
+                if (lld != e.time.Day)
                 {
-                    lld = e.Key.Day;
+                    lld = e.time.Day;
                     Console.WriteLine();
                 }
-                Console.WriteLine(e.Key.ToString("ddd, dd.MM.    HH:mm    ", form) + EventTypeName(e.Value));
+                Console.WriteLine(e.time.ToString("ddd, dd.MM.    HH:mm    ", form) + EventTypeName(e.type));
             }
 
         }

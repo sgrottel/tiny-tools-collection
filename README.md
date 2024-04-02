@@ -6,6 +6,8 @@ Assortment of tiny, tiny tools.
 These are independent tools.
 Each one is too tiny to justify a repository of it's own.
 
+[![GitHub](https://img.shields.io/github/license/sgrottel/tiny-tools-collection)](./LICENSE)
+
 <br clear="both"/>
 
 ## AllGitsInfo
@@ -79,7 +81,9 @@ Trivial tool to start Pwsh.exe and provide an icon. Because...
 Simple little console application usable in tests, to check whether a process is correctly called.
 It echoes it's command line arguments and a couple of diagnostic properties.
 
-## ToggleDisplay
+## ToggleDisplay  <img align="left" src="./ToggleDisplay/images/ToggleDisplay_x48.png" style="height:1em" alt="ToggleDisplay">
+[![ToggleDisplay Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/ToggleDisplay.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/ToggleDisplay.yaml)
+
 Command line tool to enable/disable/toggle connected displays.
 My scenario is to toggle a TV connected to my PC as `\\.\DISPLAY3`
 
@@ -90,6 +94,8 @@ Tool to collect urls from clipboard, one by one.
 Some more generic documentation files, e.g. including images.
 
 ## License
+[![GitHub](https://img.shields.io/github/license/sgrottel/tiny-tools-collection)](./LICENSE)
+
 All tools are open source and can be used freely.
 
 In general, and explicitly for all tools not specifying a license in their subdirectory, all code within this repositiory is published under the [MIT license](./LICENSE).

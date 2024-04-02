@@ -7,6 +7,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ToggleDisplay", "ToggleDisp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DynamicIconProvider", "DynamicIconProvider\DynamicIconProvider.vcxproj", "{713A5DDE-5756-4E0B-909B-FED01C68A5C3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "github action", "github action", "{69FD70BB-D584-4746-96C5-EE8AD6197725}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\workflows\ToggleDisplay.yaml = ..\.github\workflows\ToggleDisplay.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

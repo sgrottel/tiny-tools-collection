@@ -17,6 +17,11 @@
 
 #include <string>
 
+namespace sgrottel
+{
+    class ISimpleLog;
+}
+
 struct CmdLineArgs
 {
     enum class Command {
@@ -31,5 +36,5 @@ struct CmdLineArgs
     std::wstring id;
 
     bool Parse(int argc, const wchar_t* argv[]);
-    void PrintHelp();
+    void PrintHelp(sgrottel::ISimpleLog& log);
 };

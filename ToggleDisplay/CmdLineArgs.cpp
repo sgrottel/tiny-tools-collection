@@ -28,7 +28,7 @@ bool CmdLineArgs::Parse(int argc, const wchar_t* argv[])
         return false;
     }
 
-    std::wstring cmdStr{argv[1]};
+    std::wstring cmdStr{ argv[1] };
     std::transform(cmdStr.begin(), cmdStr.end(), cmdStr.begin(), std::toupper);
 
     if (cmdStr == L"LIST")
@@ -56,11 +56,14 @@ bool CmdLineArgs::Parse(int argc, const wchar_t* argv[])
     return command != Command::Unknown;
 }
 
-void CmdLineArgs::PrintHelp()
+#include "SimpleLog/SimpleLog.hpp"
+
+void CmdLineArgs::PrintHelp(sgrottel::ISimpleLog& log)
 {
-    std::cerr << "You must specify a command:\n"
-        << "    LIST    -- to list all displays\n"
-        << "    TOGGLE  -- to toggle a display (enable if disabled, disable if enabled)\n"
-        << "    ENABLE  -- to enable a display\n"
-        << "    DISABLE -- to disable a display\n";
+    using sgrottel::SimpleLog;
+    SimpleLog::Error(log, "You must specify a command:\n");
+    SimpleLog::Error(log, "    LIST    -- to list all displays\n");
+    SimpleLog::Error(log, "    TOGGLE  -- to toggle a display (enable if disabled, disable if enabled)\n");
+    SimpleLog::Error(log, "    ENABLE  -- to enable a display\n");
+    SimpleLog::Error(log, "    DISABLE -- to disable a display\n");
 }

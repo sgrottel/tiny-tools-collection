@@ -16,24 +16,32 @@
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <shlobj_core.h>
 
 #include "CmdLineArgs.h"
 #include "DisplayConfig.h"
 
+#include "SimpleLog/SimpleLog.hpp"
+
 #include <iostream>
 #include <cassert>
 
-void List(DisplayConfig::PathsVector const& paths, DisplayConfig::ModesVector const& modes);
+void List(DisplayConfig::PathsVector const& paths, DisplayConfig::ModesVector const& modes, sgrottel::ISimpleLog& log);
 
 int wmain(int argc, const wchar_t* argv[])
 {
+    using sgrottel::SimpleLog;
+
     DisplayConfig::PathsVector paths;
     DisplayConfig::ModesVector modes;
     CmdLineArgs cmd;
 
+    // echoing log with all default settings
+    sgrottel::EchoingSimpleLog log;
+
     if (!cmd.Parse(argc, argv))
     {
-        cmd.PrintHelp();
+        cmd.PrintHelp(log);
         return 1;
     }
 
@@ -41,38 +49,39 @@ int wmain(int argc, const wchar_t* argv[])
     res = DisplayConfig::Query(DisplayConfig::QueryScope::AllPaths, paths, modes);
     if (res != DisplayConfig::ReturnCode::Success)
     {
-        std::cerr << "Failed to query display config: " << DisplayConfig::to_string(res) << std::endl;
+        SimpleLog::Error(log, "Failed to query display config: %s", DisplayConfig::to_string(res));
         return 1;
     }
     DisplayConfig::FilterPaths(paths);
 
     DisplayConfig::PathInfo* selected = DisplayConfig::FindPath(paths, cmd.id);
 
+    log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, ("Command = " + std::to_string(static_cast<int>(cmd.command))).c_str());
     switch (cmd.command)
     {
     case CmdLineArgs::Command::List:
-        List(paths, modes);
+        List(paths, modes, log);
         break;
     case CmdLineArgs::Command::Toggle:
         if (selected == nullptr)
         {
-            std::cerr << "You must specify a display, either by name, target name, or target path." << std::endl;
+            SimpleLog::Error(log, "You must specify a display, either by name, target name, or target path.");
             return 1;
         }
         if (DisplayConfig::IsEnabled(*selected))
         {
-            std::cout << "Selected display is enabled... disabling\n";
+            log.Write("Selected display is enabled... disabling\n");
             DisplayConfig::SetDisabled(*selected);
         }
         else
         {
-            std::cout << "Selected display is disabled... enabling\n";
+            log.Write("Selected display is disabled... enabling\n");
             DisplayConfig::SetEnabled(*selected);
         }
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            std::cerr << "Failed to apply changed display config: " << DisplayConfig::to_string(res) << std::endl;
+            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res));
             return 1;
         }
 
@@ -80,20 +89,20 @@ int wmain(int argc, const wchar_t* argv[])
     case CmdLineArgs::Command::Enable:
         if (selected == nullptr)
         {
-            std::cerr << "You must specify a display, either by name, target name, or target path." << std::endl;
+            SimpleLog::Error(log, "You must specify a display, either by name, target name, or target path.");
             return 1;
         }
         if (DisplayConfig::IsEnabled(*selected))
         {
-            std::cout << "Selected display is already enabled" << std::endl;
+            log.Write("Selected display is already enabled");
             return 0;
         }
         DisplayConfig::SetEnabled(*selected);
-        std::cout << "Enabling display" << std::endl;
+        log.Write("Enabling display");
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            std::cerr << "Failed to apply changed display config: " << DisplayConfig::to_string(res) << std::endl;
+            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res));
             return 1;
         }
 
@@ -101,51 +110,49 @@ int wmain(int argc, const wchar_t* argv[])
     case CmdLineArgs::Command::Disable:
         if (selected == nullptr)
         {
-            std::cerr << "You must specify a display, either by name, target name, or target path." << std::endl;
+            SimpleLog::Error(log, "You must specify a display, either by name, target name, or target path.");
             return 1;
         }
         if (!DisplayConfig::IsEnabled(*selected))
         {
-            std::cout << "Selected display is already disabled" << std::endl;
+            log.Write("Selected display is already disabled");
             return 0;
         }
         DisplayConfig::SetDisabled(*selected);
-        std::cout << "Disabling display" << std::endl;
+        log.Write("Disabling display");
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            std::cerr << "Failed to apply changed display config: " << DisplayConfig::to_string(res) << std::endl;
+            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res));
             return 1;
         }
 
         break;
     default:
-        std::cerr << "Command not implemented" << std::endl;
+        SimpleLog::Error(log, "Command not implemented");
         return 1;
     }
 
     return 0;
 }
 
-void List(DisplayConfig::PathsVector const& paths, DisplayConfig::ModesVector const& modes)
+void List(DisplayConfig::PathsVector const& paths, DisplayConfig::ModesVector const& modes, sgrottel::ISimpleLog& log)
 {
+    using sgrottel::SimpleLog;
     for (DisplayConfig::PathInfo const& path : paths)
     {
         std::wstring deviceName = DisplayConfig::GetGdiDeviceName(path);
         DisplayConfig::TargetDeviceName targetDeviceName = DisplayConfig::GetTargetDeviceName(path);
         uint32_t preferedModeId = DisplayConfig::GetTargetPreferedModeId(path);
 
-        std::wcout
-            << deviceName << L" -> " << targetDeviceName.name << L" (" << targetDeviceName.path << L")"
-            << (DisplayConfig::IsEnabled(path) ? L"  [enabled]" : L"  [disabled]")
-            << L"\n";
-
+        SimpleLog::Write(log, L"%s -> %s (%s)  [%s]", deviceName.c_str(), targetDeviceName.name.c_str(), targetDeviceName.path.c_str(),
+            (DisplayConfig::IsEnabled(path) ? L"enabled" : L"disabled"));
         uint32_t srcModeIdx = path.sourceInfo.modeInfoIdx;
         if (srcModeIdx < modes.size())
         {
             assert(modes[srcModeIdx].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_SOURCE);
             auto const& srcMode = modes[srcModeIdx].sourceMode;
-            std::wcout << L"    (w: " << srcMode.width << L"; h: " << srcMode.height << L"; x: " << srcMode.position.x << L"; y: " << srcMode.position.y << L")\n";
+            SimpleLog::Write(log, L"    (w: %u; h: %d; x: %d; y: %d)", srcMode.width, srcMode.height, srcMode.position.x, srcMode.position.y);
         }
     }
 }

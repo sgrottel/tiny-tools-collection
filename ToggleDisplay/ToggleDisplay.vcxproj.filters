@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="SimpleLog Files">
+      <UniqueIdentifier>{70fa3bcd-edc3-4583-8deb-0a958351e47f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ToggleDisplay.cpp">
@@ -37,8 +40,16 @@
     <ClInclude Include="CmdLineArgs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SimpleLog\SimpleLog.hpp">
+      <Filter>SimpleLog Files</Filter>
+    </ClInclude>
     <ClInclude Include="VersionInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SimpleLog\ComponentSource.json">
+      <Filter>SimpleLog Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

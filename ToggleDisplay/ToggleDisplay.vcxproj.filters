@@ -37,5 +37,8 @@
     <ClInclude Include="CmdLineArgs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VersionInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

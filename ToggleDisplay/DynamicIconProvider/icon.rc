@@ -22,4 +22,40 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
+#include <WinVer.h>
+
+#include "../VersionInfo.h"
+
 1 ICON "../images/ToggleDisplay.ico"
+
+#define _str(a) _inner_str(a)
+#define _inner_str(a) #a
+
+1 VERSIONINFO
+	FILEVERSION    TOGGLEDISPLAY_VER_MAJOR, TOGGLEDISPLAY_VER_MINOR, TOGGLEDISPLAY_VER_PATCH, TOGGLEDISPLAY_VER_BUILD
+	PRODUCTVERSION TOGGLEDISPLAY_VER_MAJOR, TOGGLEDISPLAY_VER_MINOR, TOGGLEDISPLAY_VER_PATCH, 0
+	FILEFLAGSMASK  VS_FFI_FILEFLAGSMASK
+	FILEFLAGS      0x0L
+	FILEOS         VOS__WINDOWS32
+	FILETYPE       VFT_DLL
+	FILESUBTYPE    VFT2_UNKNOWN
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		BLOCK "000004b0"
+		BEGIN
+			VALUE "CompanyName", "SGrottel"
+			VALUE "FileDescription", "Dynamic Toggle Display Icon Provider for Open Here"
+			VALUE "FileVersion", _str(TOGGLEDISPLAY_VER_MAJOR.TOGGLEDISPLAY_VER_MINOR.TOGGLEDISPLAY_VER_PATCH.TOGGLEDISPLAY_VER_BUILD)
+			VALUE "InternalName", "ToggleDisplayDynamicIcon"
+			VALUE "LegalCopyright", "Copyright " TOGGLEDISPLAY_VER_YEARSTR ", SGrottel"
+			VALUE "OriginalFilename", "ToggleDisplayDynamicIcon.dll"
+			VALUE "ProductName", "ToggleDisplay"
+			VALUE "ProductVersion", _str(TOGGLEDISPLAY_VER_MAJOR.TOGGLEDISPLAY_VER_MINOR.TOGGLEDISPLAY_VER_PATCH.0)
+		END
+	END
+	BLOCK "VarFileInfo"
+	BEGIN
+		VALUE "Translation", 0x0, 1200
+	END
+END

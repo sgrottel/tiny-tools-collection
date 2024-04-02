@@ -15,14 +15,7 @@
 //
 #include <WinVer.h>
 
-
-#define TOGGLEDISPLAY_VER_MAJOR	1
-#define TOGGLEDISPLAY_VER_MINOR	0
-#define TOGGLEDISPLAY_VER_PATCH	0
-#define TOGGLEDISPLAY_VER_BUILD	0
-
-#define TOGGLEDISPLAY_VER_YEARSTR	"2023"
-
+#include "VersionInfo.h"
 
 #ifdef APSTUDIO_INVOKED
 // This will prevent the VC++ Resource Editor user from saving this file
@@ -54,10 +47,10 @@ BEGIN
 			VALUE "CompanyName", "SGrottel"
 			VALUE "FileDescription", "Toggle Display Utility"
 			VALUE "FileVersion", _str(TOGGLEDISPLAY_VER_MAJOR.TOGGLEDISPLAY_VER_MINOR.TOGGLEDISPLAY_VER_PATCH.TOGGLEDISPLAY_VER_BUILD)
-			VALUE "InternalName", "TOGGLEDISPLAY"
+			VALUE "InternalName", "ToggleDisplay"
 			VALUE "LegalCopyright", "Copyright " TOGGLEDISPLAY_VER_YEARSTR ", SGrottel"
-			VALUE "OriginalFilename", "TOGGLEDISPLAY.exe"
-			VALUE "ProductName", "TOGGLEDISPLAY"
+			VALUE "OriginalFilename", "ToggleDisplay.exe"
+			VALUE "ProductName", "ToggleDisplay"
 			VALUE "ProductVersion", _str(TOGGLEDISPLAY_VER_MAJOR.TOGGLEDISPLAY_VER_MINOR.TOGGLEDISPLAY_VER_PATCH.0)
 		END
 	END

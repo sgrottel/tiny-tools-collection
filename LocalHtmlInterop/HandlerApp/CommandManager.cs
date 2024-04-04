@@ -14,43 +14,16 @@ namespace LocalHtmlInterop.Handler
 	{
 		public ISimpleLog? Log { get; set; }
 
-		public enum CommandStatus
-		{
-			Unknown,
-			Pending,
-			Error,
-			Completed
-		}
-
-		public class CommandResult
-		{
-			public CommandStatus Status { get; set; } = CommandStatus.Unknown;
-
-			[JsonPropertyName("exitcode")]
-			public int? ExitCode { get; set; }
-
-			public string? Output { get; set; }
-		};
-
 		private class Command
 		{
 			public CommandInfo Info { get; }
-			public CommandResult Result { get; } = new();
+			public CommandResult Result { get; set; } = new();
 
 			public Command(CommandInfo info)
 			{
 				Info = info;
-
 				Result.Status = CommandStatus.Pending;
-
-				// TODO: Implement
-				Task.Delay(TimeSpan.FromSeconds(4)).ContinueWith((_) =>
-				{
-					Result.Status = CommandStatus.Error;
-					Result.Output = $"{new NotImplementedException()}";
-				});
 			}
-
 		};
 
 		private object commandsLock = new();
@@ -61,10 +34,49 @@ namespace LocalHtmlInterop.Handler
 			lock (commandsLock)
 			{
 				Log?.Write($"Pushed call:\n\t{cmd.Command}\n\t=>{cmd.CallbackId}\n\t#{cmd.CommandParameters?.Count ?? 0} Parameters");
-				commands.Add(new(cmd));
 
-				// TODO: Implement
+				Command c = new(cmd);
+				commands.Add(c);
 
+				// select command processor
+				Task<CommandResult>? commandProcessor = null;
+
+				if (!string.IsNullOrWhiteSpace(cmd.Command))
+				{
+					commandProcessor = SelectCommandProcessor(cmd);
+				}
+
+				if (commandProcessor != null)
+				{
+					Task t = commandProcessor
+						.ContinueWith(
+						(res) =>
+						{
+							if (res.IsCompletedSuccessfully)
+							{
+								if (res.Result.Status == CommandStatus.Unknown || res.Result.Status == CommandStatus.Pending)
+								{
+									res.Result.Status = ((res.Result.ExitCode ?? -1) == 0) ? CommandStatus.Completed : CommandStatus.Error;
+								}
+
+								c.Result = res.Result;
+							}
+							else
+							{
+								c.Result.Output = res.Exception?.ToString() ?? "Unknown error";
+								c.Result.Status = CommandStatus.Error;
+							}
+						});
+					if (commandProcessor.Status == TaskStatus.Created)
+					{
+						commandProcessor.Start();
+					}
+				}
+				else
+				{
+					c.Result.Output = "Command processor not found.";
+					c.Result.Status = CommandStatus.Error;
+				}
 			}
 		}
 
@@ -107,5 +119,41 @@ namespace LocalHtmlInterop.Handler
 			}
 			return "{\"status\":\"unknown\",\"output\":\"Unknown callback id\"}";
 		}
+
+		private Task<CommandResult>? SelectCommandProcessor(CommandInfo command)
+		{
+			if (command.Command!.Equals("echo", StringComparison.InvariantCultureIgnoreCase))
+			{
+				string o = "Echo Response:\n";
+				if (command.CallbackId != null)
+				{
+					o += $"  to: {command.CallbackId}\n";
+				}
+				if (command.CommandParameters != null)
+				{
+					foreach (var p in command.CommandParameters)
+					{
+						o += $"  {p.Key} = {p.Value}\n";
+					}
+				}
+
+				return Task.FromResult(new CommandResult()
+				{
+					Output = o,
+					Status = CommandStatus.Completed
+				});
+			}
+
+			// TODO: Implement
+			//var t = new Task<CommandResult>(() =>
+			//{
+			//	throw new NotImplementedException();
+			//});
+			//return t;
+
+			// if no command processor found:
+			return null;
+		}
+
 	}
 }

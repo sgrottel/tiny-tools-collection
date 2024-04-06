@@ -1,9 +1,11 @@
-﻿using SGrottel;
+﻿using Microsoft.Win32;
+using SGrottel;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using YamlDotNet.Core.Tokens;
 
 namespace LocalHtmlInterop.Handler
 {
@@ -13,6 +15,7 @@ namespace LocalHtmlInterop.Handler
 
 		private static ISimpleLog? log = null;
 		private static CommandManager cmdMan = new();
+		private static readonly TimeSpan noClientCloseTimeout = TimeSpan.FromSeconds(10);
 
 		internal static void Main(string[] args)
 		{
@@ -108,6 +111,50 @@ namespace LocalHtmlInterop.Handler
 							});
 						return;
 
+					case CmdLineArgs.Operation.AddFileToRegister:
+						RunOperationAndReportViaPipe(
+							cmdLine.AppOperation.ToString(),
+							cmdLine.CallbackId,
+							(output) =>
+							{
+								if (cmdLine.CommandParameters == null || cmdLine.CommandParameters.Count <= 0)
+								{
+									output.WriteLine("No files specified");
+									return;
+								}
+
+								if (OperatingSystem.IsWindows()) {
+									AddFilesToRegistry(
+										output,
+										(cmdLine.Command == "lm")
+											? Registry.LocalMachine
+											: Registry.CurrentUser,
+										cmdLine.CommandParameters.Keys);
+								}
+							});
+						return;
+
+					case CmdLineArgs.Operation.RemoveFileFromRegister:
+						RunOperationAndReportViaPipe(
+							cmdLine.AppOperation.ToString(),
+							cmdLine.CallbackId,
+							(output) =>
+							{
+								if (cmdLine.CommandParameters == null || cmdLine.CommandParameters.Count <= 0)
+								{
+									output.WriteLine("No files specified");
+									return;
+								}
+
+								if (OperatingSystem.IsWindows())
+								{
+									RemoveFilesFromRegistry(
+										output,
+										cmdLine.CommandParameters.Keys);
+								}
+							});
+						return;
+
 					default:
 						throw new Exception($"\n\nHandler application invoke parameters invalid:\n\"{string.Join("\" \"", args)}\"\n");
 				}
@@ -164,7 +211,6 @@ namespace LocalHtmlInterop.Handler
 
 				server.Running = true;
 
-				TimeSpan noClientCloseTimeout = TimeSpan.FromSeconds(10);
 				DateTime disconnectTime = DateTime.Now + noClientCloseTimeout;
 				while (DateTime.Now < disconnectTime)
 				{
@@ -345,6 +391,133 @@ namespace LocalHtmlInterop.Handler
 				log?.Write(ISimpleLog.FlagError, $"EXCEPTION trying to connect for task handoff: {ex}");
 			}
 			return false;
+		}
+
+		private static void AddFilesToRegistry(StreamWriter output, RegistryKey registryKey, IReadOnlyCollection<string> files)
+		{
+			bool someReg = false;
+			using (var regkey = registryKey.CreateSubKey(RegistryUtility.SubKeyName))
+			{
+				foreach (string file in files)
+				{
+					output.WriteLine($"Reg: {file}");
+
+					IEnumerable<string> knownFiles
+						= regkey
+						.GetValueNames()
+						.Where((s) => s.StartsWith("file-"))
+						.Select((s) => regkey.GetValue(s)?.ToString() ?? string.Empty);
+
+					bool known = false;
+					foreach (string knownFile in knownFiles)
+					{
+						if (knownFile.Equals(file, StringComparison.InvariantCultureIgnoreCase))
+						{
+							known = true;
+							break;
+						}
+					}
+					if (known)
+					{
+						output.WriteLine("  file already registered. Skipping.");
+						continue;
+					}
+
+					string sn = $"file-1";
+					for (int n = 1; knownFiles.Contains(sn); n++, sn = $"file-{n}") ;
+
+					regkey.SetValue(sn, file);
+					output.WriteLine("  registered.");
+					someReg = true;
+				}
+			}
+
+			if (someReg)
+			{
+				output.Write("The newly registered command definition files will only be loaded when the handler process restarts. ");
+				output.WriteLine($"Wait {noClientCloseTimeout} seconds, for any current process to exit after the last connection is closed.");
+			}
+			else
+			{
+				output.WriteLine("ok.");
+			}
+		}
+
+		private static void RemoveFilesFromRegistry(StreamWriter output, IReadOnlyCollection<string> files)
+		{
+			RegistryKey?[] regkey = new RegistryKey?[2];
+			{
+				Exception? ex = null;
+				try
+				{
+					regkey[0] = Registry.LocalMachine.OpenSubKey(RegistryUtility.SubKeyName, true);
+				}
+				catch (Exception ex1) { ex = ex1; }
+				try
+				{
+					regkey[1] = Registry.CurrentUser.OpenSubKey(RegistryUtility.SubKeyName, true);
+				}
+				catch (Exception ex2) { ex = ex2; }
+				if (regkey[0] == null && regkey[1] == null)
+				{
+					throw new InvalidOperationException($"Failed to open any application registry keys: {ex}");
+				}
+			}
+
+			try
+			{
+				foreach (string file in files)
+				{
+					output.WriteLine($"{file}");
+					foreach (RegistryKey? rk in regkey)
+					{
+						if (rk == null) continue;
+						IEnumerable<string> knownFilesNames
+							= rk
+								.GetValueNames()
+								.Where((s) => s.StartsWith("file-"));
+						foreach (var vn in knownFilesNames)
+						{
+							string? kf = rk.GetValue(vn) as string;
+							if (kf?.Equals(file, StringComparison.InvariantCultureIgnoreCase) ?? false)
+							{
+								output.WriteLine($"Found {rk.Name}..{vn}");
+
+								try
+								{
+									rk.DeleteValue(vn);
+									if (rk.GetValueNames().Contains(vn))
+									{
+										output.WriteLine("\tFailed to delete: entry silently remains");
+									}
+									else
+									{
+										output.WriteLine("\tdeleted");
+									}
+								}
+								catch(Exception ex)
+								{
+									output.WriteLine($"\tFailed to delete: {ex}");
+								}
+							}
+						}
+					}
+				}
+
+			}
+			finally
+			{
+				for (int i = 0; i < 2; i++)
+				{
+					try
+					{
+						regkey[i]?.Close();
+						regkey[i]?.Dispose();
+						regkey[i] = null;
+					}
+					catch { }
+				}
+			}
 		}
 
 	}

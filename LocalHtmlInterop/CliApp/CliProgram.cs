@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
+using System.CommandLine.Invocation;
 
 namespace LocalHtmlInterop
 {
@@ -105,6 +106,15 @@ namespace LocalHtmlInterop
 
 		private static bool printBye = true;
 
+		private static void PrintLogoIfNotSuppressed(InvocationContext context)
+		{
+			if (!context.ParseResult.GetValueForOption(nologoOption))
+			{
+				PrintGreeting();
+				PrintVersions();
+			}
+		}
+
 		static int Main(string[] args)
 		{
 			Console.OutputEncoding = Encoding.UTF8;
@@ -143,12 +153,63 @@ namespace LocalHtmlInterop
 					RunSetPortCommand(c, newPortValueArgument);
 				});
 
+				var commandsFileArgument = new Argument<IEnumerable<string>>("file", "The commands file to be processed");
+				commandsFileArgument.Arity = ArgumentArity.OneOrMore;
+
+				var commandsFileExistingArgument = new Argument<IEnumerable<FileInfo>>("file", "The commands file to be processed").ExistingOnly();
+				commandsFileExistingArgument.Arity = ArgumentArity.OneOrMore;
+
+				var listCommandsCommand = new Command("list", "Lists all registered commands");
+				listCommandsCommand.AddAlias("ls");
+				listCommandsCommand.SetHandler(RunListCommandsCommand);
+
+				var validateCommandsFileCommand = new Command("validate", "Validates a commands file")
+				{
+					commandsFileExistingArgument
+				};
+				validateCommandsFileCommand.SetHandler((c) =>
+				{
+					RunValidateCommandsFileCommand(c, commandsFileExistingArgument);
+				});
+
+				var addCommandsFileToLocalMaschineOption = new Option<bool>("--localmachine", "Adds the command file ot the 'local machine' registry, instead of the 'current user' registry (default)");
+				addCommandsFileToLocalMaschineOption.AddAlias("-m");
+				var addCommandsFileCommand = new Command("add", "Adds a commands file to the registered commands")
+				{
+					addCommandsFileToLocalMaschineOption,
+					commandsFileExistingArgument
+				};
+				addCommandsFileCommand.SetHandler((c) =>
+				{
+					RunAddCommandsFileCommand(c, commandsFileExistingArgument, addCommandsFileToLocalMaschineOption);
+				});
+
+				var removeCommandsFileCommand = new Command("remove", "Removes a commands file from the registered commands")
+				{
+					commandsFileArgument
+				};
+				removeCommandsFileCommand.AddAlias("rm");
+				removeCommandsFileCommand.SetHandler((c) =>
+				{
+					RunRemoveCommandsFileCommand(c, commandsFileArgument);
+				});
+
+				var commandsCommand = new Command("command", "Query and manage commands registered to the application")
+				{
+					listCommandsCommand,
+					validateCommandsFileCommand,
+					addCommandsFileCommand,
+					removeCommandsFileCommand
+				};
+				commandsCommand.AddAlias("cmd");
+
 				var rootCommand = new RootCommand("SGR Local Html Interop CLI Application")
 				{
 					registerCommand,
 					unregisterCommand,
 					getPortCommand,
-					setPortCommand
+					setPortCommand,
+					commandsCommand
 				};
 				rootCommand.AddGlobalOption(nologoOption);
 				rootCommand.AddGlobalOption(forceOption);
@@ -178,27 +239,49 @@ namespace LocalHtmlInterop
 		}
 
 		[SupportedOSPlatform("windows")]
-		static void CallHandlerElevated(string argument)
+		static void CallHandler(string argument, bool elevated = true, Action<System.Collections.ObjectModel.Collection<string>>? addArgs = null)
 		{
 			string pipename = "SGR-LocalHtmlInterop-" + Guid.NewGuid().ToString();
 			log.Write(EchoingSimpleLog.FlagDontEcho, $"Opening IPC named pipe {pipename}");
 
-			using (NamedPipeServerStream pipeServer = new(pipename, PipeDirection.In, 1))
+			using (NamedPipeServerStream pipeServer = new(pipename, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous))
 			using (Process p = new())
 			{
 				log.Write($"Calling handler app with \"{argument}\"");
 
 				p.StartInfo.FileName = HandlerPath;
-				p.StartInfo.Arguments = $"{argument} {pipename}";
-				if (!ElevationRightsUtils.IsAdministrator())
+				p.StartInfo.ArgumentList.Clear();
+				p.StartInfo.ArgumentList.Add(argument);
+				p.StartInfo.ArgumentList.Add(pipename);
+
+				addArgs?.Invoke(p.StartInfo.ArgumentList);
+
+				if (elevated)
 				{
-					p.StartInfo.UseShellExecute = true;
-					p.StartInfo.Verb = "runas";
+					if (!ElevationRightsUtils.IsAdministrator())
+					{
+						p.StartInfo.UseShellExecute = true;
+						p.StartInfo.Verb = "runas";
+					}
 				}
 
 				p.Start();
 
-				pipeServer.WaitForConnection();
+				CancellationTokenSource cancelConnect = new CancellationTokenSource(); 
+				var waitConnectionTask = pipeServer.WaitForConnectionAsync(cancelConnect.Token);
+
+				while (!waitConnectionTask.IsCompleted && !p.HasExited)
+				{
+					Thread.Sleep(10);
+				}
+
+				if (!waitConnectionTask.IsCompleted)
+				{
+					cancelConnect.Cancel();
+					log.Write(ISimpleLog.FlagError, "Did not connect to handler process before it exited.");
+					return;
+				}
+
 				using (StreamReader reader = new(pipeServer, Encoding.UTF8))
 				{
 					while (true)
@@ -214,13 +297,9 @@ namespace LocalHtmlInterop
 			}
 		}
 
-		private static void RunRegisterCommand(System.CommandLine.Invocation.InvocationContext context)
+		private static void RunRegisterCommand(InvocationContext context)
 		{
-			if (!context.ParseResult.GetValueForOption(nologoOption))
-			{
-				PrintGreeting();
-				PrintVersions();
-			}
+			PrintLogoIfNotSuppressed(context);
 			bool force = context.ParseResult.GetValueForOption(forceOption);
 
 			string? regHanExe = CustomUrlProtocol.GetRegisteredHandlerExe();
@@ -241,7 +320,7 @@ namespace LocalHtmlInterop
 
 			if (OperatingSystem.IsWindows())
 			{
-				CallHandlerElevated("-register");
+				CallHandler("-register");
 			}
 			else
 			{
@@ -249,13 +328,9 @@ namespace LocalHtmlInterop
 			}
 		}
 
-		private static void RunUnregisterCommand(System.CommandLine.Invocation.InvocationContext context)
+		private static void RunUnregisterCommand(InvocationContext context)
 		{
-			if (!context.ParseResult.GetValueForOption(nologoOption))
-			{
-				PrintGreeting();
-				PrintVersions();
-			}
+			PrintLogoIfNotSuppressed(context);
 			bool force = context.ParseResult.GetValueForOption(forceOption);
 
 			string? regHanExe = CustomUrlProtocol.GetRegisteredHandlerExe();
@@ -276,7 +351,7 @@ namespace LocalHtmlInterop
 
 			if (OperatingSystem.IsWindows())
 			{
-				CallHandlerElevated("-unregister");
+				CallHandler("-unregister");
 			}
 			else
 			{
@@ -284,13 +359,9 @@ namespace LocalHtmlInterop
 			}
 		}
 
-		private static void RunGetPortCommand(System.CommandLine.Invocation.InvocationContext context, Option<bool> getDefaultPortOption)
+		private static void RunGetPortCommand(InvocationContext context, Option<bool> getDefaultPortOption)
 		{
-			if (!context.ParseResult.GetValueForOption(nologoOption))
-			{
-				PrintGreeting();
-				PrintVersions();
-			}
+			PrintLogoIfNotSuppressed(context);
 			ServerPortConfig portCfg = new();
 			Console.WriteLine(
 				context.ParseResult.GetValueForOption(getDefaultPortOption)
@@ -299,13 +370,9 @@ namespace LocalHtmlInterop
 			printBye = false;
 		}
 
-		private static void RunSetPortCommand(System.CommandLine.Invocation.InvocationContext context, Argument<ushort> newPortValueArgument)
+		private static void RunSetPortCommand(InvocationContext context, Argument<ushort> newPortValueArgument)
 		{
-			if (!context.ParseResult.GetValueForOption(nologoOption))
-			{
-				PrintGreeting();
-				PrintVersions();
-			}
+			PrintLogoIfNotSuppressed(context);
 			bool force = context.ParseResult.GetValueForOption(forceOption);
 
 			ushort newPortValue = context.ParseResult.GetValueForArgument(newPortValueArgument);
@@ -348,6 +415,133 @@ namespace LocalHtmlInterop
 				{
 					log.Write(ISimpleLog.FlagError, $"FAILED to set port to {newPortValue}. Value remains: {portCfg.GetValue()}");
 				}
+			}
+		}
+
+		private static void RunListCommandsCommand(InvocationContext context)
+		{
+			PrintLogoIfNotSuppressed(context);
+
+			var files = RegistryUtility.LoadFilePaths();
+			log.Write($"Registry contains {files.Count} files:");
+			log.Write("");
+			foreach (var file in files)
+			{
+				log.Write(file);
+			}
+			log.Write("");
+		}
+
+		private static void RunValidateCommandsFileCommand(InvocationContext context, Argument<IEnumerable<FileInfo>> fileArgument)
+		{
+			PrintLogoIfNotSuppressed(context);
+			var files = context.ParseResult.GetValueForArgument(fileArgument);
+			foreach (var file in files)
+			{
+				log.Write($"Validating: {file.FullName}");
+				try
+				{
+					CommandDefinitionFile cdf = CommandDefinitionFile.Load(file.FullName);
+					if ((cdf.commands?.Length ?? 0) <= 0)
+					{
+						log.Write(ISimpleLog.FlagWarning, "No commands defined in file");
+					}
+
+					log.Write("ok.");
+				}
+				catch (Exception ex)
+				{
+					log.Write(ISimpleLog.FlagError, $"FAILED: {ex}");
+				}
+			}
+		}
+
+		private static void RunAddCommandsFileCommand(InvocationContext context, Argument<IEnumerable<FileInfo>> fileArgument, Option<bool> addToLocalMachineOption)
+		{
+			PrintLogoIfNotSuppressed(context);
+			bool addToLocalMachine = context.ParseResult.GetValueForOption(addToLocalMachineOption);
+
+			HashSet<FileInfo> cdfs = new();
+			foreach (var fi in context.ParseResult.GetValueForArgument(fileArgument))
+			{
+				try
+				{
+					var cdf = CommandDefinitionFile.Load(fi.FullName);
+					if ((cdf.commands?.Length ?? 0) <= 0)
+					{
+						throw new ArgumentException("No commands defined in file");
+					}
+					cdfs.Add(fi);
+				}
+				catch(Exception ex)
+				{
+					log.Write(ISimpleLog.FlagError, $"{fi.FullName}\nFAILED: {ex}");
+				}
+			}
+
+			if (OperatingSystem.IsWindows())
+			{
+				CallHandler(
+					"-addfile",
+					elevated: addToLocalMachine,
+					addArgs: (c) =>
+					{
+						if (addToLocalMachine) c.Add("lm");
+						foreach (var fi in cdfs)
+						{
+							c.Add(fi.FullName);
+						}
+					});
+			}
+			else
+			{
+				throw new InvalidOperationException();
+			}
+		}
+
+		private static void RunRemoveCommandsFileCommand(InvocationContext context, Argument<IEnumerable<string>> fileArgument)
+		{
+			PrintLogoIfNotSuppressed(context);
+
+			var files = context.ParseResult.GetValueForArgument(fileArgument);
+
+			HashSet<string> regFilesLM = new(RegistryUtility.LoadFilePathsFromLocalMachine().Select((s) => s.ToLowerInvariant()));
+			// if one of the `files` entries is in here, admin rights will be required
+
+			HashSet<string> regFiles = new(RegistryUtility.LoadFilePaths().Select((s) => s.ToLowerInvariant()));
+			// if one of the `files` entries is not in here, it's not registered at all
+
+			HashSet<string> toUnreg = new();
+			bool asAdmin = false;
+
+			foreach (var file in files)
+			{
+				if (!regFiles.Contains(file.ToLowerInvariant()))
+				{
+					log.Write(ISimpleLog.FlagWarning, $"Skipping file {file} -- is not registered");
+				}
+
+				toUnreg.Add(file);
+
+				asAdmin |= regFilesLM.Contains(file.ToLowerInvariant());
+			}
+
+			if (OperatingSystem.IsWindows())
+			{
+				CallHandler(
+					"-rmfile",
+					elevated: asAdmin,
+					addArgs: (c) =>
+					{
+						foreach (var fi in toUnreg)
+						{
+							c.Add(fi);
+						}
+					});
+			}
+			else
+			{
+				throw new InvalidOperationException();
 			}
 		}
 

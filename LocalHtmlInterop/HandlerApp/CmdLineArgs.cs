@@ -13,7 +13,9 @@ namespace LocalHtmlInterop.Handler
 			None,
 			InteropCall,
 			RegisterHandler,
-			UnregisterHandler
+			UnregisterHandler,
+			AddFileToRegister,
+			RemoveFileFromRegister
 		};
 
 		public Operation AppOperation { get; private set; } = Operation.None;
@@ -70,6 +72,43 @@ namespace LocalHtmlInterop.Handler
 				{
 					AppOperation = Operation.UnregisterHandler;
 					CallbackId = args[1];
+					return true;
+				}
+			}
+
+			if (args.Length > 2)
+			{
+				if (args[0].Equals("-addfile", StringComparison.InvariantCultureIgnoreCase))
+				{
+					AppOperation = Operation.AddFileToRegister;
+					CallbackId = args[1];
+
+					CommandParameters = new();
+					foreach (var a in args[2..])
+					{
+						CommandParameters[a] = "add";
+					}
+
+					if (CommandParameters.ContainsKey("lm"))
+					{
+						CommandParameters.Remove("lm");
+						Command = "lm";
+					}
+
+					return true;
+				}
+
+				if (args[0].Equals("-rmfile", StringComparison.InvariantCultureIgnoreCase))
+				{
+					AppOperation = Operation.RemoveFileFromRegister;
+					CallbackId = args[1];
+
+					CommandParameters = new();
+					foreach (var a in args[2..])
+					{
+						CommandParameters[a] = "rm";
+					}
+
 					return true;
 				}
 			}

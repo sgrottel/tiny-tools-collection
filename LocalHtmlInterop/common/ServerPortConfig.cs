@@ -11,7 +11,6 @@ namespace LocalHtmlInterop
 	public class ServerPortConfig
 	{
 		public const ushort DefaultPort = 18245;
-		private const string KeyName = @"Software\SGrottel\LocalHtmlInterop";
 
 		public ushort GetValue()
 		{
@@ -23,7 +22,7 @@ namespace LocalHtmlInterop
 			using (RegistryKey hkcu = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default))
 			{
 				if (hkcu == null) throw new InvalidOperationException("Failed to open HKCurrentUser");
-				using (RegistryKey? appKey = hkcu.OpenSubKey(KeyName))
+				using (RegistryKey? appKey = hkcu.OpenSubKey(RegistryUtility.SubKeyName))
 				{
 					if (appKey == null) return DefaultPort;
 					int? o = appKey.GetValue("port") as int?;
@@ -38,7 +37,7 @@ namespace LocalHtmlInterop
 			using (RegistryKey hkcu = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default))
 			{
 				if (hkcu == null) throw new InvalidOperationException("Failed to open HKCurrentUser");
-				using (RegistryKey appKey = hkcu.CreateSubKey(KeyName))
+				using (RegistryKey appKey = hkcu.CreateSubKey(RegistryUtility.SubKeyName))
 				{
 					appKey.SetValue("port", port, RegistryValueKind.DWord);
 				}

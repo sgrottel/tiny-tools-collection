@@ -168,6 +168,51 @@ namespace LocalHtmlInterop.Handler
 #endif
 				cmdMan.Log = log;
 
+				try
+				{
+					Dictionary<string, CommandDefinition> commands = new();
+					foreach (string file in RegistryUtility.LoadFilePaths())
+					{
+						if (!File.Exists(file))
+						{
+							log.Write(ISimpleLog.FlagWarning, $"Command definition file not found: {file}");
+							continue;
+						}
+						var cdf = CommandDefinitionFile.Load(file);
+						if (cdf.commands != null && cdf.commands.Length > 0)
+						{
+							log.Write($"Command definition file loaded: {file}");
+							foreach (var cd in cdf.commands)
+							{
+								if (cd.ValidationError != null)
+								{
+									log.Write(ISimpleLog.FlagWarning, $"\tCommand '{cd.name}' not valid: {cd.ValidationError}");
+									continue;
+								}
+								cd.name = cd.name!.ToLowerInvariant();
+								if (commands.ContainsKey(cd.name))
+								{
+									log.Write(ISimpleLog.FlagWarning, $"\tCommand '{cd.name}' already loaded; ignoring new definition.");
+									continue;
+								}
+
+								commands.Add(cd.name, cd);
+								log.Write($"\tCommand '{cd.name}' loaded");
+							}
+						}
+						else
+						{
+							log.Write(ISimpleLog.FlagWarning, $"Command definition file empty: {file}");
+						}
+					}
+
+					cmdMan.CommandDefinitions = commands;
+				}
+				catch (Exception ex)
+				{
+					log.Write(ISimpleLog.FlagError, $"Failed to load command definitions: {ex}");
+				}
+
 				log.Write($"Called:\n\t{string.Join("\n\t", args)}");
 
 				SingleInstance singleInstance = new();
@@ -226,7 +271,7 @@ namespace LocalHtmlInterop.Handler
 						}
 					}
 
-					if (cmdMan.CoundRunningCommands() > 0)
+					if (cmdMan.CountRunningCommands() > 0)
 					{
 						active = true;
 					}

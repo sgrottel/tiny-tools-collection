@@ -14,6 +14,8 @@ namespace LocalHtmlInterop.Handler
 	{
 		public ISimpleLog? Log { get; set; }
 
+		public Dictionary<string, CommandDefinition> CommandDefinitions { get; set; } = new();
+
 		private class Command
 		{
 			public CommandInfo Info { get; }
@@ -23,6 +25,12 @@ namespace LocalHtmlInterop.Handler
 			{
 				Info = info;
 				Result.Status = CommandStatus.Pending;
+			}
+
+			internal void LogResult(ISimpleLog? log)
+			{
+				log?.Write($"Command '{Info.Command}'[=>{Info.CallbackId}]\n\tcompleted as '{Result.Status}'.");
+				log?.Write($"\t{Result.Output?.Split('\n', 2)[0]}");
 			}
 		};
 
@@ -48,7 +56,7 @@ namespace LocalHtmlInterop.Handler
 
 				if (commandProcessor != null)
 				{
-					Task t = commandProcessor
+					commandProcessor
 						.ContinueWith(
 						(res) =>
 						{
@@ -66,6 +74,8 @@ namespace LocalHtmlInterop.Handler
 								c.Result.Output = res.Exception?.ToString() ?? "Unknown error";
 								c.Result.Status = CommandStatus.Error;
 							}
+
+							c.LogResult(Log);
 						});
 					if (commandProcessor.Status == TaskStatus.Created)
 					{
@@ -76,11 +86,13 @@ namespace LocalHtmlInterop.Handler
 				{
 					c.Result.Output = "Command processor not found.";
 					c.Result.Status = CommandStatus.Error;
+
+					c.LogResult(Log);
 				}
 			}
 		}
 
-		internal int CoundRunningCommands()
+		internal int CountRunningCommands()
 		{
 			lock (commandsLock)
 			{
@@ -144,16 +156,44 @@ namespace LocalHtmlInterop.Handler
 				});
 			}
 
-			// TODO: Implement
-			//var t = new Task<CommandResult>(() =>
-			//{
-			//	throw new NotImplementedException();
-			//});
-			//return t;
+			CommandDefinition? cmdDef;
+			if (CommandDefinitions.TryGetValue(command.Command.ToLowerInvariant(), out cmdDef))
+			{
+				if (cmdDef.ValidationError != null)
+				{
+					Log?.Write(ISimpleLog.FlagError, $"Command '{command.Command}'[=>{command.CallbackId}] did select an invalid command definition: {cmdDef.ValidationError}");
+					return null;
+				}
 
-			// if no command processor found:
+				try
+				{
+					return BuildCommandDefinitionProcessor(command, cmdDef);
+				}
+				catch (Exception ex)
+				{
+					return Task.FromResult(new CommandResult()
+					{
+						Output = ex.ToString(),
+						Status = CommandStatus.Error
+					});
+				}
+			}
+			// else, no command processor found:
 			return null;
 		}
 
+		private Task<CommandResult>? BuildCommandDefinitionProcessor(CommandInfo cmd, CommandDefinition def)
+		{
+			// TODO: match parameters to build final command argument list
+
+			// TODO: if preparation succeeds, build task which runs process, collects output, builds result
+
+			//throw new NotImplementedException();
+
+			return Task.Delay(10000).ContinueWith<CommandResult>((_) =>
+			{
+				throw new NotImplementedException();
+			});
+		}
 	}
 }

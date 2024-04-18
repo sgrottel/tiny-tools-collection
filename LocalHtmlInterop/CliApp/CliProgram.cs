@@ -447,11 +447,21 @@ namespace LocalHtmlInterop
 						log.Write(ISimpleLog.FlagWarning, "No commands defined in file");
 					}
 
+					foreach (var cmd in cdf.commands!)
+					{
+						if (cmd.ValidationError == null) continue;
+						throw new Exception($"Failed to validate command {cmd.name}: {cmd.ValidationError}");
+					}
+
 					log.Write("ok.");
 				}
 				catch (Exception ex)
 				{
 					log.Write(ISimpleLog.FlagError, $"FAILED: {ex}");
+					if (ex.InnerException != null)
+					{
+						log.Write(ISimpleLog.FlagError, $"\t{ex.InnerException}");
+					}
 				}
 			}
 		}
@@ -471,6 +481,13 @@ namespace LocalHtmlInterop
 					{
 						throw new ArgumentException("No commands defined in file");
 					}
+
+					foreach (var cmd in cdf.commands!)
+					{
+						if (cmd.ValidationError == null) continue;
+						throw new Exception($"Invalidate command {cmd.name}: {cmd.ValidationError}");
+					}
+
 					cdfs.Add(fi);
 				}
 				catch(Exception ex)

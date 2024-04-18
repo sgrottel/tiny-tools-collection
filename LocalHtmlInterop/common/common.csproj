@@ -11,6 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\FindExecutable\FindExecutable\FindExecutable.cs" Link="FindExecutable\FindExecutable.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="YamlDotNet" Version="15.1.2" />
   </ItemGroup>
 

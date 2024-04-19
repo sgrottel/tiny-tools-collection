@@ -20,15 +20,49 @@
 
 #include "SimpleLog/SimpleLog.hpp"
 
+#include "MainWindow.h"
+#include "NotifyIcon.h"
+#include "Menu.h"
+
 #include <Windows.h>
+#include <shellapi.h>
 
-sgrottel::SimpleLog g_log;
+// https://github.com/microsoft/Windows-classic-samples/blob/main/Samples/Win7Samples/winui/shell/appshellintegration/NotificationIcon/NotificationIcon.cpp
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#pragma comment(lib, "comctl32.lib")
 
-int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lpCmdLine, int /*nShowCmd*/)
 {
-	sgrottel::SimpleLog::Write(g_log, "Hello World.");
+	int retval = 1;
 
-	// TODO: Implement
+	sgrottel::SimpleLog log;
+	sgrottel::SimpleLog::Write(log, "GlobalHotKeys started.");
 
-	return 0;
+	MainWindow wnd{ hInstance, log };
+	if (wnd.GetHandle() != NULL)
+	{
+		NotifyIcon notifyIcon{ log, wnd };
+		Menu menu{ log };
+
+		wnd.SetNotifyCallback(
+			[&wnd, &menu, &notifyIcon]()
+			{
+				POINT p = notifyIcon.GetPoint();
+				menu.Popup(wnd, p);
+			});
+		wnd.SetMenuItemCallback(
+			[&menu](WORD menuItemID)
+			{
+				menu.Call(menuItemID);
+			});
+
+		retval = wnd.RunMainLoop();
+
+		wnd.SetNotifyCallback({});
+		wnd.SetMenuItemCallback({});
+	}
+
+	sgrottel::SimpleLog::Write(log, "GlobalHotKeys exit: %d", retval);
+
+	return retval;
 }

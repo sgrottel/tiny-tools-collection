@@ -50,6 +50,9 @@ Can use Everything, if available.
 A powershell script to print an overview of my stuff on Github.
 [Github CLI](https://cli.github.com/) must be installed.
 
+## GlobalHotKeys  <img align="left" src="./GlobalHotKeys/Bellhop Bell x48.png" style="height:1em" alt="GlobalHotKeys">
+Utility to launch processes based on global hot keys.
+
 ## HWndToFront
 Brings a window to front in Windows 11.
 Can also start an application and bring that's window to front.

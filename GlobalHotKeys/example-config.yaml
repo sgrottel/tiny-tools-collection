@@ -1,0 +1,12 @@
+empty:
+globalhotkeys:
+- code: Ä
+  shift: true
+  alt: true
+  ctrl: true
+  exec: "pwsh.exe"
+  workdir: "C:\\"
+  args:
+  - -NoExit
+  - "-c"
+  - "Write-Host \"Hello World.\""

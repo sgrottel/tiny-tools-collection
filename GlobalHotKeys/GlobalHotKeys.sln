@@ -5,6 +5,12 @@ VisualStudioVersion = 17.10.34814.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GlobalHotKeys", "GlobalHotKeys.vcxproj", "{14974A17-EE6E-4517-BE97-15AEE95C4A34}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{F97C6C77-282B-4F31-BF1D-137AA3C6AC87}"
+	ProjectSection(SolutionItems) = preProject
+		collect_virtual_key_codes.ps1 = collect_virtual_key_codes.ps1
+		example-config.yaml = example-config.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

@@ -83,7 +83,7 @@ void Menu::Call(WORD menuItemID)
 			break;
 		}
 
-		ShellExecuteW(NULL, L"open", logFile.c_str(), NULL, NULL, SW_SHOW);
+		ShellExecuteW(NULL, L"open", logFile.wstring().c_str(), NULL, NULL, SW_SHOW);
 		break;
 	}
 
@@ -97,7 +97,8 @@ void Menu::Call(WORD menuItemID)
 		}
 		logFile = std::filesystem::canonical(logFile);
 
-		std::unique_ptr<ITEMIDLIST, decltype(&ILFree)> fileIdl{ ILCreateFromPath(logFile.c_str()), &ILFree };
+		std::unique_ptr<__unaligned ITEMIDLIST, decltype(&ILFree)> fileIdl{ ILCreateFromPath(logFile.wstring().c_str()), &ILFree };
+
 		if (!fileIdl)
 		{
 			MessageBox(NULL, L"Failed to access log file path identifier", MainWindow::c_WindowName, MB_ICONERROR | MB_OK);

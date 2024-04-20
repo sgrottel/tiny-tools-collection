@@ -23,6 +23,7 @@
 #include "NotifyIcon.h"
 #include "Menu.h"
 #include "SingleInstanceGuard.h"
+#include "Configuration.h"
 
 #include <shellapi.h>
 
@@ -74,6 +75,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 	{
 		sgrottel::SimpleLog::Warning(log, "CoInitialize failed. Some functions might not work.");
 	}
+	Configuration config{ log };
 
 	MainWindow wnd{ hInstance, log };
 	if (wnd.GetHandle() != NULL)
@@ -81,15 +83,105 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 		NotifyIcon notifyIcon{ log, wnd };
 		Menu menu{ log, wnd.GetHInstance() };
 
-		menu.SetOnSelectConfigCallback(
-			[]()
+		auto configLoadErrorMessageBox = [&config](std::wstring const& error)
 			{
-				MessageBox(NULL, L"Not implemented", MainWindow::c_WindowName, MB_ICONERROR | MB_OK);
+				MessageBox(
+					NULL,
+					(L"Failed to load configuration\n"
+						+ config.GetFilePath().wstring()
+						+ L"\n"
+						+ error).c_str(),
+					MainWindow::c_WindowName,
+					MB_ICONERROR | MB_OK);
+			};
+		auto selectConfig = [&log, &config, &configLoadErrorMessageBox]()
+			{
+				std::unique_ptr<IFileOpenDialog, std::function<void(IFileOpenDialog*)>> dlg;
+				{
+					IFileOpenDialog* rawdlg;
+					HRESULT result = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&rawdlg));
+					if (FAILED(result)) {
+						std::wstring error{ L"Failed to CoCreateInstance(CLSID_FileOpenDialog): " + std::to_wstring(static_cast<unsigned int>(result)) };
+						sgrottel::SimpleLog::Error(log, error);
+						MessageBox(NULL, error.c_str(), MainWindow::c_WindowName, MB_ICONERROR | MB_OK);
+						return;
+					}
+					dlg = std::move(std::unique_ptr<IFileOpenDialog, std::function<void(IFileOpenDialog*)>>(rawdlg, [](IFileOpenDialog* dlg) { dlg->Release(); }));
+				}
+
+				dlg->SetFileName(config.GetFilePath().wstring().c_str());
+				dlg->SetTitle((std::wstring{ MainWindow::c_WindowName } + L" Select Configuration...").c_str());
+				COMDLG_FILTERSPEC fileTypeFilters[]{
+					{ L"YAML Files", L"*.yaml;*.yml" },
+					{ L"All Files", L"*.*" }
+				};
+				dlg->SetFileTypes(ARRAYSIZE(fileTypeFilters), fileTypeFilters);
+				dlg->SetOptions(FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST);
+
+				// Show the open file dialog window
+				HRESULT res = dlg->Show(NULL);
+				if (res == HRESULT_FROM_WIN32(ERROR_CANCELLED))
+				{
+					// user cancelled
+					return;
+				}
+				if (FAILED(res)) {
+					std::wstring error{ L"Failed to Show FileOpenDialog: " + std::to_wstring(static_cast<unsigned int>(res)) };
+					sgrottel::SimpleLog::Error(log, error);
+					MessageBox(NULL, error.c_str(), MainWindow::c_WindowName, MB_ICONERROR | MB_OK);
+					return;
+				}
+
+				// Retrieve the selected file name
+				IShellItem* files;
+				res = dlg->GetResult(&files);
+				if (FAILED(res)) {
+					std::wstring error{ L"Failed to fetch FileOpenDialog result: " + std::to_wstring(static_cast<unsigned int>(res)) };
+					sgrottel::SimpleLog::Error(log, error);
+					MessageBox(NULL, error.c_str(), MainWindow::c_WindowName, MB_ICONERROR | MB_OK);
+					return;
+				}
+				// Get the file path
+				PWSTR path;
+				res = files->GetDisplayName(SIGDN_FILESYSPATH, &path);
+				if (FAILED(res)) {
+					files->Release();
+					std::wstring error{ L"Failed to fetch FileOpenDialog result path: " + std::to_wstring(static_cast<unsigned int>(res)) };
+					sgrottel::SimpleLog::Error(log, error);
+					MessageBox(NULL, error.c_str(), MainWindow::c_WindowName, MB_ICONERROR | MB_OK);
+					return;
+				}
+
+				std::filesystem::path p{ path };
+
+				CoTaskMemFree(path);
+				files->Release();
+
+				config.SetFilePath(p, configLoadErrorMessageBox);
+				// TODO: Update registered hotkeys
+			};
+		menu.SetOnSelectConfigCallback(selectConfig);
+		menu.SetOnReloadConfigCallback(
+			[&config, &selectConfig, &configLoadErrorMessageBox]()
+			{
+				if (config.GetFilePath().empty()
+					|| !std::filesystem::is_regular_file(config.GetFilePath()))
+				{
+					selectConfig();
+					return;
+				}
+
+				config.SetFilePath(config.GetFilePath(), configLoadErrorMessageBox);
+				// TODO: Update registered hotkeys
 			});
 
 		wnd.SetNotifyCallback(
-			[&wnd, &menu, &notifyIcon]()
+			[&wnd, &menu, &notifyIcon, &config]()
 			{
+				menu.SetReloadConfigurationEnabled(
+					!config.GetFilePath().empty()
+					&& std::filesystem::is_regular_file(config.GetFilePath()));
+
 				POINT p = notifyIcon.GetPoint();
 				menu.Popup(wnd, p);
 			});

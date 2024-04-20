@@ -73,18 +73,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(ProjectDir)bin\$(PlatformName)-$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(PlatformName)-$(Configuration)\</IntDir>
+    <libyamlPlatformToolset>v142</libyamlPlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(ProjectDir)bin\$(PlatformName)-$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(PlatformName)-$(Configuration)\</IntDir>
+    <libyamlPlatformToolset>v142</libyamlPlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(ProjectDir)bin\$(PlatformName)-$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(PlatformName)-$(Configuration)\</IntDir>
+    <libyamlPlatformToolset>v142</libyamlPlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(ProjectDir)bin\$(PlatformName)-$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(PlatformName)-$(Configuration)\</IntDir>
+    <libyamlPlatformToolset>v142</libyamlPlatformToolset>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -167,7 +171,9 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="GlobalHotKeys.cpp" />
+    <ClCompile Include="HotKeyConfig.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="NotifyIcon.cpp" />
@@ -183,6 +189,8 @@
     <ResourceCompile Include="GlobalHotKeys.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Configuration.h" />
+    <ClInclude Include="HotKeyConfig.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="NotifyIcon.h" />
@@ -197,7 +205,17 @@
   <ItemGroup>
     <Manifest Include="DeclareDPIAware.manifest" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\libyaml.0.2.5.12\build\native\libyaml.targets" Condition="Exists('packages\libyaml.0.2.5.12\build\native\libyaml.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\libyaml.0.2.5.12\build\native\libyaml.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libyaml.0.2.5.12\build\native\libyaml.targets'))" />
+  </Target>
 </Project>

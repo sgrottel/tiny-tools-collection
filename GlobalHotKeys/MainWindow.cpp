@@ -1,8 +1,7 @@
+#include "pch.h"
+
 #include "MainWindow.h"
-
 #include "NotifyIcon.h"
-
-#include <shlobj_core.h>
 #include "SimpleLog/SimpleLog.hpp"
 
 namespace

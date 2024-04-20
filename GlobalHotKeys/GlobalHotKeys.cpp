@@ -15,21 +15,45 @@
 // See the License for the specific language governing permissionsand
 // limitations under the License.
 
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
+#include "pch.h"
 
 #include "SimpleLog/SimpleLog.hpp"
 
 #include "MainWindow.h"
 #include "NotifyIcon.h"
 #include "Menu.h"
+#include "SingleInstanceGuard.h"
 
-#include <Windows.h>
 #include <shellapi.h>
 
 // https://github.com/microsoft/Windows-classic-samples/blob/main/Samples/Win7Samples/winui/shell/appshellintegration/NotificationIcon/NotificationIcon.cpp
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #pragma comment(lib, "comctl32.lib")
+
+namespace
+{
+	class CoGuard {
+	public:
+		CoGuard() : m_inited{ false }
+		{
+			m_inited = SUCCEEDED(CoInitialize(NULL));
+		}
+		~CoGuard()
+		{
+			if (m_inited)
+			{
+				CoUninitialize();
+				m_inited = false;
+			}
+		}
+		operator bool() const
+		{
+			return m_inited;
+		}
+	private:
+		bool m_inited;
+	};
+}
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lpCmdLine, int /*nShowCmd*/)
 {
@@ -38,11 +62,30 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 	sgrottel::SimpleLog log;
 	sgrottel::SimpleLog::Write(log, "GlobalHotKeys started.");
 
+	SingleInstanceGuard singleInstanceGuard;
+	if (!singleInstanceGuard.IsSingleInstance())
+	{
+		sgrottel::SimpleLog::Error(log, "Another instance of GlobalHotKeys already running.");
+		return 0;
+	}
+
+	CoGuard coGuard;
+	if (!coGuard)
+	{
+		sgrottel::SimpleLog::Warning(log, "CoInitialize failed. Some functions might not work.");
+	}
+
 	MainWindow wnd{ hInstance, log };
 	if (wnd.GetHandle() != NULL)
 	{
 		NotifyIcon notifyIcon{ log, wnd };
-		Menu menu{ log };
+		Menu menu{ log, wnd.GetHInstance() };
+
+		menu.SetOnSelectConfigCallback(
+			[]()
+			{
+				MessageBox(NULL, L"Not implemented", MainWindow::c_WindowName, MB_ICONERROR | MB_OK);
+			});
 
 		wnd.SetNotifyCallback(
 			[&wnd, &menu, &notifyIcon]()
@@ -50,11 +93,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 				POINT p = notifyIcon.GetPoint();
 				menu.Popup(wnd, p);
 			});
-		wnd.SetMenuItemCallback(
-			[&menu](WORD menuItemID)
-			{
-				menu.Call(menuItemID);
-			});
+		wnd.SetMenuItemCallback(std::bind(&Menu::Call, &menu, std::placeholders::_1));
 
 		retval = wnd.RunMainLoop();
 

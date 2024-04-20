@@ -43,8 +43,12 @@
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
 #include <Windows.h>
+#endif
+
+#ifndef WINSHELLAPI
 #include <shlobj_core.h>
 #endif
+
 #include <psapi.h>
 
 namespace sgrottel
@@ -274,7 +278,7 @@ namespace sgrottel
 		/// <summary>
 		/// Mutex used to thread-lock all output
 		/// </summary>
-		std::mutex m_threadLock;
+		mutable std::mutex m_threadLock;
 
 	public:
 
@@ -631,6 +635,43 @@ namespace sgrottel
 				}
 			}
 			catch (...) {}
+		}
+
+		std::filesystem::path GetFilePath() const
+		{
+			std::lock_guard<std::mutex> lock{ m_threadLock };
+			if (m_file == INVALID_HANDLE_VALUE)
+			{
+				return {};
+			}
+
+			std::vector<wchar_t> strBuf;
+			DWORD rv = GetFinalPathNameByHandleW(m_file, strBuf.data(), static_cast<DWORD>(strBuf.size()), FILE_NAME_NORMALIZED);
+			if (rv == 0)
+			{
+				DWORD le = GetLastError();
+				std::string msg = "Failed query log file path: " + std::to_string(le);
+				throw std::runtime_error(msg.c_str());
+			}
+
+			if (static_cast<size_t>(rv) > strBuf.size())
+			{
+				strBuf.resize(rv);
+				rv = GetFinalPathNameByHandleW(m_file, strBuf.data(), static_cast<DWORD>(strBuf.size()), FILE_NAME_NORMALIZED);
+				if (rv == 0)
+				{
+					DWORD le = GetLastError();
+					std::string msg = "Failed query log file path 2: " + std::to_string(le);
+					throw std::runtime_error(msg.c_str());
+				}
+
+				if (static_cast<size_t>(rv) > strBuf.size())
+				{
+					throw std::runtime_error("Failed query log file path 2: memory allocation failure");
+				}
+			}
+
+			return std::filesystem::path{ strBuf.data(), strBuf.data() + rv };
 		}
 
 #if 1 /* REGION: implementation of ISampleLog */

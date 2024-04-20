@@ -1,9 +1,7 @@
+#include "pch.h"
+
 #include "NotifyIcon.h"
-
 #include "MainWindow.h"
-
-#include <shlobj_core.h>
-#include "SimpleLog/SimpleLog.hpp"
 
 #include <shellapi.h>
 

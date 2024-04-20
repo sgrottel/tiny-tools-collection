@@ -61,3 +61,19 @@ BEGIN
 	END
 END
 
+101 MENU
+{
+	POPUP "Menu"
+	{
+		MENUITEM "Enable all Hotkeys", 1000, GRAYED
+		MENUITEM "Disable all Hotkeys", 1001, GRAYED
+		MENUITEM SEPARATOR
+		MENUITEM "Select Configuration...", 1002
+		MENUITEM "Reload Configuration", 1003, GRAYED
+		MENUITEM SEPARATOR
+		MENUITEM "Open Log", 1004
+		MENUITEM "Explore Log Directory", 1005
+		MENUITEM SEPARATOR
+		MENUITEM "Exit", 1006
+	}
+}

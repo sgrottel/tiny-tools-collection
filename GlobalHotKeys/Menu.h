@@ -15,6 +15,7 @@ class Menu
 	static constexpr int MI_OPEN_LOG = 1004;
 	static constexpr int MI_EXPLORE_LOG_DIR = 1005;
 	static constexpr int MI_EXIT = 1006;
+	static constexpr int MI_SHOW_ABOUT = 1007;
 
 public:
 	Menu(sgrottel::ISimpleLog& log, HINSTANCE hInstance);
@@ -53,6 +54,10 @@ public:
 	{
 		m_onReloadConfig = std::move(callback);
 	}
+	inline void SetOnShowAboutCallback(std::function<void()> callback)
+	{
+		m_onShowAbout = std::move(callback);
+	}
 
 private:
 	sgrottel::ISimpleLog& m_log;
@@ -66,5 +71,6 @@ private:
 	std::function<void()> m_onDisableAllHotKeys;
 	std::function<void()> m_onSelectConfig;
 	std::function<void()> m_onReloadConfig;
+	std::function<void()> m_onShowAbout;
 };
 

@@ -46,7 +46,7 @@ BEGIN
 		BLOCK "000004b0"
 		BEGIN
 			VALUE "CompanyName", "SGrottel"
-			VALUE "FileDescription", "Utility to launch processes based on global hot keys."
+			VALUE "FileDescription", GLOBALHOTKEYS_VER_DESCIPTION
 			VALUE "FileVersion", _str(GLOBALHOTKEYS_VER_MAJOR.GLOBALHOTKEYS_VER_MINOR.GLOBALHOTKEYS_VER_PATCH.GLOBALHOTKEYS_VER_BUILD)
 			VALUE "InternalName", "GlobalHotKeys"
 			VALUE "LegalCopyright", "Copyright " GLOBALHOTKEYS_VER_YEARSTR ", SGrottel"
@@ -73,6 +73,8 @@ END
 		MENUITEM SEPARATOR
 		MENUITEM "Open Log", 1004
 		MENUITEM "Explore Log Directory", 1005
+		MENUITEM SEPARATOR
+		MENUITEM "About...", 1007
 		MENUITEM SEPARATOR
 		MENUITEM "Exit", 1006
 	}

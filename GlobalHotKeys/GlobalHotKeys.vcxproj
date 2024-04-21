@@ -184,6 +184,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="SingleInstanceGuard.cpp" />
+    <ClCompile Include="StringUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GlobalHotKeys.rc" />
@@ -197,6 +198,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="SimpleLog\SimpleLog.hpp" />
     <ClInclude Include="SingleInstanceGuard.h" />
+    <ClInclude Include="StringUtils.h" />
     <ClInclude Include="Version.h" />
   </ItemGroup>
   <ItemGroup>

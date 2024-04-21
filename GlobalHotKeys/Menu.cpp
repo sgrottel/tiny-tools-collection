@@ -113,6 +113,10 @@ void Menu::Call(WORD menuItemID)
 		PostQuitMessage(0);
 		break;
 
+	case MI_SHOW_ABOUT:
+		m_onShowAbout();
+		break;
+
 	default:
 		sgrottel::SimpleLog::Warning(m_log, "Triggered menu item call of not-implemented id %d", static_cast<int>(menuItemID));
 		break;

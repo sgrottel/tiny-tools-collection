@@ -24,6 +24,8 @@
 #include "Menu.h"
 #include "SingleInstanceGuard.h"
 #include "Configuration.h"
+#include "Version.h"
+#include "StringUtils.h"
 
 #include <shellapi.h>
 
@@ -54,6 +56,31 @@ namespace
 	private:
 		bool m_inited;
 	};
+
+	void ShowAboutDlg(HINSTANCE hInstance)
+	{
+
+		std::wstring text
+			= std::wstring{ MainWindow::c_WindowName }
+			+ L"\nVersion: "
+			+ std::to_wstring(GLOBALHOTKEYS_VER_MAJOR) + L"."
+			+ std::to_wstring(GLOBALHOTKEYS_VER_MINOR) + L"."
+			+ std::to_wstring(GLOBALHOTKEYS_VER_PATCH) + L"."
+			+ std::to_wstring(GLOBALHOTKEYS_VER_BUILD)
+			+ L"  -  Copyright " + ToW(GLOBALHOTKEYS_VER_YEARSTR) + L" SGrottel\n"
+			+ L"\n"
+			+ ToW(GLOBALHOTKEYS_VER_DESCIPTION)
+			+ L"\nTiny Tools Collection  -  https://go.sgrottel.de/tinytools";
+
+		MSGBOXPARAMSW boxParams{ sizeof(MSGBOXPARAMSW) };
+		boxParams.hInstance = hInstance;
+		boxParams.lpszText = text.c_str();
+		boxParams.lpszCaption = MainWindow::c_WindowName;
+		boxParams.dwStyle = MB_OK | MB_USERICON | MB_TOPMOST | MB_SETFOREGROUND;
+		boxParams.lpszIcon = MAKEINTRESOURCE(100);
+
+		MessageBoxIndirectW(&boxParams);
+	}
 }
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lpCmdLine, int /*nShowCmd*/)
@@ -83,6 +110,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 		std::unique_ptr<NotifyIcon> notifyIcon = std::make_unique<NotifyIcon>(log, wnd);
 		Menu menu{ log, wnd.GetHInstance() };
 
+		menu.SetOnShowAboutCallback([hInstance]() { ShowAboutDlg(hInstance); });
 		auto configLoadErrorMessageBox = [&config](std::wstring const& error)
 			{
 				MessageBox(

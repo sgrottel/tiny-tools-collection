@@ -26,4 +26,6 @@
 
 #define GLOBALHOTKEYS_VER_YEARSTR	"2024"
 
+#define GLOBALHOTKEYS_VER_DESCIPTION	"Utility to launch processes based on global hot keys."
+
 #endif

@@ -35,7 +35,7 @@ jobs:
       shell: pwsh
       working-directory: ./GlobalHotKeys
       run: |
-        $vf = get-content "VersionInfo.h" -Raw
+        $vf = get-content "Version.h" -Raw
 
         $vf -match '\n#define\s+GLOBALHOTKEYS_VER_MAJOR\s+(\d+)\s*\n' | Out-Null
         $major = $Matches[1]
@@ -46,7 +46,7 @@ jobs:
 
         $nvf = $vf -replace '(\n#define\s+GLOBALHOTKEYS_VER_BUILD\s+)(\d+)(\s*\n)',"`${1}$env:GITHUB_RUN_NUMBER`$3"
 
-        set-content "VersionInfo.h" $nvf -force -nonewline
+        set-content "Version.h" $nvf -force -nonewline
 
         $version = New-Object System.Version @( $major, $minor, $patch, $env:GITHUB_RUN_NUMBER )
         Write-Host "Version number: $version"

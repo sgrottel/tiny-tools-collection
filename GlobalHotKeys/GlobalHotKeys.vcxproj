@@ -174,6 +174,7 @@
     <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="GlobalHotKeys.cpp" />
     <ClCompile Include="HotKeyConfig.cpp" />
+    <ClCompile Include="HotKeyManager.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="NotifyIcon.cpp" />
@@ -192,6 +193,7 @@
   <ItemGroup>
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="HotKeyConfig.h" />
+    <ClInclude Include="HotKeyManager.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="NotifyIcon.h" />

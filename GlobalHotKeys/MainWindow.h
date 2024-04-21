@@ -36,6 +36,10 @@ public:
 	{
 		m_refreshNotifyIconCallback = std::move(cb);
 	}
+	inline void SetHotKeyCallback(std::function<void(uint32_t)> cb)
+	{
+		m_hotKeyCallback = std::move(cb);
+	}
 
 private:
 	static LRESULT CALLBACK wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -48,5 +52,6 @@ private:
 	std::function<void()> m_notifyCallback;
 	std::function<void(WORD)> m_menuItemCallback;
 	std::function<void()> m_refreshNotifyIconCallback;
+	std::function<void(uint32_t)> m_hotKeyCallback;
 };
 

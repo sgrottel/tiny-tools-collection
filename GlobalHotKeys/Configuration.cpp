@@ -389,16 +389,16 @@ namespace
 		std::exception innerException;
 	};
 
-	bool FindOptionalBool(YamlMapping::Ptr map, std::wstring const& key)
+	bool FindOptionalBool(YamlMapping::Ptr map, std::wstring const& key, bool defValue)
 	{
-		if (!map) return false;
+		if (!map) return defValue;
 		auto el = map->Find(key);
-		if (!el) return false;
+		if (!el) return defValue;
 		YamlScalar::Ptr s = std::dynamic_pointer_cast<YamlScalar>(el);
 		if (s)
 		{
 			std::wstring str = s->Value();
-			if (str.empty()) return false;
+			if (str.empty()) return defValue;
 
 			std::transform(str.begin(), str.end(), str.begin(), [](wchar_t w) { return std::tolower(w); });
 			if (str == L"true") return true;
@@ -485,6 +485,8 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 		YamlMapping::Ptr root = std::dynamic_pointer_cast<YamlMapping>(config);
 		if (!root) throw std::invalid_argument("Configuration file root element is expected to be a mapping");
 
+		bool bell = FindOptionalBool(root, L"bell", true);
+
 		YamlElement::Ptr ghkeys = root->Find(L"globalhotkeys");
 		if (!ghkeys) throw std::invalid_argument("Entry `globalhotkeys` not found");
 
@@ -516,9 +518,9 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 				key.virtualKeyCode = code;
 			}
 
-			key.modAlt = FindOptionalBool(keyEl, L"alt");
-			key.modCtrl = FindOptionalBool(keyEl, L"ctrl");
-			key.modShift = FindOptionalBool(keyEl, L"shift");
+			key.modAlt = FindOptionalBool(keyEl, L"alt", false);
+			key.modCtrl = FindOptionalBool(keyEl, L"ctrl", false);
+			key.modShift = FindOptionalBool(keyEl, L"shift", false);
 
 			{
 				YamlElement::Ptr execEl = keyEl->Find(L"exec");
@@ -574,6 +576,7 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 			sgrottel::SimpleLog::Write(m_log, report);
 		}
 		m_hotKeys = hotKeysConfig;
+		m_bell = bell;
 
 		if (m_configFile != path)
 		{

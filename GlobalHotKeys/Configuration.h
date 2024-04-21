@@ -27,12 +27,18 @@ public:
 	{
 		return m_hotKeys;
 	}
+	inline bool GetBell() const
+	{
+		return m_bell;
+	}
 
 private:
 	sgrottel::ISimpleLog& m_log;
 	std::filesystem::path m_configFile;
 	bool m_configFileLoaded;
 	std::vector<HotKeyConfig> m_hotKeys;
+
+	bool m_bell;
 
 	void LoadConfigFilePathFromRegistry();
 	void SaveConfigFilePathInRegistry();

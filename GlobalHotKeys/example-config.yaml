@@ -1,4 +1,4 @@
-empty:
+bell: true
 globalhotkeys:
 - code: Ä
   shift: true
@@ -10,3 +10,8 @@ globalhotkeys:
   - -NoExit
   - "-c"
   - "Write-Host \"Hello World.\""
+- code: n
+  shift: true
+  alt: true
+  ctrl: true
+  exec: "notepad++.exe"

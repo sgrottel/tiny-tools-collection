@@ -24,6 +24,7 @@
 #include "Menu.h"
 #include "SingleInstanceGuard.h"
 #include "Configuration.h"
+#include "HotKeyManager.h"
 #include "Version.h"
 #include "StringUtils.h"
 
@@ -109,8 +110,14 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 	{
 		std::unique_ptr<NotifyIcon> notifyIcon = std::make_unique<NotifyIcon>(log, wnd);
 		Menu menu{ log, wnd.GetHInstance() };
+		HotKeyManager keys{ log, wnd };
+		keys.SetHotKeys(config.GetHotKeys());
+		keys.SetBell(config.GetBell());
 
 		menu.SetOnShowAboutCallback([hInstance]() { ShowAboutDlg(hInstance); });
+
+		menu.SetOnEnableAllHotKeysCallback(std::bind(&HotKeyManager::EnableAllHotKeys, &keys));
+		menu.SetOnDisableAllHotKeysCallback(std::bind(&HotKeyManager::DisableAllHotKeys, &keys));
 		auto configLoadErrorMessageBox = [&config](std::wstring const& error)
 			{
 				MessageBox(
@@ -122,7 +129,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 					MainWindow::c_WindowName,
 					MB_ICONERROR | MB_OK);
 			};
-		auto selectConfig = [&log, &config, &configLoadErrorMessageBox]()
+		auto selectConfig = [&log, &config, &configLoadErrorMessageBox, &keys]()
 			{
 				std::unique_ptr<IFileOpenDialog, std::function<void(IFileOpenDialog*)>> dlg;
 				{
@@ -186,11 +193,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 				files->Release();
 
 				config.SetFilePath(p, configLoadErrorMessageBox);
-				// TODO: Update registered hotkeys
+				keys.SetHotKeys(config.GetHotKeys());
+				keys.SetBell(config.GetBell());
 			};
 		menu.SetOnSelectConfigCallback(selectConfig);
 		menu.SetOnReloadConfigCallback(
-			[&config, &selectConfig, &configLoadErrorMessageBox]()
+			[&config, &selectConfig, &configLoadErrorMessageBox, &keys]()
 			{
 				if (config.GetFilePath().empty()
 					|| !std::filesystem::is_regular_file(config.GetFilePath()))
@@ -200,12 +208,15 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 				}
 
 				config.SetFilePath(config.GetFilePath(), configLoadErrorMessageBox);
-				// TODO: Update registered hotkeys
+				keys.SetHotKeys(config.GetHotKeys());
+				keys.SetBell(config.GetBell());
 			});
 
 		wnd.SetNotifyCallback(
-			[&wnd, &menu, &notifyIcon, &config]()
+			[&wnd, &menu, &notifyIcon, &config, &keys]()
 			{
+				menu.SetEnableAllHotkeysEnabled(keys.CanEnableAllHotKeys());
+				menu.SetDisableAllHotkeysEnabled(keys.CanDisableAllHotKeys());
 				menu.SetReloadConfigurationEnabled(
 					!config.GetFilePath().empty()
 					&& std::filesystem::is_regular_file(config.GetFilePath()));
@@ -220,6 +231,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 				notifyIcon.reset(); // first dtor
 				notifyIcon = std::make_unique<NotifyIcon>(log, wnd); // then ctor
 			});
+
+		wnd.SetHotKeyCallback(std::bind(&HotKeyManager::HotKeyTriggered, &keys, std::placeholders::_1));
 
 		retval = wnd.RunMainLoop();
 

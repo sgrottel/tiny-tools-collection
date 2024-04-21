@@ -146,6 +146,12 @@ LRESULT CALLBACK MainWindow::wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 		return 0;
 	}
 
+	case WM_HOTKEY:
+	{
+		that->m_hotKeyCallback(static_cast<uint32_t>(wParam));
+		return 0;
+	}
+
 	}
 
 	if (that != nullptr && that->m_msgTaskbarCreated != 0 && uMsg == that->m_msgTaskbarCreated)

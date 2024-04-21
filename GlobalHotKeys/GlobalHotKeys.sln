@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		collect_virtual_key_codes.ps1 = collect_virtual_key_codes.ps1
 		example-config.yaml = example-config.yaml
+		..\.github\workflows\GlobalHotKeys.yaml = ..\.github\workflows\GlobalHotKeys.yaml
 	EndProjectSection
 EndProject
 Global

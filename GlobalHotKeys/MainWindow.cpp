@@ -49,15 +49,15 @@ MainWindow::MainWindow(HINSTANCE hInstance, sgrottel::ISimpleLog& log)
 		this
 	};
 	m_hWnd = CreateWindowEx(
-		0,
+		WS_EX_NOACTIVATE | WS_EX_NOREDIRECTIONBITMAP,
 		c_MessageOnlyWindowsClass,
 		c_WindowName,
-		0,
+		WS_DISABLED,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		HWND_MESSAGE,
+		NULL,
 		NULL,
 		m_hInstance,
 		static_cast<void*>(&initObjRef));
@@ -67,6 +67,10 @@ MainWindow::MainWindow(HINSTANCE hInstance, sgrottel::ISimpleLog& log)
 		sgrottel::SimpleLog::Error(m_log, "Failed CreateWindowEx returned NULL");
 		return;
 	}
+
+	ShowWindow(m_hWnd, SW_HIDE);
+
+	m_msgTaskbarCreated = RegisterWindowMessageW(L"TaskbarCreated");
 }
 
 MainWindow::~MainWindow()
@@ -142,6 +146,11 @@ LRESULT CALLBACK MainWindow::wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 		return 0;
 	}
 
+	}
+
+	if (that != nullptr && that->m_msgTaskbarCreated != 0 && uMsg == that->m_msgTaskbarCreated)
+	{
+		that->m_refreshNotifyIconCallback();
 	}
 
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);

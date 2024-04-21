@@ -32,6 +32,10 @@ public:
 	{
 		m_menuItemCallback = std::move(cb);
 	}
+	inline void SetRefreshNotifyIconCallback(std::function<void()> cb)
+	{
+		m_refreshNotifyIconCallback = std::move(cb);
+	}
 
 private:
 	static LRESULT CALLBACK wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -39,8 +43,10 @@ private:
 	HINSTANCE m_hInstance;
 	sgrottel::ISimpleLog& m_log;
 	HWND m_hWnd;
+	uint32_t m_msgTaskbarCreated;
 
 	std::function<void()> m_notifyCallback;
 	std::function<void(WORD)> m_menuItemCallback;
+	std::function<void()> m_refreshNotifyIconCallback;
 };
 

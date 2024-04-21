@@ -80,7 +80,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 	MainWindow wnd{ hInstance, log };
 	if (wnd.GetHandle() != NULL)
 	{
-		NotifyIcon notifyIcon{ log, wnd };
+		std::unique_ptr<NotifyIcon> notifyIcon = std::make_unique<NotifyIcon>(log, wnd);
 		Menu menu{ log, wnd.GetHInstance() };
 
 		auto configLoadErrorMessageBox = [&config](std::wstring const& error)
@@ -182,10 +182,16 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 					!config.GetFilePath().empty()
 					&& std::filesystem::is_regular_file(config.GetFilePath()));
 
-				POINT p = notifyIcon.GetPoint();
+				POINT p = notifyIcon->GetPoint();
 				menu.Popup(wnd, p);
 			});
 		wnd.SetMenuItemCallback(std::bind(&Menu::Call, &menu, std::placeholders::_1));
+		wnd.SetRefreshNotifyIconCallback(
+			[&notifyIcon, &log, &wnd]()
+			{
+				notifyIcon.reset(); // first dtor
+				notifyIcon = std::make_unique<NotifyIcon>(log, wnd); // then ctor
+			});
 
 		retval = wnd.RunMainLoop();
 

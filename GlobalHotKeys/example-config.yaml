@@ -1,0 +1,17 @@
+bell: true
+globalhotkeys:
+- code: Ä
+  shift: true
+  alt: true
+  ctrl: true
+  exec: "pwsh.exe"
+  workdir: "C:\\"
+  args:
+  - -NoExit
+  - "-c"
+  - "Write-Host \"Hello World.\""
+- code: n
+  shift: true
+  alt: true
+  ctrl: true
+  exec: "notepad++.exe"

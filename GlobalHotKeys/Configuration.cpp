@@ -555,6 +555,8 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 				}
 			}
 
+			key.noFileCheck = FindOptionalBool(keyEl, L"nofilecheck", false);
+
 			hotKeysConfig.push_back(std::move(key));
 		}
 

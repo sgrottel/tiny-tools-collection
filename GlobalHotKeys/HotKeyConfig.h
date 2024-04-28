@@ -24,6 +24,8 @@ struct HotKeyConfig
 
 	std::vector<std::wstring> arguments;
 
+	bool noFileCheck;
+
 	std::wstring GetKeyWString() const;
 };
 

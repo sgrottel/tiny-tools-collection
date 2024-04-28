@@ -2,6 +2,7 @@
 #include "HotKeyManager.h"
 #include "MainWindow.h"
 #include "SimpleLog/SimpleLog.hpp"
+#include "StringUtils.h"
 
 namespace
 {
@@ -173,7 +174,8 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 		}
 		exe = std::filesystem::absolute(exe);
 	}
-	if (!std::filesystem::is_regular_file(exe))
+
+	if (exe.empty())
 	{
 		sgrottel::SimpleLog::Error(m_log, L"HotKey(%u) executable %s not found", id, hk->executable.c_str());
 		if (m_bell)
@@ -182,6 +184,28 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 		}
 		return;
 	}
+
+	if (!hk->noFileCheck)
+	{
+		std::error_code ec;
+		if (!std::filesystem::is_regular_file(exe, ec))
+		{
+			if (ec)
+			{
+				sgrottel::SimpleLog::Error(m_log, L"HotKey(%u) executable %s not accessible: %s", id, exe.wstring().c_str(), ToW(ec.message().c_str()).c_str());
+			}
+			else
+			{
+				sgrottel::SimpleLog::Error(m_log, L"HotKey(%u) executable %s not found", id, hk->executable.c_str());
+			}
+			if (m_bell)
+			{
+				MessageBeep(MB_ICONERROR);
+			}
+			return;
+		}
+	}
+
 	sgrottel::SimpleLog::Write(m_log, L"Found HotKey(%u) executable %s", id, exe.wstring().c_str());
 
 	if (!wd.empty() && !std::filesystem::is_directory(wd))

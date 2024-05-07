@@ -1,6 +1,7 @@
 ﻿using SGrottel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -184,15 +185,105 @@ namespace LocalHtmlInterop.Handler
 
 		private Task<CommandResult>? BuildCommandDefinitionProcessor(CommandInfo cmd, CommandDefinition def)
 		{
-			// TODO: match parameters to build final command argument list
+			if (def.exec == null) return null;
 
-			// TODO: if preparation succeeds, build task which runs process, collects output, builds result
-
-			//throw new NotImplementedException();
-
-			return Task.Delay(10000).ContinueWith<CommandResult>((_) =>
+			// match parameters
+			Dictionary<string, string> parameters = new();
+			if (def.args != null)
 			{
-				throw new NotImplementedException();
+				var loadParam = (string? n, bool? req) => {
+					n = n?.Trim();
+					if (string.IsNullOrEmpty(n)) return;
+
+					if (parameters.Keys.FirstOrDefault((k) => k.Equals(n, StringComparison.OrdinalIgnoreCase)) != null)
+					{
+						// param already loaded
+						return;
+					}
+
+					if (req == null) req = false;
+
+					string? val = null;
+					if (cmd.CommandParameters != null)
+					{
+						string? k = cmd.CommandParameters.Keys.FirstOrDefault((k) => k.Equals(n, StringComparison.OrdinalIgnoreCase));
+						if (k != null)
+						{
+							val = cmd.CommandParameters[k];
+						}
+					}
+
+					if (val == null)
+					{
+						if (req.Value) throw new ArgumentNullException($"Required argument {n} not provided");
+						return;
+					}
+
+					parameters.Add(n, val);
+				};
+
+				foreach (var arg in def.args)
+				{
+					loadParam(arg.param, arg.required);
+					if (arg.parameters != null)
+					{
+						foreach (var p in arg.parameters)
+						{
+							loadParam(p.name, p.required ?? arg.required);
+						}
+					}
+				}
+			}
+
+			ProcessStartInfo psi = new()
+			{
+				CreateNoWindow = true,
+				FileName = def.exec.FullPath,
+				WorkingDirectory = def.WorkingDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.Personal)
+			};
+			// build command argument list
+			if (def.args != null)
+			{
+				foreach (var arg in def.args)
+				{
+					psi.ArgumentList.Add(arg.Interpolate(parameters));
+				}
+			}
+
+			// if preparation succeeds, build task which runs process, collects output, builds result
+			return Task.Run(() =>
+			{
+				Process p = new() { StartInfo = psi };
+
+				psi.UseShellExecute = false;
+				psi.StandardOutputEncoding = Encoding.UTF8;
+				psi.RedirectStandardOutput = true;
+				psi.StandardErrorEncoding = Encoding.UTF8;
+				psi.RedirectStandardError = true;
+
+				StringBuilder sb = new();
+				var lineRecieved = new DataReceivedEventHandler((object _, DataReceivedEventArgs d) =>
+				{
+					if (d.Data == null) return;
+					sb.Append($"{d.Data}\n");
+				});
+				p.OutputDataReceived += lineRecieved;
+				p.ErrorDataReceived += lineRecieved;
+
+				p.Start();
+				p.BeginOutputReadLine();
+				p.BeginErrorReadLine();
+
+				p.WaitForExit();
+				int exitCode = p.ExitCode;
+				p.Close();
+
+				return new CommandResult()
+				{
+					ExitCode = exitCode,
+					Output = sb.ToString(),
+					Status = CommandStatus.Completed
+				};
 			});
 		}
 	}

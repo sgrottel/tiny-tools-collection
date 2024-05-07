@@ -128,6 +128,15 @@ namespace LocalHtmlInterop
 				return null;
 			}
 
+			public string Interpolate(Dictionary<string, string> parameters)
+			{
+				return valueParamRefRegEx.Replace(
+					value ?? string.Empty,
+					(m) =>
+					{
+						return parameters[m.Groups[1].Value];
+					});
+			}
 		}
 
 		public Argument[]? args { get; set; }

@@ -15,7 +15,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9D7FFC89-B9CD-46A4-A72E-DB12FDC97DA7}"
 	ProjectSection(SolutionItems) = preProject
 		demo-command-file.yaml = demo-command-file.yaml
-		demo-old.html = demo-old.html
 		demo.html = demo.html
 		README.md = README.md
 		VersionInfo.proj = VersionInfo.proj

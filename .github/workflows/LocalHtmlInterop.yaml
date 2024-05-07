@@ -1,0 +1,74 @@
+name: LocalHtmlInterop Build Action
+
+on:
+  push:
+    branches: [ "main", "localhtmlinterop/ci" ]
+    paths:
+    - .github/workflows/LocalHtmlInterop.yaml
+    - LocalHtmlInterop/**
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - .github/workflows/LocalHtmlInterop.yaml
+    - LocalHtmlInterop/**
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Install dependencies
+      run: dotnet restore --arch x64 ./LocalHtmlInterop/LocalHtmlInterop.sln
+
+    - name: Inject build number
+      shell: pwsh
+      run: |
+        $csproj = New-Object System.XML.XMLDocument
+        $csprojPath = Resolve-Path "./LocalHtmlInterop/VersionInfo.proj"
+        $csproj.Load($csprojPath)
+        $version = New-Object System.Version $csproj.Project.PropertyGroup.Version
+        $version = New-Object System.Version @( $version.Major, $version.Minor, ([System.Math]::Max(0, $version.Build)), $env:GITHUB_RUN_NUMBER )
+        Write-Host "Version number: $version"
+        $csproj.Project.PropertyGroup.Version = $version.ToString()
+        $csproj.Save($csprojPath)
+        Write-Output "FULL_VERSION_NUMBER=$version" >> $env:GITHUB_ENV
+
+    - name: Build
+      run: dotnet build --configuration ${{ matrix.configuration }} --arch x64 --no-restore ./LocalHtmlInterop/LocalHtmlInterop.sln
+
+    - name: Publish Handler
+      if: ${{ matrix.configuration == 'Release' }}
+      run: dotnet publish --configuration Release -p:PublishProfile=FolderProfile -p:DebugType=None -p:DebugSymbols=false --no-build --no-restore ./LocalHtmlInterop/HandlerApp/HandlerApp.csproj
+
+    - name: Publish Cli
+      if: ${{ matrix.configuration == 'Release' }}
+      run: dotnet publish --configuration Release -p:PublishProfile=FolderProfile -p:DebugType=None -p:DebugSymbols=false --no-build --no-restore ./LocalHtmlInterop/CliApp/CliApp.csproj
+
+    - name: Copy Extra Files
+      if: ${{ matrix.configuration == 'Release' }}
+      shell: pwsh
+      run: |
+        copy .\LICENSE .\LocalHtmlInterop\bin\
+        .\Scripts\makeProjReadme.ps1 LocalHtmlInterop .\LocalHtmlInterop\bin\README.md
+
+    - name: Upload Artifacts
+      if: ${{ matrix.configuration == 'Release' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: LocalHtmlInterop-${{env.FULL_VERSION_NUMBER}}
+        path: LocalHtmlInterop/bin
+        if-no-files-found: error

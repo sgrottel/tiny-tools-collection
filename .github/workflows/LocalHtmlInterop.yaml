@@ -47,8 +47,11 @@ jobs:
         $csproj.Save($csprojPath)
         Write-Output "FULL_VERSION_NUMBER=$version" >> $env:GITHUB_ENV
 
-    - name: Build
-      run: dotnet build --configuration ${{ matrix.configuration }} --arch x64 --no-restore ./LocalHtmlInterop/LocalHtmlInterop.sln
+    - name: Build Handler
+      run: dotnet build --configuration ${{ matrix.configuration }} --arch x64 --no-restore ./LocalHtmlInterop/HandlerApp/HandlerApp.csproj
+
+    - name: Build Cli
+      run: dotnet build --configuration ${{ matrix.configuration }} --arch x64 --no-restore ./LocalHtmlInterop/CliApp/CliApp.csproj
 
     - name: Publish Handler
       if: ${{ matrix.configuration == 'Release' }}

@@ -9,3 +9,10 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+
+  # projects nugets
+  - package-ecosystem: "nuget"
+    directory: "/LocalHtmlInterop/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10

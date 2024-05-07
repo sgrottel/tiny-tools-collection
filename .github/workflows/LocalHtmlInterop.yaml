@@ -2,7 +2,7 @@ name: LocalHtmlInterop Build Action
 
 on:
   push:
-    branches: [ "main", "localhtmlinterop/ci" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/LocalHtmlInterop.yaml
     - LocalHtmlInterop/**
@@ -73,5 +73,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: LocalHtmlInterop-${{env.FULL_VERSION_NUMBER}}
-        path: LocalHtmlInterop/bin
+        path: |
+          LocalHtmlInterop/bin
+          !**/*.pdb
         if-no-files-found: error

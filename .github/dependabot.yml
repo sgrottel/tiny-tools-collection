@@ -12,7 +12,17 @@ updates:
 
   # projects nugets
   - package-ecosystem: "nuget"
+    directory: "/GlobalHotKeys/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+  - package-ecosystem: "nuget"
     directory: "/LocalHtmlInterop/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+  - package-ecosystem: "nuget"
+    directory: "/LoginWhen/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10

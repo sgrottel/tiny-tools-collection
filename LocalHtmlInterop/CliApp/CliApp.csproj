@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\VersionInfo.proj" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>LocalHtmlInterop</AssemblyName>
+    <RootNamespace>LocalHtmlInterop.Cli</RootNamespace>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+    <Title>LocalHtmlInterop Interaction Command Line Interface Application</Title>
+    <ApplicationIcon>..\images\LocalHtmlInterop.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\common\common.csproj" />
+  </ItemGroup>
+
+</Project>

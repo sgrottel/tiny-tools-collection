@@ -1,0 +1,9 @@
+commands:
+- name: demo
+  exec: pwsh.exe
+  workdir: .
+  args:
+    - -c
+    - value: "Write-Host \"I heard: '{{fancy}}' and '{{tell me}}'\""
+      params: [ fancy, tell me ]
+      required: true

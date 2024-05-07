@@ -20,20 +20,40 @@ namespace LocalHtmlInterop
 
 		private static string GetVersion(string asmFile)
 		{
+			if (string.IsNullOrEmpty(asmFile))
+			{
+				return string.Empty;
+			}
+
 			try
 			{
 				return AssemblyName.GetAssemblyName(asmFile).Version?.ToString() ?? string.Empty;
 			}
 			catch { }
 
-			FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(asmFile);
-			return fvi.FileVersion ?? string.Empty;
+			try
+			{
+				FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(asmFile);
+				return fvi.FileVersion ?? string.Empty;
+			}
+			catch { }
+
+			return string.Empty;
 		}
 
 		static void PrintVersions()
 		{
 			Console.WriteLine("  CLI");
 			Console.WriteLine($"  Ver.: {GetVersion(Assembly.GetExecutingAssembly().Location)}");
+
+// DEBUG INFO
+			Console.WriteLine($"{Assembly.GetEntryAssembly()}");
+			Console.WriteLine($"{Assembly.GetExecutingAssembly()}");
+			foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+			{
+				Console.WriteLine($"{a}");
+			}
+
 			if (!string.IsNullOrEmpty(HandlerPath) && File.Exists(HandlerPath))
 			{
 				Console.WriteLine($"  Handler: {HandlerPath}\n  Ver.: {GetVersion(HandlerPath)}");

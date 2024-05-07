@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		demo-command-file.yaml = demo-command-file.yaml
 		demo.html = demo.html
+		..\.github\workflows\LocalHtmlInterop.yaml = ..\.github\workflows\LocalHtmlInterop.yaml
 		README.md = README.md
 		VersionInfo.proj = VersionInfo.proj
 	EndProjectSection

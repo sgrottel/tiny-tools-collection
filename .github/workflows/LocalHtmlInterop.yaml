@@ -2,7 +2,7 @@ name: LocalHtmlInterop Build Action
 
 on:
   push:
-    branches: [ "main", "localhtmlinterop/*" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/LocalHtmlInterop.yaml
     - LocalHtmlInterop/**

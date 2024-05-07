@@ -18,10 +18,19 @@ namespace LocalHtmlInterop
 			Console.WriteLine("SGR Local Html Interop");
 		}
 
-		private static string GetVersion(string asmFile)
+		private static string GetVersion(Assembly? asm, string? asmFile)
 		{
 			if (string.IsNullOrEmpty(asmFile))
 			{
+				if (asm != null)
+				{
+					var fvae = asm.GetCustomAttributes<AssemblyFileVersionAttribute>();
+					if (fvae.Any())
+					{
+						return fvae.First().Version;
+					}
+				}
+
 				return string.Empty;
 			}
 
@@ -44,19 +53,10 @@ namespace LocalHtmlInterop
 		static void PrintVersions()
 		{
 			Console.WriteLine("  CLI");
-			Console.WriteLine($"  Ver.: {GetVersion(Assembly.GetExecutingAssembly().Location)}");
-
-// DEBUG INFO
-			Console.WriteLine($"{Assembly.GetEntryAssembly()}");
-			Console.WriteLine($"{Assembly.GetExecutingAssembly()}");
-			foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
-			{
-				Console.WriteLine($"{a}");
-			}
-
+			Console.WriteLine($"  Ver.: {GetVersion(Assembly.GetExecutingAssembly(), Assembly.GetExecutingAssembly().Location)}");
 			if (!string.IsNullOrEmpty(HandlerPath) && File.Exists(HandlerPath))
 			{
-				Console.WriteLine($"  Handler: {HandlerPath}\n  Ver.: {GetVersion(HandlerPath)}");
+				Console.WriteLine($"  Handler: {HandlerPath}\n  Ver.: {GetVersion(null, HandlerPath)}");
 			}
 			else
 			{

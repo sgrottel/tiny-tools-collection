@@ -60,6 +60,8 @@ Brings a window to front in Windows 11.
 Can also start an application and bring that's window to front.
 
 ## KeePassHotKey  <img align="left" src="./KeePassHotKey/KeePass_Square_BW_x48.png" style="height:1em" alt="KeePassHotKey">
+[![KeePassHotKey Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/KeePassHotKey.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/KeePassHotKey.yaml)
+
 Wrapper utility to open a [KeePass](https://keepass.info/) DB or trigger the Auto-Type Feature
 
 ## LocalHtmlInterop  <img align="left" src="./LocalHtmlInterop/images/LocalHtmlInterop_x48.png" style="height:1em" alt="LocalHtmlInterop">

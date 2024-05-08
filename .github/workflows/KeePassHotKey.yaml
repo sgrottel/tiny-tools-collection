@@ -1,0 +1,77 @@
+name: KeePassHotKey Build Action
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+    - .github/workflows/KeePassHotKey.yaml
+    - KeePassHotKey/**
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - .github/workflows/KeePassHotKey.yaml
+    - KeePassHotKey/**
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+        platform: [x64, x86]
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Inject build number
+      shell: pwsh
+      working-directory: ./KeePassHotKey
+      run: |
+        $vf = get-content "Version.h" -Raw
+
+        $vf -match '\n#define\s+KEEPASS_HOTKEY_VER_MAJOR\s+(\d+)\s*\n' | Out-Null
+        $major = $Matches[1]
+        $vf -match '\n#define\s+KEEPASS_HOTKEY_VER_MINOR\s+(\d+)\s*\n' | Out-Null
+        $minor = $Matches[1]
+        $vf -match '\n#define\s+KEEPASS_HOTKEY_VER_PATCH\s+(\d+)\s*\n' | Out-Null
+        $patch = $Matches[1]
+
+        $nvf = $vf -replace '(\n#define\s+KEEPASS_HOTKEY_VER_BUILD\s+)(\d+)(\s*\n)',"`${1}$env:GITHUB_RUN_NUMBER`$3"
+
+        set-content "Version.h" $nvf -force -nonewline
+
+        $version = New-Object System.Version @( $major, $minor, $patch, $env:GITHUB_RUN_NUMBER )
+        Write-Host "Version number: $version"
+
+        Write-Output "FULL_VERSION_NUMBER=$version" >> $env:GITHUB_ENV
+
+    - name: Build
+      working-directory: .
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{matrix.configuration}} /p:Platform=${{matrix.platform}} KeePassHotKey\KeePassHotKey.sln
+
+    - name: Copy Extra Files
+      if: ${{ matrix.configuration == 'Release' && matrix.platform == 'x64' }}
+      shell: pwsh
+      run: |
+        copy .\LICENSE ./KeePassHotKey/bin/${{matrix.platform}}_${{matrix.configuration}}
+        .\Scripts\makeProjReadme.ps1 KeePassHotKey ./KeePassHotKey/bin/${{matrix.platform}}_${{matrix.configuration}}/README.md
+
+    - name: Upload Artifacts
+      if: ${{ matrix.configuration == 'Release' && matrix.platform == 'x64' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: KeePassHotKey-${{env.FULL_VERSION_NUMBER}}
+        path: |
+          KeePassHotKey/bin/${{matrix.platform}}_${{matrix.configuration}}
+          !**/*.pdb
+        if-no-files-found: error

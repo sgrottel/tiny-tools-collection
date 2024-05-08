@@ -11,7 +11,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\CallbackReceiver.js" />
+    <None Remove="Resources\CallbackReceiver_min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\..\FindExecutable\FindExecutable\FindExecutable.cs" Link="FindExecutable\FindExecutable.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\CallbackReceiver.js" />
+    <EmbeddedResource Include="Resources\CallbackReceiver_min.js" />
   </ItemGroup>
 
   <ItemGroup>

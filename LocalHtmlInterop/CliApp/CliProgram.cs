@@ -173,6 +173,14 @@ namespace LocalHtmlInterop
 					RunSetPortCommand(c, newPortValueArgument);
 				});
 
+				var getJSCodeCommand = new Command("getjscode", "Prints the JavaScript code of the 'CallbackReceiver' class (cf. demo.html)");
+				var getJSMinifiedCodeOption = new Option<bool>("--mini", "Returns the minified version of the JavaScript code");
+				getJSCodeCommand.Add(getJSMinifiedCodeOption);
+				getJSCodeCommand.SetHandler((c) =>
+				{
+					RunGetJavaScriptCode(c, getJSMinifiedCodeOption);
+				});
+
 				var commandsFileArgument = new Argument<IEnumerable<string>>("file", "The commands file to be processed");
 				commandsFileArgument.Arity = ArgumentArity.OneOrMore;
 
@@ -229,6 +237,7 @@ namespace LocalHtmlInterop
 					unregisterCommand,
 					getPortCommand,
 					setPortCommand,
+					getJSCodeCommand,
 					commandsCommand
 				};
 				rootCommand.AddGlobalOption(nologoOption);
@@ -580,6 +589,22 @@ namespace LocalHtmlInterop
 			{
 				throw new InvalidOperationException();
 			}
+		}
+
+		private static void RunGetJavaScriptCode(InvocationContext context, Option<bool> getJSMinifiedCodeOption)
+		{
+			PrintLogoIfNotSuppressed(context);
+
+			bool getMini = context.ParseResult.GetValueForOption(getJSMinifiedCodeOption);
+
+			string str = ResourceLoader.LoadString(
+				getMini
+				? ResourceLoader.Id.CallbackReceiver_Mini_JavaScript
+				: ResourceLoader.Id.CallbackReceiver_JavaScript);
+
+			Console.WriteLine(str);
+
+			printBye = false;
 		}
 
 	}

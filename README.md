@@ -34,7 +34,9 @@ Also, good enough.
 ## Dib
 Desktop Icon Backup
 
-## DimMon
+## DimMon  <img align="left" src="./DimMon/images/sunglasses_x48.png" style="height:1em" alt="DimMon">
+[![DimMon Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/DimMon.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/DimMon.yaml)
+
 C# app to dim monitors by displaying an transparent black overlaying window.
 The idea is to dim "other" monitors when watching a video or playing a game one only one of the monitors.
 
@@ -94,6 +96,8 @@ A small GUI, slapped together in C#, around the Shutdown command-line utility.
 Trivial tool to start Pwsh.exe and provide an icon. Because...
 
 ## TestConApp
+[![TestConApp Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/TestConApp.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/TestConApp.yaml)
+
 Simple little console application usable in tests, to check whether a process is correctly called.
 It echoes it's command line arguments and a couple of diagnostic properties.
 

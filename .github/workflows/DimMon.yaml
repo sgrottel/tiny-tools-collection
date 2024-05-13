@@ -2,7 +2,7 @@ name: DimMon Build Action
 
 on:
   push:
-    branches: [ "main", "more-ci" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/DimMon.yaml
     - DimMon/**

@@ -2,7 +2,7 @@ name: TestConApp Build Action
 
 on:
   push:
-    branches: [ "main", "more-ci" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/TestConApp.yaml
     - TestConApp/**

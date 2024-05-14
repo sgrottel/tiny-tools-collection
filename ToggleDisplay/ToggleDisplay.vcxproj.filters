@@ -27,6 +27,9 @@
     <ClCompile Include="CmdLineArgs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LogUtility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="VersionInfo.rc">
@@ -44,6 +47,9 @@
       <Filter>SimpleLog Files</Filter>
     </ClInclude>
     <ClInclude Include="VersionInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogUtility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

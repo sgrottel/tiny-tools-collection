@@ -10,9 +10,6 @@ Each one is too tiny to justify a repository of it's own.
 
 <br clear="both"/>
 
-## AllGitsInfo
-Powershell script to iterate over all git repositories and print some configuration values, like user, origin, signing.
-
 ## Beep
 `MessageBeep(MB_OK);`
 

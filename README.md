@@ -10,18 +10,8 @@ Each one is too tiny to justify a repository of it's own.
 
 <br clear="both"/>
 
-## AllGitsInfo
-Powershell script to iterate over all git repositories and print some configuration values, like user, origin, signing.
-
 ## Beep
 `MessageBeep(MB_OK);`
-
-## CallStackUtility
-Little C++ helper class to fetch a call stack, e.g. used for better error reporting and logging.
-
-## ColorVariantsWheel
-Utility C# class to generate distinguishable colors and luminance variants.
-These color can be used for multiple plot lines in diagrams.
 
 ## ConProgBar
 A c++ progress bar for console applications.

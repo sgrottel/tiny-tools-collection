@@ -48,7 +48,7 @@ jobs:
       if: ${{ matrix.configuration == 'Release' && matrix.platform == 'x64' }}
       uses: actions/upload-artifact@v4
       with:
-        name: Beep-0.0.0.$env:GITHUB_RUN_NUMBER
+        name: Beep-0.0.0.${{env:GITHUB_RUN_NUMBER}}
         path: |
           beep/bin/${{matrix.platform}}/${{matrix.configuration}}
           !**/*.pdb

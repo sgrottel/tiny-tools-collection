@@ -11,6 +11,8 @@ Each one is too tiny to justify a repository of it's own.
 <br clear="both"/>
 
 ## Beep
+[![Beep Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/Beep.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/Beep.yaml)
+
 `MessageBeep(MB_OK);`
 
 ## ConProgBar
@@ -48,6 +50,8 @@ A powershell script to print an overview of my stuff on Github.
 Utility to launch processes based on global hot keys.
 
 ## HWndToFront
+[![HWndToFront Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/HWndToFront.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/HWndToFront.yaml)
+
 Brings a window to front in Windows 11.
 Can also start an application and bring that's window to front.
 
@@ -82,7 +86,9 @@ Unsorted useful scripts, e.g. Pwsh.
 ## shutdownplannergui
 A small GUI, slapped together in C#, around the Shutdown command-line utility.
 
-## StartPwsh
+## StartPwsh  <img align="left" src="./StartPwsh/Powershell_black_x48.png" style="height:1em" alt="StartPwsh">
+[![StartPwsh Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/StartPwsh.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/StartPwsh.yaml)
+
 Trivial tool to start Pwsh.exe and provide an icon. Because...
 
 ## TestConApp

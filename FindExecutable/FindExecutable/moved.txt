@@ -1,2 +1,0 @@
-Moved into new repository:
-https://github.com/sgrottel/FindExecutable

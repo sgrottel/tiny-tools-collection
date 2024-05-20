@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="SGrottel.FindExecutable" Version="0.4.0.5" />
     <PackageReference Include="YamlDotNet" Version="15.1.4" />
   </ItemGroup>
 

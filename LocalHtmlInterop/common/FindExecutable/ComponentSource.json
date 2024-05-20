@@ -7,9 +7,9 @@
 			"source": [
 				{
 					"type": "git",
-					"url": "https://www.github.com/sgrottel/tiny-tools-collection",
-					"hash": "1209be5792d3fbce1fca31cf27cbab9f9e79dcda",
-					"path": "FindExecutable/FindExecutable"
+					"url": "https://www.github.com/sgrottel/FindExecutable",
+					"hash": "07160e7362cb7797f962ff98a707d6064d719ef3",
+					"path": "FindExecutable"
 				}
 			]
 		}

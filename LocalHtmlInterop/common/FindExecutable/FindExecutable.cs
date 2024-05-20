@@ -1,9 +1,9 @@
 //
 // FindExecutable.cs
-// Copyright, by SGrottel.de  https://www.github.com/sgrottel/tiny-tools-collection
+// Copyright, by SGrottel.de  https://www.github.com/sgrottel/FindExecutable
 // Open Source under the `MIT license`
 //
-// Copyright(c) 2023 Sebastian Grottel
+// Copyright(c) 2023-2024 Sebastian Grottel
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal

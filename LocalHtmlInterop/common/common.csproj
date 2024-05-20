@@ -16,15 +16,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\FindExecutable\FindExecutable\FindExecutable.cs" Link="FindExecutable\FindExecutable.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="Resources\CallbackReceiver.js" />
     <EmbeddedResource Include="Resources\CallbackReceiver_min.js" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="SGrottel.FindExecutable" Version="0.4.0.5" />
     <PackageReference Include="YamlDotNet" Version="15.1.4" />
   </ItemGroup>
 

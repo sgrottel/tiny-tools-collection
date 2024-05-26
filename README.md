@@ -15,14 +15,6 @@ Each one is too tiny to justify a repository of it's own.
 
 `MessageBeep(MB_OK);`
 
-## ConProgBar
-A c++ progress bar for console applications.
-As usually, only semi-robust, but good enough.
-
-## ConProgBarSharp
-A C# progress bare for console applications.
-Also, good enough.
-
 ## Dib
 Desktop Icon Backup
 

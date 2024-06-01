@@ -640,7 +640,7 @@ void Configuration::LoadConfigFilePathFromRegistry()
 	}
 
 	std::vector<wchar_t> strBuf(size + 1, L'\0');
-	size = strBuf.size();
+	size = static_cast<DWORD>(strBuf.size());
 	result = RegGetValueW(HKEY_CURRENT_USER, c_regKeyApp, c_regValueConfigFilePath, RRF_RT_REG_SZ, NULL, strBuf.data(), &size);
 	if (result != ERROR_SUCCESS)
 	{
@@ -667,7 +667,7 @@ void Configuration::SaveConfigFilePathInRegistry()
 		0,
 		REG_SZ,
 		reinterpret_cast<LPBYTE>(str.data()),
-		(str.length() + 1) * sizeof(wchar_t));
+		static_cast<DWORD>((str.length() + 1) * sizeof(wchar_t)));
 	if (result != ERROR_SUCCESS)
 	{
 		sgrottel::SimpleLog::Error(m_log, "Failed to save path in windows registry; RegSetValueExW: %u", static_cast<unsigned int>(result));

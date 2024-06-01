@@ -35,7 +35,7 @@ jobs:
       uses: Nuget/setup-nuget@v2
 
     - name: Restore nuget packages
-      run: nuget restore GlobalHotKeys\GlobalHotKeys.sln
+      run: nuget restore ToggleDisplay\ToggleDisplay.sln
 
     - name: Inject build number
       shell: pwsh

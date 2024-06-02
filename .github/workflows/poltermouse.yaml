@@ -1,0 +1,55 @@
+name: poltermouse Build Action
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+    - .github/workflows/poltermouse.yaml
+    - poltermouse/**
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - .github/workflows/poltermouse.yaml
+    - poltermouse/**
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+        platform: [x64, x86]
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Build
+      working-directory: .
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{matrix.configuration}} /p:Platform=${{matrix.platform}} poltermouse\poltermouse.sln
+
+    - name: Copy Extra Files
+      if: ${{ matrix.configuration == 'Release' && matrix.platform == 'x64' }}
+      shell: pwsh
+      run: |
+        copy .\LICENSE ./poltermouse/bin/${{matrix.platform}}/${{matrix.configuration}}
+        .\Scripts\makeProjReadme.ps1 poltermouse ./poltermouse/bin/${{matrix.platform}}/${{matrix.configuration}}/README.md
+
+    - name: Upload Artifacts
+      if: ${{ matrix.configuration == 'Release' && matrix.platform == 'x64' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: poltermouse-0.0.0.${{github.run_number}}
+        path: |
+          poltermouse/bin/${{matrix.platform}}/${{matrix.configuration}}
+          !**/*.pdb
+        if-no-files-found: error

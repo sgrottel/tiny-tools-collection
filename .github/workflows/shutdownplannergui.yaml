@@ -1,0 +1,76 @@
+name: shutdownplannergui Build Action
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+    - .github/workflows/shutdownplannergui.yaml
+    - shutdownplannergui/**
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - .github/workflows/shutdownplannergui.yaml
+    - shutdownplannergui/**
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    # - name: Setup Nuget
+    #   uses: Nuget/setup-nuget@v2
+
+    # - name: Restore nuget packages
+    #   run: nuget restore shutdownplannergui\shutdownplannergui.sln
+
+    - name: Inject build number
+      shell: pwsh
+      run: |
+        $filePath = ".\shutdownplannergui\Properties\AssemblyInfo.cs"
+        $cs = get-content $filePath -Raw
+
+        $cs -match "(?mi)^\[\s*assembly:\s*AssemblyVersion\(\s*`"([\d\.]+)`"\s*\)\s*\]"
+        $version = New-Object System.Version $matches[1]
+
+        $version = New-Object System.Version @( $version.Major, $version.Minor, ([System.Math]::Max(0, $version.Build)), 0 )
+        $cs = $cs -replace "(?mi)(\[\s*assembly:\s*AssemblyVersion\(\s*`")[\d\.]+(`"\s*\)\s*\])","`${1}$version`$2"
+
+        $version = New-Object System.Version @( $version.Major, $version.Minor, ([System.Math]::Max(0, $version.Build)), $env:GITHUB_RUN_NUMBER )
+        Write-Host "Version number: $version"
+        $cs = $cs -replace "(?mi)(\[\s*assembly:\s*AssemblyFileVersion\(\s*`")[\d\.]+(`"\s*\)\s*\])","`${1}$version`$2"
+
+        set-content -Path $filePath -Value $cs 
+        Write-Output "FULL_VERSION_NUMBER=$version" >> $env:GITHUB_ENV
+
+    - name: Build
+      run: msbuild /m /p:Configuration=${{matrix.configuration}} /p:platform="Any CPU" shutdownplannergui\ShutdownPlannerGUI.sln
+
+    - name: Copy Extra Files
+      if: ${{ matrix.configuration == 'Release' }}
+      shell: pwsh
+      run: |
+        copy .\LICENSE .\shutdownplannergui\bin\${{matrix.configuration}}\
+        .\Scripts\makeProjReadme.ps1 shutdownplannergui .\shutdownplannergui\bin\${{matrix.configuration}}\README.md
+
+    - name: Upload Artifacts
+      if: ${{ matrix.configuration == 'Release' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: shutdownplannergui-${{env.FULL_VERSION_NUMBER}}
+        path: |
+          shutdownplannergui/bin/${{matrix.configuration}}
+          !**/*.pdb
+          !**/ShutdownPlannerGUI.exe.config
+        if-no-files-found: error

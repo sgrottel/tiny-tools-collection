@@ -1,0 +1,72 @@
+name: FolderSummary Build Action
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+    - .github/workflows/FolderSummary.yaml
+    - FolderSummary/**
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - .github/workflows/FolderSummary.yaml
+    - FolderSummary/**
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Install dependencies
+      run: dotnet restore --arch x64 ./FolderSummary/FolderSummary.sln
+
+    - name: Inject build number
+      shell: pwsh
+      run: |
+        $csproj = New-Object System.XML.XMLDocument
+        $csprojPath = Resolve-Path "./FolderSummary/FolderSummary.csproj"
+        $csproj.Load($csprojPath)
+        $version = New-Object System.Version $csproj.Project.PropertyGroup.Version
+        $version = New-Object System.Version @( $version.Major, $version.Minor, ([System.Math]::Max(0, $version.Build)), $env:GITHUB_RUN_NUMBER )
+        Write-Host "Version number: $version"
+        $csproj.Project.PropertyGroup.Version = $version.ToString()
+        $csproj.Save($csprojPath)
+        Write-Output "FULL_VERSION_NUMBER=$version" >> $env:GITHUB_ENV
+
+    - name: Build
+      run: dotnet build --configuration ${{ matrix.configuration }} --arch x64 --no-restore ./FolderSummary/FolderSummary.csproj
+
+    - name: Publish
+      if: ${{ matrix.configuration == 'Release' }}
+      run: dotnet publish --configuration Release -p:PublishProfile=FolderProfile -p:DebugType=None -p:DebugSymbols=false --no-build --no-restore ./FolderSummary/FolderSummary.csproj
+
+    - name: Copy Extra Files
+      if: ${{ matrix.configuration == 'Release' }}
+      shell: pwsh
+      run: |
+        copy .\LICENSE .\FolderSummary\bin\Publish\
+        .\Scripts\makeProjReadme.ps1 FolderSummary .\FolderSummary\bin\Publish\README.md
+
+    - name: Upload Artifacts
+      if: ${{ matrix.configuration == 'Release' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: FolderSummary-${{env.FULL_VERSION_NUMBER}}
+        path: |
+          FolderSummary/bin/publish
+          !**/*.pdb
+        if-no-files-found: error

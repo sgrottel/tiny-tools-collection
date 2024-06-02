@@ -24,7 +24,9 @@ Desktop Icon Backup
 C# app to dim monitors by displaying an transparent black overlaying window.
 The idea is to dim "other" monitors when watching a video or playing a game one only one of the monitors.
 
-## FolderSummary
+## FolderSummary  <img align="left" src="./FolderSummary/FolderSummary_x48.png" style="height:1em" alt="FolderSummary">
+[![FolderSummary Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/FolderSummary.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/FolderSummary.yaml)
+
 Simple C# app to summarize the content of a folder (recursively) into a Json file, or compares the content of a folder (recursively) to a Json file reporting differences in file existance, size, and write date.
 Can use Everything, if available.
 
@@ -63,15 +65,21 @@ Queries the Windows event log to print when the user sessions logged in and logg
 Powershell script using [IcoTools](https://github.com/jtippet/IcoTools) to make an `.ico` file from multiple image files in one call.
 
 ## poltermouse
+[![poltermouse Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/poltermouse.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/poltermouse.yaml)
+
 Little tool to move the mouse around by itself, faking activity.
 
-## scfeu
+## scfeu  <img align="left" src="./scfeu/doc/icon/scfeu_48.png" style="height:1em" alt="scfeu">
+[![scfeu Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/scfeu.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/scfeu.yaml)
+
 Source Code Files Encoding Unifier -- encoding and line endings fixed in code files. Sort of.
 
 ## Scripts
 Unsorted useful scripts, e.g. Pwsh.
 
-## shutdownplannergui
+## shutdownplannergui  <img align="left" src="./shutdownplannergui/shutdownplannergui_x48.png" style="height:1em" alt="shutdownplannergui">
+[![shutdownplannergui Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/shutdownplannergui.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/shutdownplannergui.yaml)
+
 A small GUI, slapped together in C#, around the Shutdown command-line utility.
 
 ## StartPwsh  <img align="left" src="./StartPwsh/Powershell_black_x48.png" style="height:1em" alt="StartPwsh">

@@ -2,7 +2,7 @@ name: poltermouse Build Action
 
 on:
   push:
-    branches: [ "main", "ci-actions" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/poltermouse.yaml
     - poltermouse/**

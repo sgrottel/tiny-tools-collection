@@ -2,7 +2,7 @@ name: FolderSummary Build Action
 
 on:
   push:
-    branches: [ "main", "ci-actions" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/FolderSummary.yaml
     - FolderSummary/**

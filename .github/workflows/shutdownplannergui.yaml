@@ -2,7 +2,7 @@ name: shutdownplannergui Build Action
 
 on:
   push:
-    branches: [ "main", "ci-actions" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/shutdownplannergui.yaml
     - shutdownplannergui/**

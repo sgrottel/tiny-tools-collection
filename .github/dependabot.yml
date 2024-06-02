@@ -12,6 +12,11 @@ updates:
 
   # projects nugets
   - package-ecosystem: "nuget"
+    directory: "/FolderSummary"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+  - package-ecosystem: "nuget"
     directory: "/GlobalHotKeys"
     schedule:
       interval: "weekly"
@@ -23,6 +28,11 @@ updates:
     open-pull-requests-limit: 10
   - package-ecosystem: "nuget"
     directory: "/LoginWhen"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+  - package-ecosystem: "nuget"
+    directory: "/scfeu"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10

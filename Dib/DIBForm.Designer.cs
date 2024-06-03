@@ -70,7 +70,7 @@ namespace Dib {
             this.linkLabel1.Size = new System.Drawing.Size(114, 13);
             this.linkLabel1.TabIndex = 9;
             this.linkLabel1.TabStop = true;
-            this.linkLabel1.Text = "http://www.sgrottel.de";
+            this.linkLabel1.Text = "https://www.sgrottel.de";
             this.linkLabel1.TextAlign = System.Drawing.ContentAlignment.TopRight;
             this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
             // 

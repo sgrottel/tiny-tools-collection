@@ -8,12 +8,14 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
 using System.Xml;
+using System.Runtime.Versioning;
 
 namespace Dib {
 
     /// <summary>
     /// The DIB main form
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public partial class DIBForm : Form {
 
         #region Interop definitions
@@ -415,7 +417,7 @@ namespace Dib {
         /// </summary>
         public DIBForm() {
             InitializeComponent();
-            this.Icon = global::Dib.Properties.Resources.DibIconVista;
+            Icon = Icon.ExtractAssociatedIcon(@"C:\dev\tiny-tools\Dib\bin\Debug\net8.0-windows7.0\Dib.exe");
             try {
                 this.filename = Microsoft.Win32.Registry.GetValue(
                     filenameRegKeyPath, filenameRegKeyName, string.Empty)
@@ -737,9 +739,11 @@ namespace Dib {
         /// <param name="e">The arguments of the event</param>
         private void linkLabel1_LinkClicked(object sender,
                 LinkLabelLinkClickedEventArgs e) {
-            using (WebBrowser wb = new WebBrowser()) {
-                wb.Navigate(this.linkLabel1.Text, true);
-            }
+            System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo() {
+                    FileName = linkLabel1.Text,
+                    UseShellExecute = true
+                });
         }
 
         /// <summary>

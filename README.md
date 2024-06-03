@@ -15,7 +15,9 @@ Each one is too tiny to justify a repository of it's own.
 
 `MessageBeep(MB_OK);`
 
-## Dib
+## Dib  <img align="left" src="./Dib/Resources/Dib_x48.png" style="height:1em" alt="Dib">
+[![Dib Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/Dib.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/Dib.yaml)
+
 Desktop Icon Backup
 
 ## DimMon  <img align="left" src="./DimMon/images/sunglasses_x48.png" style="height:1em" alt="DimMon">

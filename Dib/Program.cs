@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 using System.Windows.Forms;
 
 namespace Dib {
-    static class Program {
+	[SupportedOSPlatform("windows")]
+	static class Program {
         /// <summary>
         /// The main entry point for the application.
         /// </summary>

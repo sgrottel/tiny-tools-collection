@@ -69,4 +69,5 @@ jobs:
         path: |
           Dib/bin/publish
           !**/*.pdb
+          !**/Dib.dll.config
         if-no-files-found: error

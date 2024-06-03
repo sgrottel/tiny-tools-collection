@@ -417,7 +417,7 @@ namespace Dib {
         /// </summary>
         public DIBForm() {
             InitializeComponent();
-            this.Icon = global::Dib.Properties.Resources.DibIconVista;
+            Icon = Icon.ExtractAssociatedIcon(@"C:\dev\tiny-tools\Dib\bin\Debug\net8.0-windows7.0\Dib.exe");
             try {
                 this.filename = Microsoft.Win32.Registry.GetValue(
                     filenameRegKeyPath, filenameRegKeyName, string.Empty)

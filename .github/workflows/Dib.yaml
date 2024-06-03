@@ -2,7 +2,7 @@ name: Dib Build Action
 
 on:
   push:
-    branches: [ "main", "dib-dotnet-migration" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/Dib.yaml
     - Dib/**

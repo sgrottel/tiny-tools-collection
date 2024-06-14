@@ -101,7 +101,9 @@ It echoes it's command line arguments and a couple of diagnostic properties.
 Command line tool to enable/disable/toggle connected displays.
 My scenario is to toggle a TV connected to my PC as `\\.\DISPLAY3`
 
-## UrlCollector
+## UrlCollector  <img align="left" src="./UrlCollector/Resources/UrlCollector_x48.png" style="height:1em" alt="UrlCollector">
+[![UrlCollector Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/UrlCollector.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/UrlCollector.yaml)
+
 Tool to collect urls from clipboard, one by one.
 
 ## _doc

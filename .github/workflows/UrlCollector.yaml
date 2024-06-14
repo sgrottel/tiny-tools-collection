@@ -2,7 +2,7 @@ name: UrlCollector Build Action
 
 on:
   push:
-    branches: [ "main", "UrlCollector-ci" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/UrlCollector.yaml
     - UrlCollector/**

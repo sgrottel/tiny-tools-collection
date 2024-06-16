@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Xml.Serialization;
 using System.Xml;
 using System.Runtime.Versioning;
+using System.Reflection;
 
 namespace Dib {
 
@@ -417,7 +418,13 @@ namespace Dib {
         /// </summary>
         public DIBForm() {
             InitializeComponent();
-            Icon = Icon.ExtractAssociatedIcon(@"C:\dev\tiny-tools\Dib\bin\Debug\net8.0-windows7.0\Dib.exe");
+            try
+            {
+                Icon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
+            }
+            catch
+            {
+            }
             try {
                 this.filename = Microsoft.Win32.Registry.GetValue(
                     filenameRegKeyPath, filenameRegKeyName, string.Empty)

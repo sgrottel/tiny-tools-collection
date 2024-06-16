@@ -10,6 +10,7 @@ using System.Xml.Serialization;
 using System.Xml;
 using System.Runtime.Versioning;
 using System.Reflection;
+using System.IO;
 
 namespace Dib {
 
@@ -420,7 +421,12 @@ namespace Dib {
             InitializeComponent();
             try
             {
-                Icon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location);
+                string? filepath = Assembly.GetExecutingAssembly().Location;
+                if ( string.IsNullOrEmpty(filepath) || !File.Exists(filepath))
+                {
+                    filepath = Path.Combine(AppContext.BaseDirectory, "Dib.exe");
+                }
+                Icon = Icon.ExtractAssociatedIcon(filepath);
             }
             catch
             {

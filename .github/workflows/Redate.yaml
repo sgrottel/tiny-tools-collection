@@ -2,7 +2,7 @@ name: Redate Build Action
 
 on:
   push:
-    branches: [ "main", "Redate/integrate" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/Redate.yaml
     - Redate/**

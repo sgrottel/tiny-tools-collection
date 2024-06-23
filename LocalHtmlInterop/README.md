@@ -1,6 +1,7 @@
 # LocalHtmlInterop
 Utility to interact with locally generated, file-hosted, and locally viewed html pages.
 Custom protocol url schema to trigger functionality from within the Html pages in a system-consistent manner.
+<!-- START INCLUDE IN PACKAGE README -->
 
 Workflow:
 * Fundamentally, a local html page can call a (native) command to be executed on the local computer, by issuing a custom protocol url.

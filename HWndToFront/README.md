@@ -1,5 +1,6 @@
 # HWndToFront
 Utility to bring a Window to Front
+<!-- START INCLUDE IN PACKAGE README -->
 
 ## Window Mode
 Syntax:
@@ -43,6 +44,7 @@ Open the project solution in Visual Studio 2022 (Community Edition) or newer.
 Make sure you have C/C++ Desktop development tools and a recent Windows SDK installed.
 The solution should build as is.
 
+<!-- STOP INCLUDE IN PACKAGE README -->
 ## License
 > Copyright 2022 SGrottel (https://github.com/sgrottel/HWndToFront)
 >

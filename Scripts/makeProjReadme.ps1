@@ -15,7 +15,8 @@ $lines = [string[]](get-content $mainReadMe)
 $in = $false
 $details = ''
 $pushedEmpty = $true
-foreach ($line in $lines) {
+foreach ($line in $lines)
+{
     if ($line.StartsWith('##'))
     {
         $in = $line.SubString(2).Trim().StartsWith($proj)
@@ -39,12 +40,39 @@ foreach ($line in $lines) {
     }
 }
 
-$readme = "# $proj`nPart of SGrottel's Tiny Tools Collection`nhttps://github.com/sgrottel/tiny-tools-collection`n`n$details`n"
-$readme += "## MIT License`nThis project is freely available under the terms of the MIT license (see LICENSE file).`n`n"
+$readme = "# $proj`nPart of SGrottel's Tiny Tools Collection`nhttps://github.com/sgrottel/tiny-tools-collection`n`n$details"
+
+$projReadme = Join-Path $PSScriptRoot ".." $proj "README.md"
+if (Test-Path $projReadme -PathType Leaf)
+{
+    Write-Host "Checking project README.md"
+    $lines = [string[]](get-content $projReadme)
+    $include = $false
+    foreach ($line in $lines)
+    {
+        if ($line -match '^<!--\s*START\s+INCLUDE\s+IN\s+PACKAGE\s+README\s*-->\s*$')
+        {
+            $include = $true;
+            continue;
+        }
+        if ($line -match '^<!--\s*STOP\s+INCLUDE\s+IN\s+PACKAGE\s+README\s*-->\s*$')
+        {
+            $include = $false;
+            continue;
+        }
+        if ($include)
+        {
+            $readme += "$line`n"
+        }
+    }
+}
+
+$readme += "`n## MIT License`nThis project is freely available under the terms of the MIT license (see LICENSE file).`n`n"
 
 Write-Host "Including License"
 $lines = [string[]](get-content $mainLicense)
-foreach ($line in $lines) {
+foreach ($line in $lines)
+{
     $readme += '    ' + ($line.Trim()) + "`n"
 }
 

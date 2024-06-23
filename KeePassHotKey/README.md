@@ -2,6 +2,7 @@
 Wrapper utility to open a [KeePass](https://keepass.info/) DB or trigger the Auto-Type Feature
 
 <img src="./KeePass_Square_BW.ico" alt="KeePass_Square_BW" width="64px" />
+<!-- START INCLUDE IN PACKAGE README -->
 
 This utility is _very_ specific to my use case:
 
@@ -85,6 +86,7 @@ The icon `KeePass_Square_BW.ico` is based on the original icon image files from 
 * https://sourceforge.net/projects/keepass/files/KeePass%202.x/2.50/KeePass-2.50-Source.zip/download
 * https://keepass.info/
 
+<!-- STOP INCLUDE IN PACKAGE README -->
 
 ## License
 

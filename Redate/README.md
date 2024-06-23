@@ -3,7 +3,8 @@
 
 Rewrite dates of files.
 
-<!--[![Build status](https://ci.appveyor.com/api/projects/status/dbkm60f719k2eho8?svg=true)](https://ci.appveyor.com/project/s_grottel/redate)-->
+[![Redate Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/Redate.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/Redate.yaml)
+<!-- START INCLUDE IN PACKAGE README -->
 
 Uses _redate_ files to memorize the state, i.e. size, file attributes, content hash, and last write date, of files within input source directories.
 The tool can then reset file attributes and last write date of files, which have been rewritten with the same content as before, i.e. same size and same content hash.
@@ -111,6 +112,7 @@ All dependencies are installed via Nuget packages.
 When building the application from within Visual Studio, those packages should be restored automatically.
 If not, trigger _Restore Nuget Packages_ on the solution, e.g. by right-clicking in the Solution Explorer on the Solution node.
 
+<!-- STOP INCLUDE IN PACKAGE README -->
 
 ## License
 This project is dual licensed. You choose either the terms of the [MIT LICENSE](../LICENSE) or the [Apache LICENSE v2.0](./LICENSE).

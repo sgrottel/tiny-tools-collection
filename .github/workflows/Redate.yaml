@@ -59,7 +59,7 @@ jobs:
       shell: pwsh
       run: |
         copy .\LICENSE .\Redate\bin\publish\
-        .\Scripts\makeProjReadme.ps1 Dib .\Redate\bin\publish\README.md
+        .\Scripts\makeProjReadme.ps1 Redate .\Redate\bin\publish\README.md
 
     - name: Upload Artifacts
       if: ${{ matrix.configuration == 'Release' }}

@@ -43,15 +43,16 @@ foreach ($line in $lines)
 $readme = "# $proj`nPart of SGrottel's Tiny Tools Collection`nhttps://github.com/sgrottel/tiny-tools-collection`n`n$details"
 
 $projReadme = Join-Path $PSScriptRoot ".." $proj "README.md"
+Write-Host "Checking projects: $projReadme"
 if (Test-Path $projReadme -PathType Leaf)
 {
-    Write-Host "Checking project README.md"
     $lines = [string[]](get-content $projReadme)
     $include = $false
     foreach ($line in $lines)
     {
         if ($line -match '^<!--\s*START\s+INCLUDE\s+IN\s+PACKAGE\s+README\s*-->\s*$')
         {
+            Write-Host "`tIncluding lines..."
             $include = $true;
             continue;
         }

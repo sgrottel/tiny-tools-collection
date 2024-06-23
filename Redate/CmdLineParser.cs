@@ -47,6 +47,17 @@ namespace Redate
 
 			SourceDirs = args.AsSpan(2).ToArray();
 			if (SourceDirs.Length == 0 && RunMode == Program.RunMode.Init) throw new ArgumentException("You need to specify source directories information for 'init'");
+
+			if (!string.IsNullOrEmpty(RedateFile))
+			{
+				if (System.IO.File.Exists(RedateFile))
+				{
+					if (!System.IO.Path.IsPathRooted(RedateFile))
+					{
+						RedateFile = System.IO.Path.GetFullPath(RedateFile);
+					}
+				}
+			}
 		}
 
 		static public void PrintHelp()

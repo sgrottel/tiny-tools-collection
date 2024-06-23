@@ -71,6 +71,9 @@ Powershell script using [IcoTools](https://github.com/jtippet/IcoTools) to make 
 
 Little tool to move the mouse around by itself, faking activity.
 
+## Redate  <img align="left" src="./Redate/images/redate_48x.png" style="height:1em" alt="scfeu">  
+[Redate](Redate/README.md) rewrite dates of files.
+
 ## scfeu  <img align="left" src="./scfeu/doc/icon/scfeu_48.png" style="height:1em" alt="scfeu">
 [![scfeu Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/scfeu.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/scfeu.yaml)
 

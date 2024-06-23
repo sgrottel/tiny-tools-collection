@@ -5,6 +5,9 @@
 # Requires:
 #   Github.cli "gh" to be installed and authenticated
 #
+# Usage example:
+#   .\GithubOverview.ps1 | ConvertTo-Json | Out-File "GithubOverview-dump.json"
+#
 $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -49,7 +52,7 @@ function IssueInfo {
 	$o["author"] = "$($issue.author.login) ($($issue.author.name))"
 
 	if ($issue.assignees) {
-		$o["assignees"] = $issue.assignees
+		$o["assignees"] = $issue.assignees | ForEach-Object { "$($_.login) ($($_.name))"}
 	}
 
 	$updated = [datetime]$issue.updatedAt

@@ -124,6 +124,10 @@ Unsorted useful scripts, e.g. Pwsh.
 
 A small GUI, slapped together in C#, around the Shutdown command-line utility.
 
+## StarterWindow  <img align="left" src="./StarterWindow/StarterWindow_x48.png" style="height:1em" alt="StarterWindow">
+
+Tool to quickly show a window while it's starting another process.
+
 ## StartPwsh  <img align="left" src="./StartPwsh/Powershell_black_x48.png" style="height:1em" alt="StartPwsh">
 [![Last Release](https://raw.githubusercontent.com/wiki/sgrottel/tiny-tools-collection/releases/StartPwsh-ver.svg)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)
 [![Release Date](https://raw.githubusercontent.com/wiki/sgrottel/tiny-tools-collection/releases/StartPwsh-date.svg)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)

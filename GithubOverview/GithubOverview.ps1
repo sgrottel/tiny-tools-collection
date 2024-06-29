@@ -14,6 +14,15 @@ $ErrorActionPreference = "Stop"
 # configuration
 $myUserReposToIgnore = @("clumsy", "FreshRSS")
 $extraRepos = @("jtippet/IcoTools", "mifi/lossless-cut", "FreshRSS/FreshRSS")
+
+# TODO: only show PRs/issues if:
+#  - I am the repo owner
+#  - I am author of PR/issue or assigned
+#  - I participated in discussion
+# For now, just remove PRs/issues in foreigh repos:
+$reposNoIssues = @("jtippet/IcoTools", "mifi/lossless-cut", "FreshRSS/FreshRSS")
+$reposNoPRs = @("jtippet/IcoTools", "mifi/lossless-cut", "FreshRSS/FreshRSS")
+
 $defaultUser = "sgrottel"
 $maxIssues = 10
 $maxMsgLen = 60
@@ -148,25 +157,29 @@ function RepoInfo {
 
 	# issues
 	$issueJsonFields = "number,title,author,assignees,comments,createdAt,updatedAt,url";
-	$count = [int]($repo.issues.totalCount)
-	if ($count -gt $maxIssues) {
-		$o["issues_totalCount"] = $count
-	}
-	$o["issues"] = @()
-	if ($count -gt 0) {
-		$issueInfo = ((gh issue list -R "$($repo.owner.login)/$($repo.name)" -L ([Math]::Min($count, $maxIssues)) --json $issueJsonFields) | ConvertFrom-Json)
-		$o["issues"] += [object[]]($issueInfo | ForEach-Object { IssueInfo $_ })
+	if (-not ($name -in $reposNoIssues)) {	
+		$count = [int]($repo.issues.totalCount)
+		if ($count -gt $maxIssues) {
+			$o["issues_totalCount"] = $count
+		}
+		$o["issues"] = @()
+		if ($count -gt 0) {
+			$issueInfo = ((gh issue list -R "$($repo.owner.login)/$($repo.name)" -L ([Math]::Min($count, $maxIssues)) --json $issueJsonFields) | ConvertFrom-Json)
+			$o["issues"] += [object[]]($issueInfo | ForEach-Object { IssueInfo $_ })
+		}
 	}
 
 	# pullRequests
-	$count = [int]($repo.pullRequests.totalCount)
-	if ($count -gt $maxIssues) {
-		$o["pullRequests_totalCount"] = $count
-	}
-	$o["pullRequests"] = @()
-	if ($count -gt 0) {
-		$prInfo = ((gh pr list -R "$($repo.owner.login)/$($repo.name)" -L ([Math]::Min($count, $maxIssues)) --json $issueJsonFields) | ConvertFrom-Json)
-		$o["pullRequests"] += [object[]]($prInfo | ForEach-Object { IssueInfo $_ })
+	if (-not ($name -in $reposNoPRs)) {
+		$count = [int]($repo.pullRequests.totalCount)
+		if ($count -gt $maxIssues) {
+			$o["pullRequests_totalCount"] = $count
+		}
+		$o["pullRequests"] = @()
+		if ($count -gt 0) {
+			$prInfo = ((gh pr list -R "$($repo.owner.login)/$($repo.name)" -L ([Math]::Min($count, $maxIssues)) --json $issueJsonFields) | ConvertFrom-Json)
+			$o["pullRequests"] += [object[]]($prInfo | ForEach-Object { IssueInfo $_ })
+		}
 	}
 
 	return $o

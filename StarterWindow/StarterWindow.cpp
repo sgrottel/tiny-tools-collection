@@ -22,6 +22,7 @@
 #include "SimpleLog/SimpleLog.hpp"
 
 #include "Version.h"
+#include "Window.h"
 
 #include <cstdlib>
 
@@ -57,7 +58,6 @@ int APIENTRY wWinMain(
 	_In_ LPWSTR lpCmdLine,
 	_In_ int nShowCmd)
 {
-	UNREFERENCED_PARAMETER(hInstance);
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 	UNREFERENCED_PARAMETER(nShowCmd);
@@ -73,9 +73,11 @@ int APIENTRY wWinMain(
 		logref = &log;
 		sgrottel::SimpleLog::Write(log, "StarterWindow v%d.%d.%d.%d started.", STARTERWINDOW_VER_MAJOR, STARTERWINDOW_VER_MINOR, STARTERWINDOW_VER_PATCH, STARTERWINDOW_VER_BUILD);
 
+		Window wnd{ log, hInstance };
 
-		throw std::runtime_error("Not implemented");
+		wnd.MainLoop();
 
+		// throw std::runtime_error("Not implemented");
 
 	}
 	catch (std::exception const& ex)

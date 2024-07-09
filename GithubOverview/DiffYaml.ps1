@@ -44,8 +44,22 @@ foreach ($ind in $inds) {
             }
         }
         if ($r.length -eq 1) {
-            $aMap[$i] = $r[0];
-            $bMap[$r[0]] = $i;
+            # Double check that candidate is unique in both directions
+            $cnt = 0;
+            for ($k = 0; $k -lt $alen; $k++) {
+                if ($aInd[$k] -ne $ind)  { continue; }
+                if ($aMap[$k] -ge 0) { continue; }
+                if ($firstLines[$k].empty) { continue; }
+                if ($firstLines[$k] -eq $secondLines[$r[0]]) {
+                    $cnt++;
+                }
+            }
+            if ($cnt -eq 1) {
+                $aMap[$i] = $r[0];
+                $bMap[$r[0]] = $i;
+            } else {
+                $mapFailed += $i;
+            }
         } else {
             $mapFailed += $i;
         }

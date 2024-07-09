@@ -151,37 +151,57 @@ if ($html) {
     $strong = $false;
     $ins = $false;
     $del = $false;
+    $summary = $false;
     foreach ($line in $lines) {
-        switch -CaseSensitive ($line.t) {
-            'H' {
-                if (-not $em) { $text += "<em style=`"color: lightgrey; font-style: normal;`">"; $em = $true; }
-                if (-not $strong) { $text += "<strong style=`"color: LightYellow; font-weight: normal;`">"; $strong = $true; }
-                if ($ins) { $text += "</ins>"; $ins = $false; }
-                if ($del) { $text += "</del>"; $del = $false; }
+        if (-not $summary -or $line.i -eq 0) {
+            if ($line.i -eq 0) {
+                if ($summary) {
+                    $text += "</details>";
+                    $summary = $false;
+                }
+                if ($line.t -eq '-' -and $line.c -ne '') {
+                    if ($em) { $text += "</em>"; $em = $false; }
+                    if ($strong) { $text += "</strong>"; $strong = $false; }
+                    if ($ins) { $text += "</ins>"; $ins = $false; }
+                    if ($del) { $text += "</del>"; $del = $false; }
+                    $summary = $true;
+                    $text += "<details><summary style=`"cursor: pointer;`" title=`"unchanged`">$($line.c)</summary>";
+                    continue;
+                }
             }
-            'h' {
-                if (-not $em) { $text += "<em style=`"color: lightgrey; font-style: normal;`">"; $em = $true; }
-                if ($strong) { $text += "</strong>"; $strong = $false; }
-                if ($ins) { $text += "</ins>"; $ins = $false; }
-                if ($del) { $text += "</del>"; $del = $false; }
-            }
-            'a' {
-                if (-not $em) { $text += "<em style=`"color: lightgrey; font-style: normal;`">"; $em = $true; }
-                if ($strong) { $text += "</strong>"; $strong = $false; }
-                if (-not $ins) { $text += "<ins style=`"color: limegreen; text-decoration: none;`">"; $ins = $true; }
-                if ($del) { $text += "</del>"; $del = $false; }
-            }
-            'x' {
-                if (-not $em) { $text += "<em style=`"color: lightgrey; font-style: normal;`">"; $em = $true; }
-                if ($strong) { $text += "</strong>"; $strong = $false; }
-                if ($ins) { $text += "</ins>"; $ins = $false; }
-                if (-not $del) { $text += "<del style=`"color: firebrick; text-decoration: none;`">"; $del = $true; }
-            }
-            default {
-                if ($em) { $text += "</em>"; $em = $false; }
-                if ($strong) { $text += "</strong>"; $strong = $false; }
-                if ($ins) { $text += "</ins>"; $ins = $false; }
-                if ($del) { $text += "</del>"; $del = $false; }
+            if (-not $summary) {
+                switch -CaseSensitive ($line.t) {
+                    'H' {
+                        if (-not $em) { $text += "<em style=`"color: lightgrey; font-style: normal;`">"; $em = $true; }
+                        if (-not $strong) { $text += "<strong style=`"color: LightYellow; font-weight: normal;`">"; $strong = $true; }
+                        if ($ins) { $text += "</ins>"; $ins = $false; }
+                        if ($del) { $text += "</del>"; $del = $false; }
+                    }
+                    'h' {
+                        if (-not $em) { $text += "<em style=`"color: lightgrey; font-style: normal;`">"; $em = $true; }
+                        if ($strong) { $text += "</strong>"; $strong = $false; }
+                        if ($ins) { $text += "</ins>"; $ins = $false; }
+                        if ($del) { $text += "</del>"; $del = $false; }
+                    }
+                    'a' {
+                        if (-not $em) { $text += "<em style=`"color: lightgrey; font-style: normal;`">"; $em = $true; }
+                        if ($strong) { $text += "</strong>"; $strong = $false; }
+                        if (-not $ins) { $text += "<ins style=`"color: limegreen; text-decoration: none;`">"; $ins = $true; }
+                        if ($del) { $text += "</del>"; $del = $false; }
+                    }
+                    'x' {
+                        if (-not $em) { $text += "<em style=`"color: lightgrey; font-style: normal;`">"; $em = $true; }
+                        if ($strong) { $text += "</strong>"; $strong = $false; }
+                        if ($ins) { $text += "</ins>"; $ins = $false; }
+                        if (-not $del) { $text += "<del style=`"color: firebrick; text-decoration: none;`">"; $del = $true; }
+                    }
+                    default {
+                        if ($em) { $text += "</em>"; $em = $false; }
+                        if ($strong) { $text += "</strong>"; $strong = $false; }
+                        if ($ins) { $text += "</ins>"; $ins = $false; }
+                        if ($del) { $text += "</del>"; $del = $false; }
+                    }
+                }
             }
         }
         $text += [System.Web.HttpUtility]::HtmlEncode($line.c) + "`n";

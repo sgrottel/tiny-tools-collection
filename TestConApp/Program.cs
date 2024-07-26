@@ -38,10 +38,16 @@ namespace TestConApp
             return false;
         }
 
+        private enum ArgParseState
+        {
+            None,
+            Sleep
+        };
+
         static void Main(string[] args)
         {
             Console.OutputEncoding = Encoding.UTF8;
-            Console.WriteLine("TestConApp");
+            Console.WriteLine("TestConApp 🧫");
 
             Console.WriteLine("Virtual Terminal Processing: {0}", CheckVirtualTerminalProcessing() ? "on" : "off");
 
@@ -60,9 +66,37 @@ namespace TestConApp
             Console.Write($"{args.Length} command line argument");
             if (args.Length != 1) Console.Write("s");
             Console.WriteLine((args.Length > 0) ? ":" : ".");
+
+            ArgParseState state = ArgParseState.None;
             for (int i = 0; i < args.Length; i++)
             {
                 Console.WriteLine($"[{i}] {args[i]}");
+                switch (state)
+                {
+                    case ArgParseState.None:
+                        if (args[i].Equals("-sleep", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            state = ArgParseState.Sleep;
+                        }
+                        break;
+
+                    case ArgParseState.Sleep:
+                        {
+                            int millis = 0;
+                            int.TryParse(args[i], out millis);
+                            if (millis > 0)
+                            {
+                                Console.WriteLine($"Sleeping {millis} ms...💤");
+                                Thread.Sleep(millis);
+                            }
+                            else
+                            {
+                                Console.WriteLine("'-sleep' requires a number greater zero of milliseconds to work");
+                            }
+                            state = ArgParseState.None;
+                        }
+                        break;
+                }
             }
 
             Console.Write("End");

@@ -19,9 +19,12 @@ namespace LocalHtmlInterop.Handler
 	{
 		private Thread receiver;
 
+		private const int receiveTimeoutMs = 1000 * 10; // 10 sec receive timeout
+
 		protected WebSocketClient(TcpClient client)
 		{
 			this.client = client;
+			this.client.ReceiveTimeout = receiveTimeoutMs;
 			Port = ((IPEndPoint?)(client.Client?.RemoteEndPoint))?.Port ?? 0;
 			receiver = new Thread(RunReceiverWorker);
 			receiver.Start();
@@ -106,7 +109,22 @@ namespace LocalHtmlInterop.Handler
 
 				while (true)
 				{
-					if (((read = stream.ReadByte()) < 0) || (read > 255)) break; // stream broken
+					try
+					{
+						if (((read = stream.ReadByte()) < 0) || (read > 255)) break; // stream broken
+					}
+					catch (IOException ioex)
+					{
+						if (ioex.InnerException is SocketException soex)
+						{
+							if (soex.SocketErrorCode == SocketError.TimedOut)
+							{
+								Log?.Write(ISimpleLog.FlagWarning, "Socket connection timed out");
+								break;
+							}
+						}
+						throw;
+					}
 					byte b0 = (byte)read;
 					bool fin = (b0 & 0b10000000) != 0;
 					int opcode = b0 & 0b00001111;

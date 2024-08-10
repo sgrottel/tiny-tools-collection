@@ -468,8 +468,8 @@ namespace LocalHtmlInterop.Handler
 						continue;
 					}
 
-					string sn = $"file-1";
-					for (int n = 1; knownFiles.Contains(sn); n++, sn = $"file-{n}") ;
+					string sn = "file-1";
+					for (int n = 1; regkey.GetValue(sn) != null; n++, sn = $"file-{n}") ;
 
 					regkey.SetValue(sn, file);
 					output.WriteLine("  registered.");

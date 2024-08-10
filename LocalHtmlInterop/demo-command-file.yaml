@@ -4,6 +4,6 @@ commands:
   workdir: .
   args:
     - -c
-    - value: "Write-Host \"I heard: '{{fancy}}' and '{{tell me}}'\""
+    - value: "Write-Host \"Wait...\"; Start-Sleep -Seconds 5; Write-Host \"I heard: '{{fancy}}' and '{{tell me}}'\""
       params: [ fancy, tell me ]
       required: true

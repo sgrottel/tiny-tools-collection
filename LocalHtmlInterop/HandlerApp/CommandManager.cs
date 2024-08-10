@@ -21,11 +21,12 @@ namespace LocalHtmlInterop.Handler
 		{
 			public CommandInfo Info { get; }
 			public CommandResult Result { get; set; } = new();
+			public object ResultsLock { get; set; } = new();
+			public Task CommandTask { get; set; } = Task.CompletedTask;
 
 			public Command(CommandInfo info)
 			{
 				Info = info;
-				Result.Status = CommandStatus.Pending;
 			}
 
 			internal void LogResult(ISimpleLog? log)
@@ -46,49 +47,20 @@ namespace LocalHtmlInterop.Handler
 
 				Command c = new(cmd);
 				commands.Add(c);
+				// Commands get cleared when the closes, which is good enough for now.
+				// The cleaner approach would be to remove the command explicitly:
+				//   - remove commands without callback id when their threads complete
+				//   - remove commands with callback id when a socket had connected, queried the result at least once, and the socket then disconnected.
 
 				// select command processor
-				Task<CommandResult>? commandProcessor = null;
-
-				if (!string.IsNullOrWhiteSpace(cmd.Command))
+				if (!SelectCommandProcessor(c))
 				{
-					commandProcessor = SelectCommandProcessor(cmd);
-				}
-
-				if (commandProcessor != null)
-				{
-					commandProcessor
-						.ContinueWith(
-						(res) =>
-						{
-							if (res.IsCompletedSuccessfully)
-							{
-								if (res.Result.Status == CommandStatus.Unknown || res.Result.Status == CommandStatus.Pending)
-								{
-									res.Result.Status = ((res.Result.ExitCode ?? -1) == 0) ? CommandStatus.Completed : CommandStatus.Error;
-								}
-
-								c.Result = res.Result;
-							}
-							else
-							{
-								c.Result.Output = res.Exception?.ToString() ?? "Unknown error";
-								c.Result.Status = CommandStatus.Error;
-							}
-
-							c.LogResult(Log);
-						});
-					if (commandProcessor.Status == TaskStatus.Created)
-					{
-						commandProcessor.Start();
-					}
-				}
-				else
-				{
+					c.ResultsLock = new();
 					c.Result.Output = "Command processor not found.";
 					c.Result.Status = CommandStatus.Error;
-
+					c.CommandTask = Task.CompletedTask;
 					c.LogResult(Log);
+					return;
 				}
 			}
 		}
@@ -100,9 +72,12 @@ namespace LocalHtmlInterop.Handler
 				int c = 0;
 				foreach (Command cmd in commands)
 				{
-					if (cmd.Result.Status == CommandStatus.Pending)
+					lock (cmd.ResultsLock)
 					{
-						c++;
+						if (cmd.Result.Status == CommandStatus.Pending)
+						{
+							c++;
+						}
 					}
 				}
 				return c;
@@ -116,76 +91,127 @@ namespace LocalHtmlInterop.Handler
 				foreach (Command cmd in commands)
 				{
 					if (cmd.Info.CallbackId != id) continue;
-					return JsonSerializer.Serialize(
-						cmd.Result,
-						new JsonSerializerOptions()
-						{
-							WriteIndented = false,
-							PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-							DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-							Converters =
+					lock (cmd.ResultsLock)
+					{
+						return JsonSerializer.Serialize(
+							cmd.Result,
+							new JsonSerializerOptions()
 							{
-								new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
-							}
-						});
+								WriteIndented = false,
+								PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+								DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+								Converters =
+								{
+									new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+								}
+							});
+					}
 				}
 			}
 			return "{\"status\":\"unknown\",\"output\":\"Unknown callback id\"}";
 		}
 
-		private Task<CommandResult>? SelectCommandProcessor(CommandInfo command)
+		private bool SelectCommandProcessor(Command command)
 		{
-			if (command.Command!.Equals("echo", StringComparison.InvariantCultureIgnoreCase))
+			if (command.Info.Command!.Equals("echo", StringComparison.InvariantCultureIgnoreCase))
 			{
-				string o = "Echo Response:\n";
-				if (command.CallbackId != null)
+				lock (command.ResultsLock)
 				{
-					o += $"  to: {command.CallbackId}\n";
+					command.Result.Status = CommandStatus.Pending;
+					command.Result.Output = "";
 				}
-				if (command.CommandParameters != null)
+
+				string o = "Echo Response:\n";
+				if (command.Info.CallbackId != null)
 				{
-					foreach (var p in command.CommandParameters)
+					o += $"  to: {command.Info.CallbackId}\n";
+				}
+				if (command.Info.CommandParameters != null)
+				{
+					foreach (var p in command.Info.CommandParameters)
 					{
 						o += $"  {p.Key} = {p.Value}\n";
 					}
 				}
 
-				return Task.FromResult(new CommandResult()
+				lock (command.ResultsLock)
 				{
-					Output = o,
-					Status = CommandStatus.Completed
+					command.Result.Output = o;
+					command.Result.Status = CommandStatus.Completed;
+				}
+
+				return true;
+			}
+
+			if (command.Info.Command!.Equals("StreamResponseDemo", StringComparison.InvariantCultureIgnoreCase))
+			{
+				lock (command.ResultsLock)
+				{
+					command.Result.Status = CommandStatus.Pending;
+					command.Result.Output = "";
+				}
+				command.CommandTask = Task.Run(async () =>
+				{
+					await Task.Delay(2000);
+					lock (command.ResultsLock)
+					{
+						command.Result.Output = "Stage 1 / 3";
+					}
+					await Task.Delay(2000);
+					lock (command.ResultsLock)
+					{
+						command.Result.Output = "Stage 2 / 3";
+					}
+					await Task.Delay(2000);
+					lock (command.ResultsLock)
+					{
+						command.Result.Output = "Stage 3 / 3";
+					}
+					await Task.Delay(2000);
+					lock (command.ResultsLock)
+					{
+						command.Result.Output = "Completed!";
+						command.Result.Status = CommandStatus.Completed;
+					}
 				});
+
+				return true;
 			}
 
 			CommandDefinition? cmdDef;
-			if (CommandDefinitions.TryGetValue(command.Command.ToLowerInvariant(), out cmdDef))
+			if (CommandDefinitions.TryGetValue(command.Info.Command.ToLowerInvariant(), out cmdDef))
 			{
 				if (cmdDef.ValidationError != null)
 				{
-					Log?.Write(ISimpleLog.FlagError, $"Command '{command.Command}'[=>{command.CallbackId}] did select an invalid command definition: {cmdDef.ValidationError}");
-					return null;
+					Log?.Write(ISimpleLog.FlagError, $"Command '{command.Info.Command}'[=>{command.Info.CallbackId}] did select an invalid command definition: {cmdDef.ValidationError}");
+					return false;
 				}
 
 				try
 				{
-					return BuildCommandDefinitionProcessor(command, cmdDef);
+					BuildCommandDefinitionProcessor(command, cmdDef);
+					lock (command.ResultsLock)
+					{
+						return command.Result.Status != CommandStatus.Unknown;
+					}
 				}
 				catch (Exception ex)
 				{
-					return Task.FromResult(new CommandResult()
+					lock (command.ResultsLock)
 					{
-						Output = ex.ToString(),
-						Status = CommandStatus.Error
-					});
+						command.Result.Output = ex.ToString();
+						command.Result.Status = CommandStatus.Error;
+					}
 				}
 			}
+
 			// else, no command processor found:
-			return null;
+			return false;
 		}
 
-		private Task<CommandResult>? BuildCommandDefinitionProcessor(CommandInfo cmd, CommandDefinition def)
+		private void BuildCommandDefinitionProcessor(Command command, CommandDefinition def)
 		{
-			if (def.exec == null) return null;
+			if (def.exec == null) throw new ArgumentNullException("CommandDefinition.exec");
 
 			// match parameters
 			Dictionary<string, string> parameters = new();
@@ -204,12 +230,12 @@ namespace LocalHtmlInterop.Handler
 					if (req == null) req = false;
 
 					string? val = null;
-					if (cmd.CommandParameters != null)
+					if (command.Info.CommandParameters != null)
 					{
-						string? k = cmd.CommandParameters.Keys.FirstOrDefault((k) => k.Equals(n, StringComparison.OrdinalIgnoreCase));
+						string? k = command.Info.CommandParameters.Keys.FirstOrDefault((k) => k.Equals(n, StringComparison.OrdinalIgnoreCase));
 						if (k != null)
 						{
-							val = cmd.CommandParameters[k];
+							val = command.Info.CommandParameters[k];
 						}
 					}
 
@@ -251,39 +277,56 @@ namespace LocalHtmlInterop.Handler
 			}
 
 			// if preparation succeeds, build task which runs process, collects output, builds result
-			return Task.Run(() =>
+			lock (command.ResultsLock)
 			{
-				Process p = new() { StartInfo = psi };
-
-				psi.UseShellExecute = false;
-				psi.StandardOutputEncoding = Encoding.UTF8;
-				psi.RedirectStandardOutput = true;
-				psi.StandardErrorEncoding = Encoding.UTF8;
-				psi.RedirectStandardError = true;
-
-				StringBuilder sb = new();
-				var lineRecieved = new DataReceivedEventHandler((object _, DataReceivedEventArgs d) =>
+				command.Result.Status = CommandStatus.Pending;
+			}
+			command.CommandTask = Task.Run(() =>
+			{
+				try
 				{
-					if (d.Data == null) return;
-					sb.Append($"{d.Data}\n");
-				});
-				p.OutputDataReceived += lineRecieved;
-				p.ErrorDataReceived += lineRecieved;
+					Process p = new() { StartInfo = psi };
 
-				p.Start();
-				p.BeginOutputReadLine();
-				p.BeginErrorReadLine();
+					psi.UseShellExecute = false;
+					psi.StandardOutputEncoding = Encoding.UTF8;
+					psi.RedirectStandardOutput = true;
+					psi.StandardErrorEncoding = Encoding.UTF8;
+					psi.RedirectStandardError = true;
 
-				p.WaitForExit();
-				int exitCode = p.ExitCode;
-				p.Close();
+					var lineRecieved = new DataReceivedEventHandler((object _, DataReceivedEventArgs d) =>
+					{
+						if (d.Data == null) return;
+						lock (command.ResultsLock)
+						{
+							command.Result.Output += d.Data + "\n";
+						}
+					});
+					p.OutputDataReceived += lineRecieved;
+					p.ErrorDataReceived += lineRecieved;
 
-				return new CommandResult()
+					p.Start();
+
+					p.BeginOutputReadLine();
+					p.BeginErrorReadLine();
+
+					p.WaitForExit();
+					int exitCode = p.ExitCode;
+					p.Close();
+
+					lock (command.ResultsLock)
+					{
+						command.Result.ExitCode = exitCode;
+						command.Result.Status = CommandStatus.Completed;
+					}
+				}
+				catch (Exception ex)
 				{
-					ExitCode = exitCode,
-					Output = sb.ToString(),
-					Status = CommandStatus.Completed
-				};
+					lock (command.ResultsLock)
+					{
+						command.Result.Output = ex.ToString();
+						command.Result.Status = CommandStatus.Error;
+					}
+				}
 			});
 		}
 	}

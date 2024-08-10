@@ -3,7 +3,7 @@
 	internal enum CommandStatus
 	{
 		Unknown,
-		Pending,
+		Pending, //< also used when a partial answer is returned
 		Error,
 		Completed
 	}

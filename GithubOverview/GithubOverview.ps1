@@ -19,7 +19,7 @@ $extraRepos = @("jtippet/IcoTools", "mifi/lossless-cut", "FreshRSS/FreshRSS")
 #  - I am the repo owner
 #  - I am author of PR/issue or assigned
 #  - I participated in discussion
-# For now, just remove PRs/issues in foreigh repos:
+# For now, just remove PRs/issues in foreign repos:
 $reposNoIssues = @("jtippet/IcoTools", "mifi/lossless-cut", "FreshRSS/FreshRSS")
 $reposNoPRs = @("jtippet/IcoTools", "mifi/lossless-cut", "FreshRSS/FreshRSS")
 
@@ -46,7 +46,20 @@ $myUserRepos = $myUserRepos | Where-Object { $_.name -notin $myUserReposToIgnore
 $repos += $myUserRepos
 $extraRepos | ForEach-Object { $repos += (gh repo view $_ --json $repoJsonFields) | ConvertFrom-Json }
 
-$repos = $repos | Sort-Object -Property @{Expression="isArchived";Descending=$false},@{Expression="isFork";Descending=$false},@{Expression="name";Descending=$false}
+# sort owner, making default user empty name => first in list
+for ($i = 0; $i -lt $repos.length; $i++) {
+	$otherOwnerLogin = $repos[$i].owner.login
+	if ($otherOwnerLogin -eq $defaultUser) {
+		$otherOwnerLogin = ""
+	}
+	$repos[$i] | Add-Member -Name otherownerlogin -Type NoteProperty -Value $otherOwnerLogin
+}
+
+$repos = $repos | Sort-Object -Property @{Expression="isArchived";Descending=$false},@{Expression="isFork";Descending=$false},@{Expression="otherownerlogin";Descending=$false},@{Expression="name";Descending=$false}
+
+# Write-Host "## Repos post sort:"
+# $repos | ForEach-Object { Write-Host "$($_.isArchived ? "a" : "-")$($_.isFork ? "f" : "-")$($_.isPrivate ? "p" : "-") $($_.owner.login)/$($_.name) $($_.otherownerlogin)" }
+# Write-Host "## END"
 
 function IssueInfo {
 	param(
@@ -82,7 +95,7 @@ function IssueInfo {
 				}
 			}
 			@{date=$date;comment=$_}
-		} | Sort date))[-1]
+		} | Sort-Object date))[-1]
 		# $o["comments"]["last_raw"] = $lastComment
 		$o["comments"]["last_date"] = $lastComment["date"]
 		$o["comments"]["last_by"] = "$($lastComment["comment"].author.login) ($($lastComment["comment"].author.name))"		

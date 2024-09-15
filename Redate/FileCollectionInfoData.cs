@@ -1,8 +1,10 @@
-﻿using System;
+﻿using SGrottel;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Redate
@@ -22,6 +24,9 @@ namespace Redate
 		public string[] SourceDirs { get; set; } = null;
 
 		public FileInfoData[] Files { get; set; } = null;
+
+		[JsonIgnore]
+		public required ISimpleLog Log { get; set; }
 
 		internal void Collect(string[] sourceDirs)
 		{
@@ -78,16 +83,13 @@ namespace Redate
 			//     md5 inequal --> files
 			//       use known --> set date & attributes on existing file
 
-			Console.WriteLine();
 			List<FileInfoData> kfs = new List<FileInfoData>();
 			foreach (FileInfoData fid in Files)
 			{
-				Console.Write(fid.Path + " - ");
-
 				FileInfoData newfid = files.Files.FirstOrDefault((FileInfoData i) => { return i.Path.Equals(fid.Path, StringComparison.InvariantCultureIgnoreCase); });
 				if (newfid == null)
 				{
-					Console.WriteLine("Removed");
+					Log.Write(fid.Path + " - Removed");
 					retval = true;
 					continue; // skip fid, will kill it
 				}
@@ -95,14 +97,14 @@ namespace Redate
 				if (newfid.Length != fid.Length)
 				{
 					kfs.Add(newfid);
-					Console.WriteLine("Size changed");
+					Log.Write(fid.Path + " - Size changed");
 					retval = true;
 					continue;
 				}
 				if (!newfid.Md5Hash.Equals(fid.Md5Hash, StringComparison.InvariantCultureIgnoreCase))
 				{
 					kfs.Add(newfid);
-					Console.WriteLine("Content changed");
+					Log.Write(fid.Path + " - Content changed");
 					retval = true;
 					continue;
 				}
@@ -110,7 +112,7 @@ namespace Redate
 				// length and md5 are equal
 				if (newfid.Attributes != fid.Attributes || newfid.WriteTime != fid.WriteTime)
 				{
-					Console.WriteLine("Restoring Date and Attributes");
+					Log.Write(fid.Path + " - Restoring Date and Attributes");
 					// set file info
 					System.IO.File.SetLastWriteTimeUtc(fid.Path, fid.WriteTime);
 					System.IO.File.SetAttributes(fid.Path, fid.Attributes);
@@ -121,7 +123,7 @@ namespace Redate
 					continue;
 				}
 
-				Console.WriteLine("Unchanged");
+				Log.Write(fid.Path + " - Unchanged");
 				kfs.Add(fid);
 			}
 
@@ -129,12 +131,10 @@ namespace Redate
 			{
 				FileInfoData oldfid = Files.FirstOrDefault((FileInfoData i) => { return i.Path.Equals(fid.Path, StringComparison.InvariantCultureIgnoreCase); });
 				if (oldfid != null) continue; // already there
-				Console.WriteLine(fid.Path + " - Added");
+				Log.Write(fid.Path + " - Added");
 				retval = true;
 				kfs.Add(fid); // new --> add
 			}
-
-			Console.WriteLine();
 
 			Files = kfs.ToArray();
 

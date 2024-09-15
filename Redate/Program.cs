@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SGrottel;
 using System;
 using System.Globalization;
 using System.Text;
@@ -19,6 +20,7 @@ namespace Redate
 		static int Main(string[] args)
 		{
 			Console.WriteLine("Redate");
+			EchoingSimpleLog log = new();
 
 			try
 			{
@@ -30,7 +32,7 @@ namespace Redate
 				catch
 				{
 					Console.WriteLine();
-					Console.WriteLine("Error parsing command line.");
+					SimpleLog.Error(log, "Error parsing command line.");
 					Console.WriteLine();
 
 					CmdLineParser.PrintHelp();
@@ -41,52 +43,53 @@ namespace Redate
 				switch (cmd.RunMode)
 				{
 					case RunMode.Init:
-						Console.WriteLine("Init");
+						log.Write("Init");
 						{
-							Console.WriteLine("Collecting Data");
+							log.Write("Collecting Data");
 							string targetDir = System.IO.Path.GetDirectoryName(cmd.RedateFile) + '\\';
-							FileCollectionInfoData files = new FileCollectionInfoData();
+							FileCollectionInfoData files = new FileCollectionInfoData() { Log = log };
 							files.Collect(cmd.SourceDirs);
 							files.SourceDirsToRelative(targetDir);
 
-							Console.WriteLine("Compute MD5s");
+							log.Write("Compute MD5s");
 							foreach (var f in files.Files)
 							{
 								f.ComputeMd5Hash();
 								f.PathToRelative(targetDir);
 							}
 
-							Console.WriteLine("Saving " + System.IO.Path.GetFileName(cmd.RedateFile));
+							log.Write("Saving " + System.IO.Path.GetFileName(cmd.RedateFile));
 							files.FileDate = DateTime.Now;
 							JsonSerializerSettings s = new JsonSerializerSettings();
 							s.Culture = CultureInfo.InvariantCulture;
 							s.Formatting = Formatting.Indented;
 							System.IO.File.WriteAllText(cmd.RedateFile, JsonConvert.SerializeObject(files, s), new UTF8Encoding(false));
 						}
-						Console.WriteLine("Done");
+						log.Write("Done");
 						break;
 
 					case RunMode.Run:
-						Console.WriteLine("Run");
+						log.Write("Run");
 						{
-							Console.WriteLine("Loading " + System.IO.Path.GetFileName(cmd.RedateFile));
+							log.Write("Loading " + System.IO.Path.GetFileName(cmd.RedateFile));
 							FileCollectionInfoData knownFiles = JsonConvert.DeserializeObject<FileCollectionInfoData>(System.IO.File.ReadAllText(cmd.RedateFile));
+							knownFiles.Log = log;
 							string targetDir = System.IO.Path.GetDirectoryName(cmd.RedateFile) + '\\';
 							knownFiles.SourceDirsToAbsolute(targetDir);
 							foreach (var f in knownFiles.Files) f.PathToAbsolute(targetDir);
 
-							Console.WriteLine("Collecting Data");
-							FileCollectionInfoData files = new FileCollectionInfoData();
+							log.Write("Collecting Data");
+							FileCollectionInfoData files = new FileCollectionInfoData() { Log = log };
 							files.Collect(knownFiles.SourceDirs);
-							Console.WriteLine("Compute MD5s");
+							log.Write("Compute MD5s");
 							foreach (var f in files.Files) f.ComputeMd5Hash();
 
-							Console.WriteLine("Updating");
+							log.Write("Updating");
 							bool isUpdated = knownFiles.Update(files);
 
 							if (isUpdated || cmd.ForceFileDateUpdate)
 							{
-								Console.WriteLine("Saving " + System.IO.Path.GetFileName(cmd.RedateFile));
+								log.Write("Saving " + System.IO.Path.GetFileName(cmd.RedateFile));
 								knownFiles.SourceDirsToRelative(targetDir);
 								foreach (var f in knownFiles.Files) f.PathToRelative(targetDir);
 								knownFiles.FileDate = DateTime.Now;
@@ -96,22 +99,22 @@ namespace Redate
 								System.IO.File.WriteAllText(cmd.RedateFile, JsonConvert.SerializeObject(knownFiles, s), new UTF8Encoding(false));
 							}
 							else
-                            {
-								Console.WriteLine("Files unchanged - No need to save.");
-                            }
+							{
+								log.Write("Files unchanged - No need to save.");
+							}
 
 						}
-						Console.WriteLine("Done");
+						log.Write("Done");
 						break;
 					case RunMode.FileReg:
-						Console.WriteLine("File Type Registration");
+						log.Write("File Type Registration");
 						FileTypeReg.Register();
-						Console.WriteLine("Done");
+						log.Write("Done");
 						break;
 					case RunMode.FileUnreg:
-						Console.WriteLine("File Type Unregistration");
+						log.Write("File Type Unregistration");
 						FileTypeReg.Unregister();
-						Console.WriteLine("Done");
+						log.Write("Done");
 						break;
 					default:
 						throw new NotImplementedException();
@@ -120,7 +123,7 @@ namespace Redate
 			}
 			catch (Exception ex)
 			{
-				Console.Error.WriteLine("Fatal error: " + ex);
+				SimpleLog.Error(log, "Fatal error: " + ex);
 				WaitBeforeClosingConsole();
 				return -1;
 			}

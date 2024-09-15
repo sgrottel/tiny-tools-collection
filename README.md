@@ -6,6 +6,8 @@ Assortment of tiny, tiny tools.
 These are independent tools.
 Each one is too tiny to justify a repository of it's own.
 
+[![GitHub Release](https://img.shields.io/github/v/release/sgrottel/tiny-tools-collection?label=last%20release)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)
+[![GitHub Release Date](https://img.shields.io/github/release-date/sgrottel/tiny-tools-collection)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)
 [![GitHub](https://img.shields.io/github/license/sgrottel/tiny-tools-collection)](./LICENSE)
 
 <br clear="both"/>

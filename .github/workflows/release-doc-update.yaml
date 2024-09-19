@@ -34,3 +34,5 @@ jobs:
       run: |
         cd temp
         git status -u
+        git commit -a -m "Updated tools release summary doc"
+        git push

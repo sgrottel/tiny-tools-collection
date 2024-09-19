@@ -1,0 +1,45 @@
+name: release doc update
+
+on:
+  release:
+    types: [published,edited]
+  workflow_dispatch:
+
+concurrency:
+  group: wiki
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Checkout wiki code
+      uses: actions/checkout@v4
+      with:
+        repository: ${{github.repository}}.wiki
+        path: temp-wiki
+
+    - name: Update Release Doc
+      shell: pwsh
+      run: |
+        .\Scripts\update-tiny-tools-release-summary.ps1 .\temp-wiki\releases
+
+    - name: Commit Wiki Repo
+      shell: pwsh
+      run: |
+        cd temp-wiki
+        git status -u
+        git config --global user.email "sgrottel@sgrottel.de"
+        git config --global user.name "Github Doc Bot"
+        git add .
+        git commit -m "Updated tools release summary doc"
+        git push origin master

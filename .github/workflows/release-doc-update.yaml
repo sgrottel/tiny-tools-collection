@@ -7,6 +7,13 @@ on:
     branches: [ "release-badges" ]
   workflow_dispatch:
 
+concurrency:
+  group: wiki
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -17,22 +24,25 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Clone Wiki Repo
-      shell: pwsh
-      run: |
-        mkdir temp
-        cd temp
-        git clone https://github.com/sgrottel/tiny-tools-collection.wiki.git .
+    - name: Checkout wiki code
+      uses: actions/checkout@v4
+      with:
+        repository: ${{github.repository}}.wiki
+        path: temp-wiki
 
     - name: Update Release Doc
       shell: pwsh
       run: |
-        .\Scripts\update-tiny-tools-release-summary.ps1 .\temp\releases
+        .\Scripts\update-tiny-tools-release-summary.ps1 .\temp-wiki\releases
 
     - name: Commit Wiki Repo
       shell: pwsh
       run: |
-        cd temp
+        cd temp-wiki
         git status -u
-        git commit -a -m "Updated tools release summary doc"
-        git push
+        git config --global user.email "sgrottel@sgrottel.de"
+        git config --global user.name "Github Doc Bot"
+        git add .
+        git commit -m "Updated tools release summary doc"
+        Write-Host "We are here!"
+        git push origin master

@@ -7,11 +7,15 @@ param (
 )
 $ErrorActionPreference = "Stop"
 
+
+#
+# Update 'index.json' based on latest/selected release assets
+#
 $index = [ordered]@{};
 $indexJson = Join-Path $ReportDirectory "index.json"
-
 if (Test-Path $indexJson -PathType Leaf)
 {
+    Write-Host "Loading 'index.json'..."
     $index = Get-Content $indexJson | ConvertFrom-Json -AsHashtable
 }
 
@@ -35,6 +39,10 @@ if ($releaseInfo.StatusCode -ne 200)
 }
 $releaseInfo = $releaseInfo.Content | ConvertFrom-Json
 
+
+#
+# For all assets, check if the releases are known
+#
 $releaseInfo.Assets | ForEach-Object {
     if ($_.name -match "^(.+)-([\d\.]+)\.zip$") {
         $key = $matches[1]
@@ -46,12 +54,13 @@ $releaseInfo.Assets | ForEach-Object {
         }
 
         if (-not ($index[$key]["version"] -eq $versionStr)) {
-            $index[$key].Add("version", $versionStr)
-            $index[$key].Add("date", $null)
-            $index[$key].Add("hash", $null)
+            Write-Host "New release: $key $versionStr"
+            $index[$key]["version"] = $versionStr;
+            $index[$key]["date"] = $null;
+            $index[$key]["hash"] = $null;
         }
 
-        if (-not ($index[$key]["date"] -or $index[$key]["hash"])) {
+        if (-not ($index[$key]["date"] -and $index[$key]["hash"])) {
             Write-Host "Searching Release date for $key ($versionStr)..."
             # Search for release date
             # Check build actions
@@ -99,3 +108,69 @@ $releaseInfo.Assets | ForEach-Object {
 }
 
 $index | ConvertTo-Json -Depth 100 | Set-Content $indexJson
+
+
+#
+# Build / update badges
+#
+function FetchOrUpdateBadge
+{
+    param(
+        [string]$filename,
+        [string]$label,
+        [string]$value
+    )
+    $file = Join-Path $ReportDirectory $filename
+    if (Test-Path $file -PathType Leaf) {
+        $c = [string](Get-Content $file -Raw)
+        if ($c.Contains("${label}: $value")) {
+            # Badge is up to date
+            return
+        }
+    }
+
+    Write-Host "Creating Badge $filename := $value"
+
+    $escapedLabel = $label -replace ' ', '_'
+    $escapedValue = $value -replace '-', '--'
+    $h = Get-Random -Minimum 90 -Maximum 331 # no red-ish
+    $s = Get-Random -Minimum 60 -Maximum 81
+    $l = Get-Random -Minimum 30 -Maximum 71
+    $color = [System.Uri]::EscapeUriString("hsl($h,$s%,$l%)")
+    $url = "https://img.shields.io/badge/$escapedLabel-$escapedValue-$color"
+    Invoke-WebRequest $url -OutFile $file
+}
+
+foreach($key in $index.Keys) {
+    $ver = $index[$key]["version"]
+    $date = ([DateTime]$index[$key]["date"]).ToString("yyyy-MM-dd")
+
+    FetchOrUpdateBadge "$key-ver.svg" "Latest Release" ("v" + ([char]0x200A) + "$ver")
+    FetchOrUpdateBadge "$key-date.svg" "Release Date" $date
+}
+
+
+#
+# Build / update overview page
+#
+$urlPath = "https://raw.githubusercontent.com/wiki/sgrottel/tiny-tools-collection/releases/"
+$txt = @'
+# Tools Releases
+This page shows an overview over all tools wiithin the Tiny Tools Collection, their latest release version, date of the latest release, and the git commit hash.
+
+All assets are available within the [latest release](https://github.com/sgrottel/tiny-tools-collection/releases/latest).
+
+The following table is sorted by release date, newest to oldest release.
+
+| Name | Last Release | Git Hash |
+| --- | --- | --- |
+
+'@
+foreach($key in $index.Keys | Sort-Object { $index[$_]["date"] } -Descending) {
+    $hash = $index[$key]["hash"]
+    $ver = $index[$key]["version"]
+    $date = ([DateTime]$index[$key]["date"]).ToString("yyyy-MM-dd")
+    $txt += "| $key | ![v$ver]($urlPath$key-ver.svg) ![$date]($urlPath$key-date.svg) | " + `
+    "[$hash](https://github.com/sgrottel/tiny-tools-collection/commit/$hash) |`n"
+}
+Set-Content (Join-Path $ReportDirectory "Tools Releases.md") $txt

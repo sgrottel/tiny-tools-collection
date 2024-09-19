@@ -1,0 +1,36 @@
+name: release doc update
+
+on:
+  release:
+    types: [published,edited]
+  push:
+    branches: [ "release-badges" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Clone Wiki Repo
+      shell: pwsh
+      run: |
+        mkdir temp
+        cd temp
+        git clone https://github.com/sgrottel/tiny-tools-collection.wiki.git .
+
+    - name: Update Release Doc
+      shell: pwsh
+      run: |
+        .\Scripts\update-tiny-tools-release-summary.ps1 .\temp\releases
+
+    - name: Commit Wiki Repo
+      shell: pwsh
+      run: |
+        cd temp
+        git status -u

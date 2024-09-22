@@ -367,3 +367,5 @@ desktop.ini
 DimMon/Properties
 **/Properties/launchSettings.json
 !**/Properties/PublishProfiles/FolderProfile.pubxml
+little-starter/bin
+little-starter/obj

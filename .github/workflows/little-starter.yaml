@@ -1,0 +1,98 @@
+name: little-starter Build Action
+
+on:
+  push:
+    branches: [ "main", "repo-migration" ]
+    paths:
+    - .github/workflows/little-starter.yaml
+    - little-starter/**
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - .github/workflows/little-starter.yaml
+    - little-starter/**
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Install the .NET Core workload
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Inject build number
+      shell: pwsh
+      run: |
+        $csproj = New-Object System.XML.XMLDocument
+        $csprojPath = Resolve-Path ".\little-starter\app.csproj"
+        $csproj.Load($csprojPath)
+        $targetFramework = $csproj.Project.PropertyGroup.TargetFramework
+        $version = New-Object System.Version $csproj.Project.PropertyGroup.Version
+        $version = New-Object System.Version @( $version.Major, $version.Minor, ([System.Math]::Max(0, $version.Build)), $env:GITHUB_RUN_NUMBER )
+        Write-Host "Version number: $version"
+        $csproj.Project.PropertyGroup.Version = $version.ToString()
+        $csproj.Save($csprojPath)
+        Write-Output "FULL_VERSION_NUMBER=$version" >> $env:GITHUB_ENV
+        Write-Output "TARGET_FRAMEWORK=$targetFramework" >> $env:GITHUB_ENV
+
+    - name: Build application
+      run: dotnet build --configuration ${{ matrix.configuration }} --no-restore ./little-starter/app.csproj
+
+    - name: Create and Copy Release Files
+      shell: pwsh
+      run: |
+        @{
+        "_type" = "ComponentSourceManifest";
+        "_version" = 1;
+        "components" = @( @{
+            "name" = "Little Starter";
+            "source" = @( @{
+                "type" = "git";
+                "url" = "https://github.com/sgrottel/little-starter.git";
+                "hash" = "${{github.sha}}";
+                "version" = "${{env.FULL_VERSION_NUMBER}}";
+                "subset" = "github releases"
+            } )
+        } ) } | ConvertTo-Json -Depth 10 > "little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/ComponentSource.json"
+
+        copy ".\little-starter\LICENSE" "little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/LICENSE"
+
+        $lines = [System.Collections.ArrayList](get-content ".\little-starter\README.md")
+        $lines.Insert(2, "Version ${{env.FULL_VERSION_NUMBER}}")
+        $lines = ( $lines | foreach { $_ -replace '\]\(\./','](https://github.com/sgrottel/little-starter/blob/main/' } )
+        $newLines = @()
+        $inc = $true
+        $lines | foreach { if ($_ -match "\s*<!---\s+START\s+STRIP\s+-->\s*") { $inc = $false; } elseif ($_ -match "\s*<!---\s+END\s+STRIP\s+-->\s*") { $inc = $true } elseif ($inc) { $newLines += $_ } }
+        set-content "little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/README.md" $newLines
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: little-starter-${{env.FULL_VERSION_NUMBER}}-${{matrix.configuration}}
+        path: |
+          little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}
+          !little-starter/bin/**/*.pdb
+          !little-starter/bin/**/LittleStarterConfig.yaml
+        if-no-files-found: error
+
+    - name: Upload PDB Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: little-starter-${{env.FULL_VERSION_NUMBER}}-${{matrix.configuration}}-pdb
+        path: little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/*.pdb
+        if-no-files-found: ignore

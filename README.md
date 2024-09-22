@@ -69,6 +69,7 @@ Can also start an application and bring that's window to front.
 Wrapper utility to open a [KeePass](https://keepass.info/) DB or trigger the Auto-Type Feature
 
 ## ✨ Little Starter
+[![little-starter Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/little-starter.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/little-starter.yaml)
 
 Automate the typical "open apps & files" task when you start your working session.
 

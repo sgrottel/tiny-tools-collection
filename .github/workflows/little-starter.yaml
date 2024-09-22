@@ -2,7 +2,7 @@ name: little-starter Build Action
 
 on:
   push:
-    branches: [ "main", "repo-migration" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/little-starter.yaml
     - little-starter/**
@@ -74,7 +74,7 @@ jobs:
 
         $lines = [System.Collections.ArrayList](get-content ".\little-starter\README.md")
         $lines.Insert(2, "Version ${{env.FULL_VERSION_NUMBER}}")
-        $lines = ( $lines | foreach { $_ -replace '\]\(\./','](https://github.com/sgrottel/little-starter/blob/main/' } )
+        $lines = ( $lines | foreach { $_ -replace '\]\(\./','](https://github.com/sgrottel/tiny-tools-collection/blob/main/little-starter/' } )
         $newLines = @()
         $inc = $true
         $lines | foreach { if ($_ -match "\s*<!---\s+START\s+STRIP\s+-->\s*") { $inc = $false; } elseif ($_ -match "\s*<!---\s+END\s+STRIP\s+-->\s*") { $inc = $true } elseif ($inc) { $newLines += $_ } }
@@ -82,17 +82,19 @@ jobs:
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
+      if: ${{ matrix.configuration == 'Release' }}
       with:
-        name: little-starter-${{env.FULL_VERSION_NUMBER}}-${{matrix.configuration}}
+        name: little-starter-${{env.FULL_VERSION_NUMBER}}
+        # name: little-starter-${{env.FULL_VERSION_NUMBER}}-${{matrix.configuration}}
         path: |
           little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}
           !little-starter/bin/**/*.pdb
           !little-starter/bin/**/LittleStarterConfig.yaml
         if-no-files-found: error
 
-    - name: Upload PDB Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: little-starter-${{env.FULL_VERSION_NUMBER}}-${{matrix.configuration}}-pdb
-        path: little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/*.pdb
-        if-no-files-found: ignore
+    # - name: Upload PDB Artifacts
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: little-starter-${{env.FULL_VERSION_NUMBER}}-${{matrix.configuration}}-pdb
+    #     path: little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/*.pdb
+    #     if-no-files-found: ignore

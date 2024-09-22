@@ -1,5 +1,5 @@
 ﻿desktop.ini
 .vs
-app/bin
-app/obj
+little-starter/bin
+little-starter/obj
 *.user

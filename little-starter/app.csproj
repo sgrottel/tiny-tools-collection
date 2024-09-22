@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>LittleStarter</AssemblyName>
     <RootNamespace>LittleStarter</RootNamespace>
-    <ApplicationIcon>..\doc\imgs\little-starter.ico</ApplicationIcon>
+    <ApplicationIcon>doc\imgs\little-starter.ico</ApplicationIcon>
     <Title>Little Starter™</Title>
     <Authors>SGrottel</Authors>
     <Company></Company>
@@ -20,15 +20,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\doc\imgs\little-starter.ico" />
+    <Content Include="doc\imgs\little-starter.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\LICENSE">
+    <None Include="LICENSE">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Include="..\README.md">
+    <None Include="README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

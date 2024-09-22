@@ -1,10 +1,16 @@
-name: Build Action
+name: little-starter Build Action
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "repo-migration" ]
+    paths:
+    - .github/workflows/little-starter.yaml
+    - little-starter/**
   pull_request:
     branches: [ "main" ]
+    paths:
+    - .github/workflows/little-starter.yaml
+    - little-starter/**
   workflow_dispatch:
 
 jobs:
@@ -33,7 +39,7 @@ jobs:
       shell: pwsh
       run: |
         $csproj = New-Object System.XML.XMLDocument
-        $csprojPath = Resolve-Path ".\app\app.csproj"
+        $csprojPath = Resolve-Path ".\little-starter\app.csproj"
         $csproj.Load($csprojPath)
         $targetFramework = $csproj.Project.PropertyGroup.TargetFramework
         $version = New-Object System.Version $csproj.Project.PropertyGroup.Version
@@ -45,7 +51,7 @@ jobs:
         Write-Output "TARGET_FRAMEWORK=$targetFramework" >> $env:GITHUB_ENV
 
     - name: Build application
-      run: dotnet build --configuration ${{ matrix.configuration }} --no-restore
+      run: dotnet build --configuration ${{ matrix.configuration }} --no-restore ./little-starter/app.csproj
 
     - name: Create and Copy Release Files
       shell: pwsh
@@ -62,31 +68,31 @@ jobs:
                 "version" = "${{env.FULL_VERSION_NUMBER}}";
                 "subset" = "github releases"
             } )
-        } ) } | ConvertTo-Json -Depth 10 > "app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/ComponentSource.json"
+        } ) } | ConvertTo-Json -Depth 10 > "little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/ComponentSource.json"
 
-        copy ".\LICENSE" "app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/LICENSE"
+        copy ".\little-starter\LICENSE" "little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/LICENSE"
 
-        $lines = [System.Collections.ArrayList](get-content ".\README.md")
+        $lines = [System.Collections.ArrayList](get-content ".\little-starter\README.md")
         $lines.Insert(2, "Version ${{env.FULL_VERSION_NUMBER}}")
         $lines = ( $lines | foreach { $_ -replace '\]\(\./','](https://github.com/sgrottel/little-starter/blob/main/' } )
         $newLines = @()
         $inc = $true
         $lines | foreach { if ($_ -match "\s*<!---\s+START\s+STRIP\s+-->\s*") { $inc = $false; } elseif ($_ -match "\s*<!---\s+END\s+STRIP\s+-->\s*") { $inc = $true } elseif ($inc) { $newLines += $_ } }
-        set-content "app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/README.md" $newLines
+        set-content "little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/README.md" $newLines
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: little-starter-${{env.FULL_VERSION_NUMBER}}-${{matrix.configuration}}
         path: |
-          app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}
-          !app/bin/**/*.pdb
-          !app/bin/**/LittleStarterConfig.yaml
+          little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}
+          !little-starter/bin/**/*.pdb
+          !little-starter/bin/**/LittleStarterConfig.yaml
         if-no-files-found: error
 
     - name: Upload PDB Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: little-starter-${{env.FULL_VERSION_NUMBER}}-${{matrix.configuration}}-pdb
-        path: app/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/*.pdb
+        path: little-starter/bin/${{matrix.configuration}}/${{env.TARGET_FRAMEWORK}}/*.pdb
         if-no-files-found: ignore

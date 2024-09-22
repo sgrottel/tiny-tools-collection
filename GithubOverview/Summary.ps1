@@ -47,6 +47,7 @@ $repos = $repos | ForEach-Object {
         isArchived=$_.isArchived;
         isPrivate=$_.isPrivate;
         isForkBehind=$false;
+        updatedAt=($_.pushedAt -gt $_.updatedAt) ? $_.pushedAt : $_.updatedAt;
     }
 
     if ($sum.isFork) {

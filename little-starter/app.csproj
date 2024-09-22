@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>LittleStarter</AssemblyName>
+    <RootNamespace>LittleStarter</RootNamespace>
+    <ApplicationIcon>doc\imgs\little-starter.ico</ApplicationIcon>
+    <Title>Little Starter™</Title>
+    <Authors>SGrottel</Authors>
+    <Company></Company>
+    <Description>Automate the typical "open apps &amp; files" task when you start your working session.</Description>
+    <Copyright>2022-2024 by SGrottel</Copyright>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Version>0.7.2</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="doc\imgs\little-starter.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SGrottel.SimpleLog.CSharp" Version="2.4.1" />
+    <PackageReference Include="YamlDotNet" Version="16.1.2" />
+  </ItemGroup>
+
+</Project>

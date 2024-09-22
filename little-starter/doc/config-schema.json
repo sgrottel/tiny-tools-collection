@@ -1,0 +1,83 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://go.grottel.net/little-starter/config-schema.json",
+	"title": "Little Starter™ Configuration Schema",
+	"description": "Schema for the Little Starter™ configuration yaml file",
+	"type": "object",
+	"properties": {
+		"version": {
+			"description": "Optional file format version",
+			"enum": [
+				1.0,
+				"1.0"
+			]
+		},
+		"log": {
+			"description": "Configuration of runtime log files",
+			"type": "object",
+			"properties": {
+				"path": {
+					"description": "The filesystem path to write the log files in",
+					"type": "string"
+				}
+			}
+		},
+		"actions": {
+			"description": "Configured start actions",
+			"type": "array",
+			"uniqueItems": true,
+			"items": {
+				"description": "A start action",
+				"type": "object",
+				"properties": {
+					"name": {
+						"description": "Name, human-readable, of the start action to be shown in UI",
+						"type": "string",
+						"minLength": 1
+					},
+					"filename": {
+						"description": "filename to start the process for the action",
+						"type": "string"
+					},
+					"argumentList": {
+						"description": "Start arguments when starting the process",
+						"type": "array"
+					},
+					"workingDirectory": {
+						"description": "Working directory to start the new process in",
+						"type": "string"
+					},
+					"icon": {
+						"description": "UI icon identifier for the start action",
+						"type": "string"
+					},
+					"isSelectedByDefault": {
+						"description": "When specified true this start action is selected by default when the Little Starter™ app launches",
+						"type": "boolean"
+					},
+					"isSelectedIf": {
+						"description": "References the name of another start action. If that action is selected, then this action will be selected as well.",
+						"type": "string"
+					},
+					"useShellExecute": {
+						"description": "When specified true the new process will be launched using the Windows Shell",
+						"type": "boolean"
+					},
+					"delay": {
+						"description": "Start delay in seconds",
+						"type": "number",
+						"minimum": 0
+					}
+				},
+				"required": [
+					"name",
+					"filename"
+				]
+			}
+		}
+	},
+	"required": [
+		"version",
+		"actions"
+	]
+}

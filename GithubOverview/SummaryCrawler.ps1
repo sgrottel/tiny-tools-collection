@@ -20,8 +20,7 @@ if ($LastExitCode -eq 0) {
 }
 
 if (-not (($sum -is [string]) -and ($sum.StartsWith('ERROR:')))) {
-    # TODO: Format
-    $sum = $sum | Format-Table
+    $sum = $sum | .\SummaryHtmlFormat.ps1
 }
 
 # TODO: Publish

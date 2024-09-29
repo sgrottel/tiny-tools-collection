@@ -21,6 +21,8 @@ if ($LastExitCode -eq 0) {
 
 if (-not (($sum -is [string]) -and ($sum.StartsWith('ERROR:')))) {
     $sum = $sum | .\SummaryHtmlFormat.ps1
+} else {
+    $sum = "<div style=`"background-color:black;padding:0.5em;color:crimson`"><pre><code>" + $sum + "</code></pre></div>";
 }
 
 # TODO: Publish

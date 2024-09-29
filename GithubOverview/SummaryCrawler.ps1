@@ -1,6 +1,9 @@
 #
 # Script to crawl and publish summary
 #
+$ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+Set-Location $PSScriptRoot
 
 gh auth status 2>&1 | Out-Null
 if ($LastExitCode -ne 0) {

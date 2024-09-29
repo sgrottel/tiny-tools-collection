@@ -369,3 +369,4 @@ DimMon/Properties
 !**/Properties/PublishProfiles/FolderProfile.pubxml
 GithubOverview/*.yaml
 GithubOverview/test.html
+GithubOverview/ghtoken.txt

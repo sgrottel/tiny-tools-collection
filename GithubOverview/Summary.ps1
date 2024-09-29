@@ -9,22 +9,38 @@
 #   .\Summary.ps1 | Format-Table
 #   .\Summary.ps1 | Format-Table name,url,issuesCnt,@{Name="hotIssuesCnt";Expression={$esc=[char]27;($_.hotIssuesCnt -gt 0) ? "$esc[31m$($_.hotIssuesCnt)$esc[0m": "0"};Alignment='Right'},@{Name="prCnt";Expression={$esc=[char]27;($_.prCnt -gt 0) ? "$esc[31m$($_.prCnt)$esc[0m": "0"};Alignment='Right'},isFork,isArchived,isPrivate,isForkBehind
 #
+param(
+    [switch]$scripting
+)
+
 $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 # check github.cli authentication status
-$authStat = (gh auth status) | Out-String
+$authStat = (gh auth status 2>&1) | Out-String
 if ($LastExitCode -ne 0) {
-	Write-Error "You are not logged in with the github.cli 'gh'`nPlease, run: gh auth login"
-	exit
+    if ($scripting) {
+        "ERROR: gh not logged in"
+    } else {
+        Write-Error "You are not logged in with the github.cli 'gh'`nPlease, run: gh auth login"
+    }
+    exit
 }
 if ($authStat -match 'Logged in to github.com account (\w+)')
 {
     $defaultUser = $Matches[1].Trim()
 }
+elseif ($authStat -match 'Logged in to github.com as (\w+)')
+{
+    $defaultUser = $Matches[1].Trim()
+}
 else
 {
-    Write-Error "Failed to identify default user from 'gh auth status'"
+    if ($scripting) {
+        "ERROR: gh user detection failed"
+    } else {
+        Write-Error "Failed to identify default user from 'gh auth status'"
+    }
     exit
 }
 

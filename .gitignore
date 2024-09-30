@@ -370,3 +370,5 @@ DimMon/Properties
 GithubOverview/*.yaml
 GithubOverview/test.html
 GithubOverview/ghtoken.txt
+GithubOverview/log01.txt
+GithubOverview/log02.txt

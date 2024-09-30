@@ -28,6 +28,7 @@ gh auth status 2>&1 | Out-Null
 if ($LastExitCode -eq 0) {
     Add-Content -Path log01.txt -Value "Collecting summary"
     $sum = ./Summary.ps1 -scripting
+    # $sum = Get-Content summary.json | ConvertFrom-Json
     Add-Content -Path log01.txt -Value "Summary collected"
 } else {
     Add-Content -Path log01.txt -Value "Still not logged in gh"
@@ -42,6 +43,13 @@ if (-not (($sum -is [string]) -and ($sum.StartsWith('ERROR:')))) {
     $sum = "<div style=`"background-color:black;padding:0.5em;color:crimson`"><pre><code>" + $sum + "</code></pre></div>";
 }
 
-# TODO: Publish
-$sum
+if (Test-Path "publishconfig.json" -PathType Leaf) {
+    $pubConf = Get-Content "publishconfig.json" | ConvertFrom-Json
+    Add-Content -Path log01.txt -Value "Publishing data"
+    $resp = Invoke-WebRequest $pubConf.url -Method POST -Body $sum -Headers @{ Authorization = ("Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pubConf.user + ":" + $pubConf.pass)))}
+    Add-Content -Path log01.txt -Value (" > Resp: " + $resp)
+} else {
+    Add-Content -Path log01.txt -Value "Publishing error: no config"
+}
+
 Add-Content -Path log01.txt -Value "done."

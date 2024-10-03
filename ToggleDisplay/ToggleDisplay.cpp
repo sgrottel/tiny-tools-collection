@@ -49,7 +49,7 @@ int wmain(int argc, const wchar_t* argv[])
     res = DisplayConfig::Query(DisplayConfig::QueryScope::AllPaths, paths, modes);
     if (res != DisplayConfig::ReturnCode::Success)
     {
-        SimpleLog::Error(log, "Failed to query display config: %s", DisplayConfig::to_string(res));
+        SimpleLog::Error(log, "Failed to query display config: %s", DisplayConfig::to_string(res).c_str());
         return 1;
     }
     DisplayConfig::FilterPaths(paths);
@@ -81,7 +81,7 @@ int wmain(int argc, const wchar_t* argv[])
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res));
+            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
             return 1;
         }
 
@@ -102,7 +102,7 @@ int wmain(int argc, const wchar_t* argv[])
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res));
+            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
             return 1;
         }
 
@@ -123,7 +123,7 @@ int wmain(int argc, const wchar_t* argv[])
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res));
+            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
             return 1;
         }
 

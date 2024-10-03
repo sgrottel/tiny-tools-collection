@@ -7,7 +7,7 @@ begin {
     $txt = "<table>`n<tr>";
     $headers = @("name","issuesCnt","hotIssuesCnt","prCnt","isFork","isArchived","isPrivate","isForkBehind","updatedAt")
     foreach ($h in $headers) {
-        $txt += "<th><code>$h</code></th>";
+        $txt += "<th><small><small><small>$h</small></small></small></th>";
     }
     $txt += "</tr>`n";
 }
@@ -16,7 +16,7 @@ process {
     $o = $Targets[0]
     for ($i = 0; $i -lt $headers.Length; $i++) {
         $s = ($o.($headers[$i])).ToString().Trim()
-        $txt += "<td><code>$s</code></td>";
+        $txt += "<td><small><small><small>$s</small></small></small></td>";
     }
     $txt += "</tr>`n";
 }

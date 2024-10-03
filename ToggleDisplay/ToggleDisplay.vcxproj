@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="CmdLineArgs.cpp" />
     <ClCompile Include="DisplayConfig.cpp" />
+    <ClCompile Include="LogUtility.cpp" />
     <ClCompile Include="ToggleDisplay.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -29,6 +30,8 @@
   <ItemGroup>
     <ClInclude Include="CmdLineArgs.h" />
     <ClInclude Include="DisplayConfig.h" />
+    <ClInclude Include="LogUtility.h" />
+    <ClInclude Include="SimpleLog\SimpleLog.hpp" />
     <ClInclude Include="VersionInfo.h" />
   </ItemGroup>
   <ItemGroup>

@@ -33,20 +33,24 @@ if ($LastExitCode -eq 0) {
 } else {
     Add-Content -Path log01.txt -Value "Still not logged in gh"
     $sum = "ERROR: failed to login gh"
+    $title = "Github Summary - $sum"
 }
 
 if (-not (($sum -is [string]) -and ($sum.StartsWith('ERROR:')))) {
     Add-Content -Path log01.txt -Value "Formatting summary"
+    $numTotalHotIssues = $sum | Select-Object -ExpandProperty hotIssuesCnt | Measure-Object -Sum | Select-Object -ExpandProperty Sum
+    $numTotalPRs = $sum | Select-Object -ExpandProperty prCnt | Measure-Object -Sum | Select-Object -ExpandProperty Sum
+    $title = "Github Summary - $numTotalHotIssues !Issues, $numTotalPRs PRs";
     $sum = $sum | .\SummaryHtmlFormat.ps1
 } else {
     Add-Content -Path log01.txt -Value "Formatting summary error"
-    $sum = "<div style=`"background-color:black;padding:0.5em;color:crimson`"><pre><code>" + $sum + "</code></pre></div>";
+    $sum = "<div style=`"background-color:black;padding:0.5em;color:crimson`"><pre><code>$sum</code></pre></div>";
 }
 
 if (Test-Path "publishconfig.json" -PathType Leaf) {
     $pubConf = Get-Content "publishconfig.json" | ConvertFrom-Json
     Add-Content -Path log01.txt -Value "Publishing data"
-    $resp = Invoke-WebRequest $pubConf.url -Method POST -Body $sum -Headers @{ Authorization = ("Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pubConf.user + ":" + $pubConf.pass)))}
+    $resp = Invoke-WebRequest $pubConf.url -Method POST -Body (@{ title = $title; desc = $sum } | ConvertTo-Json) -ContentType "application/json" -Headers @{ Authorization = ("Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pubConf.user + ":" + $pubConf.pass)))}
     Add-Content -Path log01.txt -Value (" > Resp: " + $resp)
 } else {
     Add-Content -Path log01.txt -Value "Publishing error: no config"

@@ -41,7 +41,7 @@ if (-not (($sum -is [string]) -and ($sum.StartsWith('ERROR:')))) {
     $numTotalHotIssues = $sum | Select-Object -ExpandProperty hotIssuesCnt | Measure-Object -Sum | Select-Object -ExpandProperty Sum
     $numTotalPRs = $sum | Select-Object -ExpandProperty prCnt | Measure-Object -Sum | Select-Object -ExpandProperty Sum
     $title = "Github Summary - $numTotalHotIssues !Issues, $numTotalPRs PRs";
-    $sum = $sum | .\SummaryHtmlFormat.ps1
+    $sum = $sum | .\SummaryHtmlReport.ps1
 } else {
     Add-Content -Path log01.txt -Value "Formatting summary error"
     $sum = "<div style=`"background-color:black;padding:0.5em;color:crimson`"><pre><code>$sum</code></pre></div>";

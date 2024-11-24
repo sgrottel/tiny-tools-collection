@@ -369,3 +369,10 @@ DimMon/Properties
 !**/Properties/PublishProfiles/FolderProfile.pubxml
 little-starter/bin
 little-starter/obj
+GithubOverview/*.yaml
+GithubOverview/test.html
+GithubOverview/ghtoken.txt
+GithubOverview/log01.txt
+GithubOverview/log02.txt
+GithubOverview/publishconfig.json
+GithubOverview/summary.json

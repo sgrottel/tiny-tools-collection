@@ -1,55 +1,207 @@
+#
+# GithubOverview.ps1
+# sgrottel/tiny-tools-collection
+#
+# Requires:
+#   Github.cli "gh" to be installed and authenticated
+#
+# Usage example:
+#   .\GithubOverview.ps1 | ConvertTo-Json | Out-File "GithubOverview-dump.json"
+#
+$ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-Write-Host "🦑 Checking Github CLI authentication status"
-gh auth status
-Write-Host "If not logged in, please run: gh auth login"
+# configuration
+$myUserReposToIgnore = @("clumsy", "FreshRSS")
+$extraRepos = @("jtippet/IcoTools", "mifi/lossless-cut", "FreshRSS/FreshRSS")
 
-$repos = (gh repo list -L 10000 --json "description,id,isArchived,isFork,isPrivate,issues,latestRelease,licenseInfo,name,owner,pullRequests,url,updatedAt,pushedAt") | ConvertFrom-Json
-$repos = $repos | Sort-Object -Property @{Expression="isArchived";Descending=$false},@{Expression="isFork";Descending=$false},@{Expression="name";Descending=$false}
+# TODO: only show PRs/issues if:
+#  - I am the repo owner
+#  - I am author of PR/issue or assigned
+#  - I participated in discussion
+# For now, just remove PRs/issues in foreign repos:
+$reposNoIssues = @("jtippet/IcoTools", "mifi/lossless-cut", "FreshRSS/FreshRSS")
+$reposNoPRs = @("jtippet/IcoTools", "mifi/lossless-cut", "FreshRSS/FreshRSS")
 
-function Write-RepoInfo($repo)
-{
-	Write-Host $repo.name -NoNewLine -F White -B Black
-	if ($repo.isArchived -OR $repo.isPrivate -OR $repo.isFork) { 
-		Write-Host " [" -NoNewLine -F DarkGray -B Black
-		if ($repo.isArchived) { Write-Host "📦Archived" -NoNewLine -F DarkYellow -B Black }
-		if ($repo.isPrivate) { Write-Host "🔒Private" -NoNewLine -F DarkRed -B Black }
-		if ($repo.isFork) { Write-Host "🪧Fork" -NoNewLine -F DarkCyan -B Black }
-		Write-Host "]" -NoNewLine -F DarkGray -B Black
-	}
-	Write-Host " - " -NoNewLine -F DarkGray -B Black
-	$age = -(New-TimeSpan -Start (Get-Date) -End ([datetime]$repo.pushedAt)).TotalDays
-	$ageCol = 'DarkGray'
-	if ($age -lt 1) { $age = "Today (<1 day)"; $ageCol = 'darkgreen' }
-	elseif ($age -lt 2) { $age = "Yesterday (<2 days)"; $ageCol = 'darkgreen' }
-	elseif ($age -lt 30) { $age = ("{0:n0} days" -f $age); $ageCol = 'darkgreen' }
-	elseif ($age -gt 365) {
-		$age = "{0:n1} years" -f ($age / 365)
-	} else {
-		$age = "{0:n1} months" -f ($age / 30.5)
-	}
-	Write-Host $age -F $ageCol -B Black
+$defaultUser = "sgrottel"
+$maxIssues = 10
+$maxMsgLen = 60
 
-	$issues = [int]($repo.issues.totalCount)
-	if ($issues -gt 0) {
-		if ($issues -eq 1) { $issues = "1 open Issue" }
-		else { $issues = "{0} open Issues" -f $issues }
-		Write-Host "   " $issues
-		$issueInfo = (gh issue list -R "$($repo.owner.login)/$($repo.name)" --json "number,title,author,assignees") | ConvertFrom-Json
-		$issueInfo | foreach {
-			Write-Host "        #$($_.number)  $($_.title)" -NoNewLine
-			if ($_.author.login -ne "sgrottel") {
-				Write-Host " (from: $($_.author.login))" -NoNewLine -F DarkGray -B Black
-			}
-			Write-Host
-		}
-	}
-	$pullRequests = [int]$repo.pullRequests.totalCount
-	if ($pullRequests -gt 0) {
-		if ($pullRequests -eq 1) { $pullRequests = "1 open Pull Request" }
-		else { $pullRequests = "{0} open Pull Requests" -f $pullRequests }
-		Write-Host "   " $pullRequests
-	}
+# check github.cli authentication status
+gh auth status | Out-Null
+if ($LastExitCode -ne 0) {
+	Write-Error "You are not logged in with the github.cli 'gh'`nPlease, run: gh auth login"
+	exit
 }
 
-Write-Host
-$repos | foreach { Write-RepoInfo $_ }
+# collect high-level info on repositories
+Write-Host "Collecting repository list" -ForegroundColor DarkGray -BackgroundColor Black
+
+$repos = @()
+$repoJsonFields = "description,id,isArchived,isFork,isPrivate,issues,latestRelease,licenseInfo,name,owner,pullRequests,url,updatedAt,pushedAt";
+
+$myUserRepos = (gh repo list -L 10000 --json $repoJsonFields) | ConvertFrom-Json
+$myUserRepos = $myUserRepos | Where-Object { $_.name -notin $myUserReposToIgnore }
+
+$repos += $myUserRepos
+$extraRepos | ForEach-Object { $repos += (gh repo view $_ --json $repoJsonFields) | ConvertFrom-Json }
+
+# sort owner, making default user empty name => first in list
+for ($i = 0; $i -lt $repos.length; $i++) {
+	$otherOwnerLogin = $repos[$i].owner.login
+	if ($otherOwnerLogin -eq $defaultUser) {
+		$otherOwnerLogin = ""
+	}
+	$repos[$i] | Add-Member -Name otherownerlogin -Type NoteProperty -Value $otherOwnerLogin
+}
+
+$repos = $repos | Sort-Object -Property @{Expression="isArchived";Descending=$false},@{Expression="isFork";Descending=$false},@{Expression="otherownerlogin";Descending=$false},@{Expression="name";Descending=$false}
+
+# Write-Host "## Repos post sort:"
+# $repos | ForEach-Object { Write-Host "$($_.isArchived ? "a" : "-")$($_.isFork ? "f" : "-")$($_.isPrivate ? "p" : "-") $($_.owner.login)/$($_.name) $($_.otherownerlogin)" }
+# Write-Host "## END"
+
+function IssueInfo {
+	param(
+		$issue
+	)
+	$o = [ordered]@{}
+	
+	$o["id"] = $issue.number
+	$o["title"] = $issue.title
+	$o["url"] = $issue.url
+	$o["date"] = [datetime]$issue.createdAt
+	$o["author"] = "$($issue.author.login) ($($issue.author.name))"
+
+	if ($issue.assignees) {
+		$o["assignees"] = $issue.assignees | ForEach-Object { "$($_.login) ($($_.name))"}
+	}
+
+	$updated = [datetime]$issue.updatedAt
+	if ($updated -gt $o["date"]) {
+		$o["last_updated"] = $updated
+	}
+
+	$count = [int]($issue.comments.count)
+	if ($count -gt 0) {
+		$o["comments"] = [ordered]@{}
+		$o["comments"]["count"] = $count
+		$lastComment = ([object[]]($issue.comments | ForEach-Object {
+			$date = [datetime]$_.createdAt
+			if ($_.updatedAt) {
+				$d = [datetime]$_.updatedAt
+				if ($date -lt $d) {
+					$date = $d
+				}
+			}
+			@{date=$date;comment=$_}
+		} | Sort-Object date))[-1]
+		# $o["comments"]["last_raw"] = $lastComment
+		$o["comments"]["last_date"] = $lastComment["date"]
+		$o["comments"]["last_by"] = "$($lastComment["comment"].author.login) ($($lastComment["comment"].author.name))"		
+	}
+	return $o
+}
+
+function RepoInfo {
+	param(
+		$repo
+	)
+	$o = [ordered]@{}
+
+	# name, type, id
+	$name = $repo.name
+	if ($repo.owner.login -ne $defaultUser) {
+		$name = $repo.owner.login + "/" + $name
+	}
+	$o["name"] = $name
+	$namePrefix = "";
+	if ($repo.isArchived) {
+		$o["isArchived"] = $true
+		$namePrefix += "📦"
+	}
+	if ($repo.isPrivate) {
+		$o["isPrivate"] = $true
+		$namePrefix += "🔒"
+	}
+	if ($repo.isFork) {
+		$o["isFork"] = $true
+		$namePrefix += "🪧"
+	}
+	if ($namePrefix) {
+		$o["name"] = $namePrefix + ": " + $o["name"]
+	}
+	$o["url"] = $repo.url
+
+	# last commit
+	$lastCommitInfo = (gh api "repos/$($repo.owner.login)/$($repo.name)/commits/HEAD") | ConvertFrom-Json
+	if ($lastCommitInfo) {
+		$olci = [ordered]@{}
+		$olci["hash"] = ([Uri]$lastCommitInfo.commit.url).Segments[-1]
+		$olci["author"] = "$($lastCommitInfo.commit.author.name) <$($lastCommitInfo.commit.author.email)>"
+		$o["lastCommit_date"] = [datetime]$lastCommitInfo.commit.author.date
+		if ($lastCommitInfo.commit.committer -and $lastCommitInfo.commit.committer.name -and $lastCommitInfo.commit.committer.email) {
+			if ($lastCommitInfo.commit.committer.name -ne $lastCommitInfo.commit.author.name -or $lastCommitInfo.commit.committer.email -ne $lastCommitInfo.commit.author.email) {
+				$olci["committer"] = "$($lastCommitInfo.commit.committer.name) <$($lastCommitInfo.commit.committer.email)>"
+				if ($lastCommitInfo.commit.committer.date) {
+					$d = [datetime]$lastCommitInfo.commit.committer.date
+					if ($o["lastCommit_date"] -lt $d) {
+						$o["lastCommit_date"] = $d
+					}
+				}
+			}
+		}
+		$olci["msg"] = $lastCommitInfo.commit.message.Split("`n")[0]
+		if ($olci["msg"].length -gt $maxMsgLen) {
+			$olci["msg"] = $olci["msg"].substring(0, $maxMsgLen - 3) + "..."
+		}
+
+		# $olci["raw"] = $lastCommitInfo.commit
+		$o["lastCommit_info"] = $olci
+	}
+
+	# last release
+	if ($repo.latestRelease) {
+		$o["lastRelease"] = [ordered]@{}
+		$o["lastRelease"]["name"] = $repo.latestRelease.name
+		$o["lastRelease"]["tag"] = $repo.latestRelease.tagName
+		$o["lastRelease"]["date"] = [datetime]$repo.latestRelease.publishedAt
+	}
+
+	# issues
+	$issueJsonFields = "number,title,author,assignees,comments,createdAt,updatedAt,url";
+	if (-not ($name -in $reposNoIssues)) {	
+		$count = [int]($repo.issues.totalCount)
+		if ($count -gt $maxIssues) {
+			$o["issues_totalCount"] = $count
+		}
+		$o["issues"] = @()
+		if ($count -gt 0) {
+			$issueInfo = ((gh issue list -R "$($repo.owner.login)/$($repo.name)" -L ([Math]::Min($count, $maxIssues)) --json $issueJsonFields) | ConvertFrom-Json)
+			$o["issues"] += [object[]]($issueInfo | ForEach-Object { IssueInfo $_ })
+		}
+	}
+
+	# pullRequests
+	if (-not ($name -in $reposNoPRs)) {
+		$count = [int]($repo.pullRequests.totalCount)
+		if ($count -gt $maxIssues) {
+			$o["pullRequests_totalCount"] = $count
+		}
+		$o["pullRequests"] = @()
+		if ($count -gt 0) {
+			$prInfo = ((gh pr list -R "$($repo.owner.login)/$($repo.name)" -L ([Math]::Min($count, $maxIssues)) --json $issueJsonFields) | ConvertFrom-Json)
+			$o["pullRequests"] += [object[]]($prInfo | ForEach-Object { IssueInfo $_ })
+		}
+	}
+
+	return $o
+}
+
+Write-Host "$($repos.length) repositories" -ForegroundColor DarkGray -BackgroundColor Black
+$repos = $repos | ForEach-Object {
+	Write-Host "loading $($_.owner.login)/$($_.name)" -ForegroundColor DarkGray -BackgroundColor Black
+	RepoInfo $_
+}
+
+$repos

@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.32804.182
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "app", "app.csproj", "{9BF653F2-D202-4CD9-A5B6-520622E2644A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FC8842C1-FD51-45AE-87C5-EBAA95E4B738}"
+	ProjectSection(SolutionItems) = preProject
+		doc\build.md = doc\build.md
+		doc\config-yaml.md = doc\config-yaml.md
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9BF653F2-D202-4CD9-A5B6-520622E2644A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BF653F2-D202-4CD9-A5B6-520622E2644A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BF653F2-D202-4CD9-A5B6-520622E2644A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BF653F2-D202-4CD9-A5B6-520622E2644A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CC81B933-8F96-4933-A80A-2071A324DA59}
+	EndGlobalSection
+EndGlobal

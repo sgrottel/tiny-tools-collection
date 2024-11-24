@@ -68,6 +68,13 @@ Can also start an application and bring that's window to front.
 
 Wrapper utility to open a [KeePass](https://keepass.info/) DB or trigger the Auto-Type Feature
 
+## ✨ Little Starter
+[![Last Release](https://raw.githubusercontent.com/wiki/sgrottel/tiny-tools-collection/releases/little-starter-ver.svg)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)
+[![Release Date](https://raw.githubusercontent.com/wiki/sgrottel/tiny-tools-collection/releases/little-starter-date.svg)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)
+[![little-starter Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/little-starter.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/little-starter.yaml)
+
+Automate the typical "open apps & files" task when you start your working session.
+
 ## LocalHtmlInterop  <img align="left" src="./LocalHtmlInterop/images/LocalHtmlInterop_x48.png" style="height:1em" alt="LocalHtmlInterop">
 [![Last Release](https://raw.githubusercontent.com/wiki/sgrottel/tiny-tools-collection/releases/LocalHtmlInterop-ver.svg)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)
 [![Release Date](https://raw.githubusercontent.com/wiki/sgrottel/tiny-tools-collection/releases/LocalHtmlInterop-date.svg)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)

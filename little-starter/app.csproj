@@ -36,7 +36,7 @@
 
   <ItemGroup>
     <PackageReference Include="SGrottel.SimpleLog.CSharp" Version="2.4.1" />
-    <PackageReference Include="YamlDotNet" Version="16.2.0" />
+    <PackageReference Include="YamlDotNet" Version="16.2.1" />
   </ItemGroup>
 
 </Project>

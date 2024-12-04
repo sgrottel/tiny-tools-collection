@@ -42,7 +42,6 @@ int wmain(int argc, const wchar_t* argv[])
 
     if (!cmd.Parse(argc, argv))
     {
-        cmd.PrintHelp(log);
         return 1;
     }
 

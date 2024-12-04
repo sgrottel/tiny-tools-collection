@@ -15,6 +15,8 @@
 //
 #include "CmdLineArgs.h"
 
+#include "yaclap.hpp"
+
 #include <algorithm>
 #include <iostream>
 
@@ -23,47 +25,41 @@ bool CmdLineArgs::Parse(int argc, const wchar_t* argv[])
     command = Command::Unknown;
     id.clear();
 
-    if (argc <= 1)
-    {
-        return false;
+    yaclap::Parser<wchar_t> parser(L"ToggleDisplay.exe", L"Toggle Display Utility");
+
+    yaclap::Argument<wchar_t> idArgument(L"id", L"An identifier for the display to select for the operation");
+
+    yaclap::Command<wchar_t> listCmd({ L"LIST", yaclap::Alias<wchar_t>::StringCompare::CaseInsensitive }, L"to list all displays");
+
+    yaclap::Command<wchar_t> toggleCmd({ L"TOGGLE", yaclap::Alias<wchar_t>::StringCompare::CaseInsensitive }, L"to toggle a display (enable if disabled, disable if enabled)");
+    toggleCmd.Add(idArgument);
+
+    yaclap::Command<wchar_t> enableCmd({ L"ENABLE", yaclap::Alias<wchar_t>::StringCompare::CaseInsensitive }, L"to enable a display");
+    enableCmd.Add(idArgument);
+
+    yaclap::Command<wchar_t> disableCmd({ L"DISABLE", yaclap::Alias<wchar_t>::StringCompare::CaseInsensitive }, L"to disable a display");
+    disableCmd.Add(idArgument);
+
+    parser.Add(listCmd)
+        .Add(toggleCmd)
+        .Add(enableCmd)
+        .Add(disableCmd);
+
+    yaclap::Parser<wchar_t>::Result res = parser.Parse(argc, argv);
+
+    if (res.HasCommand(listCmd)) { command = Command::List; }
+    else if (res.HasCommand(toggleCmd)) { command = Command::Toggle; }
+    else if (res.HasCommand(enableCmd)) { command = Command::Enable; }
+    else if (res.HasCommand(disableCmd)) { command = Command::Disable; }
+    else {
+        res.SetError(L"You must specify a command");
     }
 
-    std::wstring cmdStr{ argv[1] };
-    std::transform(cmdStr.begin(), cmdStr.end(), cmdStr.begin(), std::toupper);
-
-    if (cmdStr == L"LIST")
-    {
-        command = Command::List;
-    }
-    else if (cmdStr == L"TOGGLE")
-    {
-        command = Command::Toggle;
-    }
-    else if (cmdStr == L"ENABLE")
-    {
-        command = Command::Enable;
-    }
-    else if (cmdStr == L"DISABLE")
-    {
-        command = Command::Disable;
+    auto const& idVal = res.GetArgument(idArgument);
+    if (idVal.HasValue()) {
+        id = idVal;
     }
 
-    if (argc > 2)
-    {
-        id = argv[2];
-    }
-
-    return command != Command::Unknown;
-}
-
-#include "SimpleLog/SimpleLog.hpp"
-
-void CmdLineArgs::PrintHelp(sgrottel::ISimpleLog& log)
-{
-    using sgrottel::SimpleLog;
-    SimpleLog::Error(log, "You must specify a command:\n");
-    SimpleLog::Error(log, "    LIST    -- to list all displays\n");
-    SimpleLog::Error(log, "    TOGGLE  -- to toggle a display (enable if disabled, disable if enabled)\n");
-    SimpleLog::Error(log, "    ENABLE  -- to enable a display\n");
-    SimpleLog::Error(log, "    DISABLE -- to disable a display\n");
+    parser.PrintErrorAndHelpIfNeeded(res);
+    return res.IsSuccess() && !res.ShouldShowHelp();
 }

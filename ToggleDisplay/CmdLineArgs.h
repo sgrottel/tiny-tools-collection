@@ -36,5 +36,4 @@ struct CmdLineArgs
     std::wstring id;
 
     bool Parse(int argc, const wchar_t* argv[]);
-    void PrintHelp(sgrottel::ISimpleLog& log);
 };

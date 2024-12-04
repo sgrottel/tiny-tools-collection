@@ -22,6 +22,7 @@
 #include "DisplayConfig.h"
 
 #include "SimpleLog/SimpleLog.hpp"
+#include "LogUtility.h"
 
 #include <iostream>
 #include <cassert>
@@ -41,7 +42,6 @@ int wmain(int argc, const wchar_t* argv[])
 
     if (!cmd.Parse(argc, argv))
     {
-        cmd.PrintHelp(log);
         return 1;
     }
 
@@ -49,12 +49,21 @@ int wmain(int argc, const wchar_t* argv[])
     res = DisplayConfig::Query(DisplayConfig::QueryScope::AllPaths, paths, modes);
     if (res != DisplayConfig::ReturnCode::Success)
     {
-        SimpleLog::Error(log, "Failed to query display config: %s", DisplayConfig::to_string(res));
+        SimpleLog::Error(log, "Failed to query display config: %s", DisplayConfig::to_string(res).c_str());
         return 1;
     }
+    log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, "Query Result Paths:");
+    LogPaths(log, paths);
+    log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, "Query Result Modes:");
+    LogModes(log, modes);
+
     DisplayConfig::FilterPaths(paths);
+    log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, "Filtered Paths:");
+    LogPaths(log, paths);
 
     DisplayConfig::PathInfo* selected = DisplayConfig::FindPath(paths, cmd.id);
+    log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, "Selected Path:");
+    LogPath(log, selected);
 
     log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, ("Command = " + std::to_string(static_cast<int>(cmd.command))).c_str());
     switch (cmd.command)
@@ -81,7 +90,7 @@ int wmain(int argc, const wchar_t* argv[])
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res));
+            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
             return 1;
         }
 
@@ -102,7 +111,7 @@ int wmain(int argc, const wchar_t* argv[])
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res));
+            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
             return 1;
         }
 
@@ -123,7 +132,7 @@ int wmain(int argc, const wchar_t* argv[])
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res));
+            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
             return 1;
         }
 

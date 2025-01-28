@@ -25,6 +25,7 @@
 #include "Window.h"
 
 #include <cstdlib>
+#include <memory>
 
 // https://github.com/microsoft/Windows-classic-samples/blob/main/Samples/Win7Samples/winui/shell/appshellintegration/NotificationIcon/NotificationIcon.cpp
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
@@ -63,15 +64,14 @@ int APIENTRY wWinMain(
 	UNREFERENCED_PARAMETER(nShowCmd);
 	int retval = 0;
 
-	sgrottel::SimpleLog* logref = nullptr;
+	std::shared_ptr<sgrottel::ISimpleLog> log;
 
 	try
 	{
 		SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
-		sgrottel::SimpleLog log;
-		logref = &log;
-		sgrottel::SimpleLog::Write(log, "StarterWindow v%d.%d.%d.%d started.", STARTERWINDOW_VER_MAJOR, STARTERWINDOW_VER_MINOR, STARTERWINDOW_VER_PATCH, STARTERWINDOW_VER_BUILD);
+		log = std::make_shared<sgrottel::SimpleLog>();
+		log->Write("StarterWindow v%d.%d.%d.%d started.", STARTERWINDOW_VER_MAJOR, STARTERWINDOW_VER_MINOR, STARTERWINDOW_VER_PATCH, STARTERWINDOW_VER_BUILD);
 
 		Window wnd{ log, hInstance };
 
@@ -84,13 +84,13 @@ int APIENTRY wWinMain(
 	{
 		std::wstring msg{ L"Critical failure: " };
 		msg += mbtow(ex.what());
-		sgrottel::SimpleLog::Error(logref, L"EXCEPTION: %s", ex.what());
+		log->Critical(L"EXCEPTION: %s", ex.what());
 		ErrorMessageBox(msg.c_str());
 		retval = -1;
 	}
 	catch (...)
 	{
-		sgrottel::SimpleLog::Error(logref, L"EXCEPTION: unknown");
+		log->Critical(L"EXCEPTION: unknown");
 		ErrorMessageBox(L"Critical failure: unknown");
 		retval = -1;
 	}

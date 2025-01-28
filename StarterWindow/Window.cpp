@@ -18,7 +18,7 @@
 #include "Window.h"
 
 
-Window::Window(sgrottel::SimpleLog& log, HINSTANCE hInst)
+Window::Window(std::shared_ptr<sgrottel::ISimpleLog> log, HINSTANCE hInst)
 	: m_log{ log }, m_hwnd{ nullptr }
 {
 	// Register the window class.
@@ -34,7 +34,7 @@ Window::Window(sgrottel::SimpleLog& log, HINSTANCE hInst)
 	ATOM c = RegisterClassW(&wc);
 	if (c == 0)
 	{
-		sgrottel::SimpleLog::Error(m_log, "Failed to register window class: %d\n", GetLastError());
+		m_log->Error("Failed to register window class: %d\n", GetLastError());
 		return;
 	}
 
@@ -59,7 +59,7 @@ Window::Window(sgrottel::SimpleLog& log, HINSTANCE hInst)
 
 	if (m_hwnd == nullptr)
 	{
-		sgrottel::SimpleLog::Error(m_log, "Failed to create window: %d\n", GetLastError());
+		m_log->Error("Failed to create window: %d\n", GetLastError());
 		return;
 	}
 
@@ -73,7 +73,7 @@ Window::~Window()
 
 void Window::MainLoop()
 {
-	sgrottel::SimpleLog::Write(m_log, "main loop started");
+	m_log->Detail("main loop started");
 
 	MSG msg = { };
 	while (GetMessage(&msg, NULL, 0, 0) > 0)
@@ -82,7 +82,7 @@ void Window::MainLoop()
 		DispatchMessage(&msg);
 	}
 
-	sgrottel::SimpleLog::Write(m_log, "main loop left");
+	m_log->Detail("main loop left");
 }
 
 LRESULT CALLBACK Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

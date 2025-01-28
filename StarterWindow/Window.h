@@ -21,13 +21,14 @@
 #define VC_EXTRALEAN
 #include <Windows.h>
 #include "SimpleLog/SimpleLog.hpp"
+#include <memory>
 
 struct Proxy;
 
 class Window
 {
 public:
-	Window(sgrottel::SimpleLog& log, HINSTANCE hInst);
+	Window(std::shared_ptr<sgrottel::ISimpleLog> log, HINSTANCE hInst);
 	~Window();
 
 	void MainLoop();
@@ -40,7 +41,7 @@ public:
 private:
 	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-	sgrottel::SimpleLog& m_log;
+	std::shared_ptr<sgrottel::ISimpleLog> m_log;
 	HWND m_hwnd;
 
 };

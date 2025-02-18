@@ -20,7 +20,7 @@ namespace Redate
 		static int Main(string[] args)
 		{
 			Console.WriteLine("Redate");
-			EchoingSimpleLog log = new();
+			EchoingSimpleLog log = new(new SimpleLog());
 
 			try
 			{
@@ -32,7 +32,7 @@ namespace Redate
 				catch
 				{
 					Console.WriteLine();
-					SimpleLog.Error(log, "Error parsing command line.");
+					log.Error("Error parsing command line.");
 					Console.WriteLine();
 
 					CmdLineParser.PrintHelp();
@@ -123,7 +123,7 @@ namespace Redate
 			}
 			catch (Exception ex)
 			{
-				SimpleLog.Error(log, "Fatal error: " + ex);
+				log.Critical("Fatal error: " + ex);
 				WaitBeforeClosingConsole();
 				return -1;
 			}

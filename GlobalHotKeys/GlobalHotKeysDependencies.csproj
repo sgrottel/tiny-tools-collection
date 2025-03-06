@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>native</TargetFramework>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="libyaml" Version="0.2.5.12" />
+		<PackageReference Include="SGrottel.SimpleLog.Cpp" Version="2.2.0" />
+	</ItemGroup>
+</Project>

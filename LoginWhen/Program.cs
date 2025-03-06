@@ -29,6 +29,9 @@ namespace LoginWhen
 
         static void Main(string[] args)
         {
+            CmdLineArgs cmdLineArgs = new();
+            if (!cmdLineArgs.Parse(args)) return;
+
             DateTime now = DateTime.Now;
             EventLog systemLog = new("System");
 
@@ -45,7 +48,7 @@ namespace LoginWhen
 
                 DateTime date = entry.TimeGenerated;
 
-                if ((now - date).TotalDays > 7) continue;
+                if ((now - date).TotalDays > cmdLineArgs.HistoryMaxDays) continue;
 
                 events.Add(new(date, ev));
             }

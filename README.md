@@ -154,6 +154,9 @@ My scenario is to toggle a TV connected to my PC as `\\.\DISPLAY3`
 
 Tool to collect urls from clipboard, one by one.
 
+## vcxnugetutil
+Scripts and specialized utilities to simplify dependency update scans of nuget packages used by vcxproj.
+
 ## _doc
 Some more generic documentation files, e.g. including images.
 

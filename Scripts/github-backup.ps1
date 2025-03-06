@@ -73,7 +73,7 @@ foreach ($repo in $myRepos)
 	}
 
 	Write-Host "git tag" -ForegroundColor DarkGray -BackgroundColor Black
-	git tag
+	git tag --list | Write-Host
 	if ($LASTEXITCODE -ne 0)
 	{
 		Set-Location $cwd

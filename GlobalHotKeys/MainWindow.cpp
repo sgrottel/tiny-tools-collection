@@ -37,7 +37,7 @@ MainWindow::MainWindow(HINSTANCE hInstance, sgrottel::ISimpleLog& log)
 	auto atom = RegisterClassEx(&wcex);
 	if (atom == 0)
 	{
-		sgrottel::SimpleLog::Error(m_log, "Failed RegisterClassEx returned 0");
+		m_log.Error("Failed RegisterClassEx returned 0");
 		return;
 	}
 
@@ -64,7 +64,7 @@ MainWindow::MainWindow(HINSTANCE hInstance, sgrottel::ISimpleLog& log)
 
 	if (m_hWnd == NULL)
 	{
-		sgrottel::SimpleLog::Error(m_log, "Failed CreateWindowEx returned NULL");
+		m_log.Error("Failed CreateWindowEx returned NULL");
 		return;
 	}
 

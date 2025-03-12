@@ -82,7 +82,7 @@ void HotKeyManager::EnableAllHotKeys()
 	{
 		if (hk.m_activeId == 0)
 		{
-			sgrottel::SimpleLog::Write(m_log, L"RegisterHotKey(..., %u, %s)", nextId, hk.GetKeyWString().c_str());
+			m_log.Write(L"RegisterHotKey(..., %u, %s)", nextId, hk.GetKeyWString().c_str());
 
 			UINT mods = 0;
 			if (hk.modAlt) mods |= MOD_ALT;
@@ -91,7 +91,7 @@ void HotKeyManager::EnableAllHotKeys()
 			BOOL res = RegisterHotKey(m_wnd.GetHandle(), nextId, mods, hk.virtualKeyCode);
 			if (res == 0)
 			{
-				sgrottel::SimpleLog::Error(m_log, L"RegisterHotKey failed: %d", static_cast<int>(GetLastError()));
+				m_log.Error(L"RegisterHotKey failed: %d", static_cast<int>(GetLastError()));
 			}
 			else
 			{
@@ -101,7 +101,7 @@ void HotKeyManager::EnableAllHotKeys()
 			nextId++;
 			if (nextId > 0xBFFF)
 			{
-				sgrottel::SimpleLog::Error(m_log, "RegisterHotKey id limit hit. Abort.");
+				m_log.Error("RegisterHotKey id limit hit. Abort.");
 				break;
 			}
 		}
@@ -114,7 +114,7 @@ void HotKeyManager::DisableAllHotKeys()
 	{
 		if (hk.m_activeId != 0)
 		{
-			sgrottel::SimpleLog::Write(m_log, "UnregisterHotKey(..., %u)", hk.m_activeId);
+			m_log.Write("UnregisterHotKey(..., %u)", hk.m_activeId);
 			UnregisterHotKey(m_wnd.GetHandle(), hk.m_activeId);
 			hk.m_activeId = 0;
 		}
@@ -142,12 +142,12 @@ namespace
 
 void HotKeyManager::HotKeyTriggered(uint32_t id)
 {
-	sgrottel::SimpleLog::Write(m_log, "HotKeyTriggered(%u)", id);
+	m_log.Write("HotKeyTriggered(%u)", id);
 
 	auto hk = std::find_if(m_hotKeys.begin(), m_hotKeys.end(), [&id](auto const& key) { return key.m_activeId == id; });
 	if (hk == m_hotKeys.end())
 	{
-		sgrottel::SimpleLog::Error(m_log, "HotKey(%u) not found", id);
+		m_log.Error("HotKey(%u) not found", id);
 		if (m_bell)
 		{
 			MessageBeep(MB_ICONERROR);
@@ -177,7 +177,7 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 
 	if (exe.empty())
 	{
-		sgrottel::SimpleLog::Error(m_log, L"HotKey(%u) executable %s not found", id, hk->executable.c_str());
+		m_log.Error(L"HotKey(%u) executable %s not found", id, hk->executable.c_str());
 		if (m_bell)
 		{
 			MessageBeep(MB_ICONERROR);
@@ -192,11 +192,11 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 		{
 			if (ec)
 			{
-				sgrottel::SimpleLog::Error(m_log, L"HotKey(%u) executable %s not accessible: %s", id, exe.wstring().c_str(), ToW(ec.message().c_str()).c_str());
+				m_log.Error(L"HotKey(%u) executable %s not accessible: %s", id, exe.wstring().c_str(), ToW(ec.message().c_str()).c_str());
 			}
 			else
 			{
-				sgrottel::SimpleLog::Error(m_log, L"HotKey(%u) executable %s not found", id, hk->executable.c_str());
+				m_log.Error(L"HotKey(%u) executable %s not found", id, hk->executable.c_str());
 			}
 			if (m_bell)
 			{
@@ -206,11 +206,11 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 		}
 	}
 
-	sgrottel::SimpleLog::Write(m_log, L"Found HotKey(%u) executable %s", id, exe.wstring().c_str());
+	m_log.Write(L"Found HotKey(%u) executable %s", id, exe.wstring().c_str());
 
 	if (!wd.empty() && !std::filesystem::is_directory(wd))
 	{
-		sgrottel::SimpleLog::Write(m_log, L"HotKey(%u) working directory not found %s", id, wd.wstring().c_str());
+		m_log.Write(L"HotKey(%u) working directory not found %s", id, wd.wstring().c_str());
 		wd.clear();
 	}
 
@@ -241,7 +241,7 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 	}
 	arguments.push_back(0);
 
-	sgrottel::SimpleLog::Write(m_log, L"HotKey(%u) args: %s", id, arguments.data());
+	m_log.Write(L"HotKey(%u) args: %s", id, arguments.data());
 
 	if (m_bell)
 	{
@@ -269,7 +269,7 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 	}
 	else
 	{
-		sgrottel::SimpleLog::Error(m_log, L"HotKey(%u) executable could not be started: %d", id, static_cast<int>(GetLastError()));
+		m_log.Error(L"HotKey(%u) executable could not be started: %d", id, static_cast<int>(GetLastError()));
 		if (m_bell)
 		{
 			MessageBeep(MB_ICONERROR);

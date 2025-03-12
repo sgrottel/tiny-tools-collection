@@ -12,14 +12,14 @@ Menu::Menu(sgrottel::ISimpleLog& log, HINSTANCE hInstance)
 	m_hMenu = LoadMenu(hInstance, MAKEINTRESOURCE(101));
 	if (m_hMenu == NULL)
 	{
-		sgrottel::SimpleLog::Error(log, "Failed LoadMenu returned NULL");
+		log.Error("Failed LoadMenu returned NULL");
 		return;
 	}
 
 	m_hSubMenu = GetSubMenu(m_hMenu, 0);
 	if (m_hSubMenu == NULL)
 	{
-		sgrottel::SimpleLog::Error(log, "Failed GetSubMenu returned NULL");
+		log.Error("Failed GetSubMenu returned NULL");
 		return;
 	}
 
@@ -50,7 +50,7 @@ void Menu::Popup(const MainWindow& wnd, const POINT& p)
 	BOOL rv = TrackPopupMenuEx(m_hSubMenu, TPM_RIGHTBUTTON, p.x, p.y, wnd.GetHandle(), NULL);
 	if (rv == 0) 
 	{
-		sgrottel::SimpleLog::Error(m_log, "Failed to TrackPopupMenuEx: %d", static_cast<int>(GetLastError()));
+		m_log.Error("Failed to TrackPopupMenuEx: %d", static_cast<int>(GetLastError()));
 	}
 }
 
@@ -118,7 +118,7 @@ void Menu::Call(WORD menuItemID)
 		break;
 
 	default:
-		sgrottel::SimpleLog::Warning(m_log, "Triggered menu item call of not-implemented id %d", static_cast<int>(menuItemID));
+		m_log.Warning("Triggered menu item call of not-implemented id %d", static_cast<int>(menuItemID));
 		break;
 	}
 

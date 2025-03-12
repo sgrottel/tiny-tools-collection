@@ -214,13 +214,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="packages\libyaml.0.2.5.12\build\native\libyaml.targets" Condition="Exists('packages\libyaml.0.2.5.12\build\native\libyaml.targets')" />
-    <Import Project="packages\SGrottel.SimpleLog.Cpp.2.2.0\build\native\SGrottel.SimpleLog.Cpp.targets" Condition="Exists('packages\SGrottel.SimpleLog.Cpp.2.2.0\build\native\SGrottel.SimpleLog.Cpp.targets')" />
+    <Import Project="packages\SGrottel.SimpleLog.Cpp.3.2.0\build\native\SGrottel.SimpleLog.Cpp.targets" Condition="Exists('packages\SGrottel.SimpleLog.Cpp.3.2.0\build\native\SGrottel.SimpleLog.Cpp.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('packages\libyaml.0.2.5.12\build\native\libyaml.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libyaml.0.2.5.12\build\native\libyaml.targets'))" />
-    <Error Condition="!Exists('packages\SGrottel.SimpleLog.Cpp.2.2.0\build\native\SGrottel.SimpleLog.Cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\SGrottel.SimpleLog.Cpp.2.2.0\build\native\SGrottel.SimpleLog.Cpp.targets'))" />
+    <Error Condition="!Exists('packages\SGrottel.SimpleLog.Cpp.3.2.0\build\native\SGrottel.SimpleLog.Cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\SGrottel.SimpleLog.Cpp.3.2.0\build\native\SGrottel.SimpleLog.Cpp.targets'))" />
   </Target>
 </Project>

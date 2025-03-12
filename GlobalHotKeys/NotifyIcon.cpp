@@ -28,7 +28,7 @@ NotifyIcon::NotifyIcon(sgrottel::ISimpleLog& log, MainWindow& mainWnd)
 
 	if (Shell_NotifyIcon(NIM_ADD, &nid) != TRUE)
 	{
-		sgrottel::SimpleLog::Error(log, "Failed Shell_NotifyIcon NIM_ADD");
+		log.Error("Failed Shell_NotifyIcon NIM_ADD");
 	}
 
 	// NOTIFYICON_VERSION_4 is prefered

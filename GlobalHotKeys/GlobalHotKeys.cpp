@@ -1,7 +1,7 @@
 // GlobalHotKeys.cpp
 // GlobalHotKeys, Tiny Tools Collection
 //
-// Copyright 2024 SGrottel
+// Copyright 2025 SGrottel
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -84,24 +84,24 @@ namespace
 	}
 }
 
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lpCmdLine, int /*nShowCmd*/)
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstance*/, _In_ PWSTR lpCmdLine, _In_ int /*nShowCmd*/)
 {
 	int retval = 1;
 
 	sgrottel::SimpleLog log;
-	sgrottel::SimpleLog::Write(log, "GlobalHotKeys started.");
+	log.Write("GlobalHotKeys started.");
 
 	SingleInstanceGuard singleInstanceGuard;
 	if (!singleInstanceGuard.IsSingleInstance())
 	{
-		sgrottel::SimpleLog::Error(log, "Another instance of GlobalHotKeys already running.");
+		log.Error("Another instance of GlobalHotKeys already running.");
 		return 0;
 	}
 
 	CoGuard coGuard;
 	if (!coGuard)
 	{
-		sgrottel::SimpleLog::Warning(log, "CoInitialize failed. Some functions might not work.");
+		log.Warning("CoInitialize failed. Some functions might not work.");
 	}
 	Configuration config{ log };
 
@@ -137,7 +137,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 					HRESULT result = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&rawdlg));
 					if (FAILED(result)) {
 						std::wstring error{ L"Failed to CoCreateInstance(CLSID_FileOpenDialog): " + std::to_wstring(static_cast<unsigned int>(result)) };
-						sgrottel::SimpleLog::Error(log, error);
+						log.Error(error);
 						MessageBox(NULL, error.c_str(), MainWindow::c_WindowName, MB_ICONERROR | MB_OK);
 						return;
 					}
@@ -162,7 +162,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 				}
 				if (FAILED(res)) {
 					std::wstring error{ L"Failed to Show FileOpenDialog: " + std::to_wstring(static_cast<unsigned int>(res)) };
-					sgrottel::SimpleLog::Error(log, error);
+					log.Error(error);
 					MessageBox(NULL, error.c_str(), MainWindow::c_WindowName, MB_ICONERROR | MB_OK);
 					return;
 				}
@@ -172,7 +172,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 				res = dlg->GetResult(&files);
 				if (FAILED(res)) {
 					std::wstring error{ L"Failed to fetch FileOpenDialog result: " + std::to_wstring(static_cast<unsigned int>(res)) };
-					sgrottel::SimpleLog::Error(log, error);
+					log.Error(error);
 					MessageBox(NULL, error.c_str(), MainWindow::c_WindowName, MB_ICONERROR | MB_OK);
 					return;
 				}
@@ -182,7 +182,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 				if (FAILED(res)) {
 					files->Release();
 					std::wstring error{ L"Failed to fetch FileOpenDialog result path: " + std::to_wstring(static_cast<unsigned int>(res)) };
-					sgrottel::SimpleLog::Error(log, error);
+					log.Error(error);
 					MessageBox(NULL, error.c_str(), MainWindow::c_WindowName, MB_ICONERROR | MB_OK);
 					return;
 				}
@@ -240,7 +240,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR lp
 		wnd.SetMenuItemCallback({});
 	}
 
-	sgrottel::SimpleLog::Write(log, "GlobalHotKeys exit: %d", retval);
+	log.Write("GlobalHotKeys exit: %d", retval);
 
 	return retval;
 }

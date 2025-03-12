@@ -188,7 +188,7 @@ namespace
 		{
 			if (yaml_parser_initialize(&m_parser) == 0)
 			{
-				sgrottel::SimpleLog::Error(log, "Failed to yaml_parser_initialize");
+				log.Error("Failed to yaml_parser_initialize");
 			}
 			m_init = true;
 		}
@@ -446,11 +446,11 @@ Configuration::Configuration(sgrottel::ISimpleLog& log)
 	}
 	else if (m_configFile.empty())
 	{
-		sgrottel::SimpleLog::Write(m_log, "No configuration file stored. Please `Select Configuration`");
+		m_log.Write("No configuration file stored. Please `Select Configuration`");
 	}
 	else
 	{
-		sgrottel::SimpleLog::Error(m_log, L"Stored configuration file not found: %s", m_configFile.wstring().c_str());
+		m_log.Error(L"Stored configuration file not found: %s", m_configFile.wstring().c_str());
 	}
 }
 
@@ -575,7 +575,7 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 				report += hkc.executable;
 			}
 
-			sgrottel::SimpleLog::Write(m_log, report);
+			m_log.Write(report);
 		}
 		m_hotKeys = hotKeysConfig;
 		m_bell = bell;
@@ -596,7 +596,7 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 				+ std::to_string(elEx.element->GetColumn())
 				+ "] "
 				+ elEx.innerException.what() };
-		sgrottel::SimpleLog::Error(m_log, ("Failed parsing configuration: " + error).c_str());
+		m_log.Error(("Failed parsing configuration: " + error).c_str());
 		if (errorMessageReceiver.has_value())
 		{
 			errorMessageReceiver.value()(ToW(error.c_str()));
@@ -604,7 +604,7 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 	}
 	catch (wruntime_error& wtrerr)
 	{
-		sgrottel::SimpleLog::Error(m_log, (L"Failed parsing configuration: " + wtrerr.get_message()).c_str());
+		m_log.Error((L"Failed parsing configuration: " + wtrerr.get_message()).c_str());
 		if (errorMessageReceiver.has_value())
 		{
 			errorMessageReceiver.value()(wtrerr.get_message());
@@ -612,7 +612,7 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 	}
 	catch (std::exception& ex)
 	{
-		sgrottel::SimpleLog::Error(m_log, (L"Failed parsing configuration: " + ToW(ex.what())).c_str());
+		m_log.Error((L"Failed parsing configuration: " + ToW(ex.what())).c_str());
 		if (errorMessageReceiver.has_value())
 		{
 			errorMessageReceiver.value()(ToW(ex.what()));
@@ -620,7 +620,7 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 	}
 	catch (...)
 	{
-		sgrottel::SimpleLog::Error(m_log, L"Failed parsing configuration: Unknown exception");
+		m_log.Error(L"Failed parsing configuration: Unknown exception");
 		if (errorMessageReceiver.has_value())
 		{
 			errorMessageReceiver.value()(L"Unknown exception");
@@ -656,7 +656,7 @@ void Configuration::SaveConfigFilePathInRegistry()
 	LSTATUS result = RegCreateKeyExW(HKEY_CURRENT_USER, c_regKeyApp, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, NULL);
 	if (result != ERROR_SUCCESS)
 	{
-		sgrottel::SimpleLog::Error(m_log, "Failed to save path in windows registry; RegCreateKeyExW: %u", static_cast<unsigned int>(result));
+		m_log.Error("Failed to save path in windows registry; RegCreateKeyExW: %u", static_cast<unsigned int>(result));
 		return;
 	}
 
@@ -670,7 +670,7 @@ void Configuration::SaveConfigFilePathInRegistry()
 		static_cast<DWORD>((str.length() + 1) * sizeof(wchar_t)));
 	if (result != ERROR_SUCCESS)
 	{
-		sgrottel::SimpleLog::Error(m_log, "Failed to save path in windows registry; RegSetValueExW: %u", static_cast<unsigned int>(result));
+		m_log.Error("Failed to save path in windows registry; RegSetValueExW: %u", static_cast<unsigned int>(result));
 		return;
 	}
 

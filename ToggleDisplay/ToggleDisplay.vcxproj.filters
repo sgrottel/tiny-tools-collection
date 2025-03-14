@@ -46,6 +46,9 @@
     <ClInclude Include="LogUtility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SimpleLog\SimpleLog.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

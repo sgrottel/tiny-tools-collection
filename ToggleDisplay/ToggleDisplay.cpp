@@ -38,7 +38,9 @@ int wmain(int argc, const wchar_t* argv[])
     CmdLineArgs cmd;
 
     // echoing log with all default settings
-    sgrottel::EchoingSimpleLog log;
+    sgrottel::SimpleLog baseLog;
+    sgrottel::EchoingSimpleLog log{ baseLog };
+    log.SetEchoDetails(false);
 
     if (!cmd.Parse(argc, argv))
     {
@@ -49,23 +51,23 @@ int wmain(int argc, const wchar_t* argv[])
     res = DisplayConfig::Query(DisplayConfig::QueryScope::AllPaths, paths, modes);
     if (res != DisplayConfig::ReturnCode::Success)
     {
-        SimpleLog::Error(log, "Failed to query display config: %s", DisplayConfig::to_string(res).c_str());
+        log.Error("Failed to query display config: %s", DisplayConfig::to_string(res).c_str());
         return 1;
     }
-    log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, "Query Result Paths:");
+    log.Detail("Query Result Paths:");
     LogPaths(log, paths);
-    log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, "Query Result Modes:");
+    log.Detail("Query Result Modes:");
     LogModes(log, modes);
 
     DisplayConfig::FilterPaths(paths);
-    log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, "Filtered Paths:");
+    log.Detail("Filtered Paths:");
     LogPaths(log, paths);
 
     DisplayConfig::PathInfo* selected = DisplayConfig::FindPath(paths, cmd.id);
-    log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, "Selected Path:");
+    log.Detail("Selected Path:");
     LogPath(log, selected);
 
-    log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, ("Command = " + std::to_string(static_cast<int>(cmd.command))).c_str());
+    log.Detail(("Command = " + std::to_string(static_cast<int>(cmd.command))).c_str());
     switch (cmd.command)
     {
     case CmdLineArgs::Command::List:
@@ -74,7 +76,7 @@ int wmain(int argc, const wchar_t* argv[])
     case CmdLineArgs::Command::Toggle:
         if (selected == nullptr)
         {
-            SimpleLog::Error(log, "You must specify a display, either by name, target name, or target path.");
+            log.Error("You must specify a display, either by name, target name, or target path.");
             return 1;
         }
         if (DisplayConfig::IsEnabled(*selected))
@@ -90,7 +92,7 @@ int wmain(int argc, const wchar_t* argv[])
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
+            log.Error("Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
             return 1;
         }
 
@@ -98,7 +100,7 @@ int wmain(int argc, const wchar_t* argv[])
     case CmdLineArgs::Command::Enable:
         if (selected == nullptr)
         {
-            SimpleLog::Error(log, "You must specify a display, either by name, target name, or target path.");
+            log.Error("You must specify a display, either by name, target name, or target path.");
             return 1;
         }
         if (DisplayConfig::IsEnabled(*selected))
@@ -111,7 +113,7 @@ int wmain(int argc, const wchar_t* argv[])
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
+            log.Error("Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
             return 1;
         }
 
@@ -119,7 +121,7 @@ int wmain(int argc, const wchar_t* argv[])
     case CmdLineArgs::Command::Disable:
         if (selected == nullptr)
         {
-            SimpleLog::Error(log, "You must specify a display, either by name, target name, or target path.");
+            log.Error("You must specify a display, either by name, target name, or target path.");
             return 1;
         }
         if (!DisplayConfig::IsEnabled(*selected))
@@ -132,13 +134,13 @@ int wmain(int argc, const wchar_t* argv[])
         res = DisplayConfig::Apply(paths);
         if (res != DisplayConfig::ReturnCode::Success)
         {
-            SimpleLog::Error(log, "Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
+            log.Error("Failed to apply changed display config: %s", DisplayConfig::to_string(res).c_str());
             return 1;
         }
 
         break;
     default:
-        SimpleLog::Error(log, "Command not implemented");
+        log.Error("Command not implemented");
         return 1;
     }
 
@@ -154,14 +156,14 @@ void List(DisplayConfig::PathsVector const& paths, DisplayConfig::ModesVector co
         DisplayConfig::TargetDeviceName targetDeviceName = DisplayConfig::GetTargetDeviceName(path);
         uint32_t preferedModeId = DisplayConfig::GetTargetPreferedModeId(path);
 
-        SimpleLog::Write(log, L"%s -> %s (%s)  [%s]", deviceName.c_str(), targetDeviceName.name.c_str(), targetDeviceName.path.c_str(),
+        log.Write(L"%s -> %s (%s)  [%s]", deviceName.c_str(), targetDeviceName.name.c_str(), targetDeviceName.path.c_str(),
             (DisplayConfig::IsEnabled(path) ? L"enabled" : L"disabled"));
         uint32_t srcModeIdx = path.sourceInfo.modeInfoIdx;
         if (srcModeIdx < modes.size())
         {
             assert(modes[srcModeIdx].infoType == DISPLAYCONFIG_MODE_INFO_TYPE_SOURCE);
             auto const& srcMode = modes[srcModeIdx].sourceMode;
-            SimpleLog::Write(log, L"    (w: %u; h: %d; x: %d; y: %d)", srcMode.width, srcMode.height, srcMode.position.x, srcMode.position.y);
+            log.Write(L"    (w: %u; h: %d; x: %d; y: %d)", srcMode.width, srcMode.height, srcMode.position.x, srcMode.position.y);
         }
     }
 }

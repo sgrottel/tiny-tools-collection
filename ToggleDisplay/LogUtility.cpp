@@ -209,7 +209,7 @@ namespace
         {
             str << "nullptr";
         }
-        log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, str.str().c_str());
+        log.Detail(str.str().c_str());
     }
 
 }
@@ -321,7 +321,7 @@ void LogPath(sgrottel::ISimpleLog& log, DisplayConfig::PathInfo const* path)
     {
         str << "nullptr";
     }
-    log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, str.str().c_str());
+    log.Detail(str.str().c_str());
 }
 
 void LogPaths(sgrottel::ISimpleLog& log, DisplayConfig::PathsVector const& paths)

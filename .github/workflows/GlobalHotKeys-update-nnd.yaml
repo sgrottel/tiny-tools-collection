@@ -1,0 +1,37 @@
+name: GlobalHotKeys Update Native-Nuget-Dependabotwrapper
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - GlobalHotKeys/packages.config
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        path: p
+
+    - name: Checkout sgrottel/native-nuget-dependabot
+      uses: actions/checkout@v4
+      with:
+        repository: sgrottel/native-nuget-dependabot
+        path: nnd
+        token: ${{ secrets.DOPINDERBOT_PAT }}
+
+    - name: Update action
+      shell: pwsh
+      run: |
+        .\nnd\Set-Project.ps1 -projFile "p\GlobalHotKeys\GlobalHotKeys.vcxproj" -group "tiny-tools" -name "GlobalHotKeys" -info "https://github.com/sgrottel/tiny-tools-collection"
+
+        cd .\nnd
+        git config --global user.name 'DopinderBot'
+        git config --global user.email 'DopinderBot-noreply@sgrottel.de'
+        git commit -am "Updated tiny-tools GlobalHotKeys"
+        git push
+        cd ..

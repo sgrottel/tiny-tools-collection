@@ -31,6 +31,28 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
 
+    - name: Inject build number
+      shell: pwsh
+      working-directory: ./StartPwsh
+      run: |
+        $vf = get-content "VersionInfo.h" -Raw
+
+        $vf -match '\n#define\s+STARTPWSH_VER_MAJOR\s+(\d+)\s*\n' | Out-Null
+        $major = $Matches[1]
+        $vf -match '\n#define\s+STARTPWSH_VER_MINOR\s+(\d+)\s*\n' | Out-Null
+        $minor = $Matches[1]
+        $vf -match '\n#define\s+STARTPWSH_VER_PATCH\s+(\d+)\s*\n' | Out-Null
+        $patch = $Matches[1]
+
+        $nvf = $vf -replace '(\n#define\s+STARTPWSH_VER_BUILD\s+)(\d+)(\s*\n)',"`${1}$env:GITHUB_RUN_NUMBER`$3"
+
+        set-content "VersionInfo.h" $nvf -force -nonewline
+
+        $version = New-Object System.Version @( $major, $minor, $patch, $env:GITHUB_RUN_NUMBER )
+        Write-Host "Version number: $version"
+
+        Write-Output "FULL_VERSION_NUMBER=$version" >> $env:GITHUB_ENV
+
     - name: Build
       working-directory: .
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
@@ -48,7 +70,7 @@ jobs:
       if: ${{ matrix.configuration == 'Release' && matrix.platform == 'x64' }}
       uses: actions/upload-artifact@v4
       with:
-        name: StartPwsh-0.0.0.${{github.run_number}}
+        name: StartPwsh-${{env.FULL_VERSION_NUMBER}}
         path: |
           StartPwsh/bin/${{matrix.platform}}/${{matrix.configuration}}
           !**/*.pdb

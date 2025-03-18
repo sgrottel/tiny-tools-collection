@@ -1,3 +1,15 @@
+//
+// icon.rc
+// resource file
+// Open Source under MIT License
+//
+// Icon file is copyright by Microsoft
+//
+
+#include <WinVer.h>
+
+#include "VersionInfo.h"
+
 #ifdef APSTUDIO_INVOKED
 // This will prevent the VC++ Resource Editor user from saving this file
 #error "This file can be edited in code. Do not open in Visual Studio Resource Editor."
@@ -8,3 +20,36 @@ END
 #endif // APSTUDIO_INVOKED
 
 100 ICON "Powershell_black.ico"
+
+
+#define _str(a) _inner_str(a)
+#define _inner_str(a) #a
+
+1 VERSIONINFO
+FILEVERSION    STARTPWSH_VER_MAJOR, STARTPWSH_VER_MINOR, STARTPWSH_VER_PATCH, STARTPWSH_VER_BUILD
+PRODUCTVERSION STARTPWSH_VER_MAJOR, STARTPWSH_VER_MINOR, STARTPWSH_VER_PATCH, 0
+FILEFLAGSMASK  VS_FFI_FILEFLAGSMASK
+FILEFLAGS      0x0L
+FILEOS         VOS__WINDOWS32
+FILETYPE       VFT_APP
+FILESUBTYPE    VFT2_UNKNOWN
+BEGIN
+BLOCK "StringFileInfo"
+BEGIN
+BLOCK "000004b0"
+BEGIN
+VALUE "CompanyName", "SGrottel"
+VALUE "FileDescription", "Utility executable to start the Pwsh"
+VALUE "FileVersion", _str(STARTPWSH_VER_MAJOR.STARTPWSH_VER_MINOR.STARTPWSH_VER_PATCH.STARTPWSH_VER_BUILD)
+VALUE "InternalName", "StartPwsh"
+VALUE "LegalCopyright", "Copyright " STARTPWSH_VER_YEARSTR ", SGrottel"
+VALUE "OriginalFilename", "StartPwsh.exe"
+VALUE "ProductName", "StartPwsh"
+VALUE "ProductVersion", _str(STARTPWSH_VER_MAJOR.STARTPWSH_VER_MINOR.STARTPWSH_VER_PATCH.0)
+END
+END
+BLOCK "VarFileInfo"
+BEGIN
+VALUE "Translation", 0x0, 1200
+END
+END

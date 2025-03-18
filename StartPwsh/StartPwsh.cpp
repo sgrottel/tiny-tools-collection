@@ -13,14 +13,20 @@
 #include <string>
 
 int __stdcall wWinMain(
-	HINSTANCE hInstance,
-	HINSTANCE hPrevInstance,
-	LPWSTR lpCmdLine,
-	int nShowCmd
+	_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPWSTR lpCmdLine,
+	_In_ int nShowCmd
 )
 {
 	std::wstring cmdLine;
 	cmdLine += L"pwsh.exe";
+
+	if (lpCmdLine != nullptr && lpCmdLine[0] != 0)
+	{
+		cmdLine += L" ";
+		cmdLine += lpCmdLine;
+	}
 
 	STARTUPINFOW si;
 	PROCESS_INFORMATION pi;
@@ -29,9 +35,17 @@ int __stdcall wWinMain(
 	si.cb = sizeof(si);
 	ZeroMemory(&pi, sizeof(pi));
 
-	CreateProcessW(NULL,
-		const_cast<wchar_t*>(cmdLine.c_str()),
-		NULL, NULL, FALSE, 0, NULL, NULL, & si, & pi);
+	BOOL succ = CreateProcessW(
+		NULL, // app; use NULL and specify app as first arg in `cmdline` to trigger search behavior
+		const_cast<wchar_t*>(cmdLine.c_str()), // cmdline
+		NULL, // procAttr
+		NULL, // threadAttr
+		FALSE, // inheritHandles
+		0, // creationFlags
+		NULL, // env
+		NULL, // curDir
+		&si, // startupInfo
+		&pi); // processInfo
 
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);

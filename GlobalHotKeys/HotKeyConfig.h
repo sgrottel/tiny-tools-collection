@@ -28,6 +28,8 @@ struct HotKeyConfig
 
 	bool noFileCheck{ false };
 
+	bool createNoWindow{ true };
+
 	std::wstring GetKeyWString() const;
 };
 

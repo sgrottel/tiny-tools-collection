@@ -267,13 +267,23 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 	STARTUPINFO si = { sizeof(STARTUPINFO) };
 	PROCESS_INFORMATION pi;
 
+	DWORD creationFlags = CREATE_NEW_PROCESS_GROUP;
+	if (hk->createNoWindow)
+	{
+		creationFlags |= CREATE_NO_WINDOW;
+	}
+	else
+	{
+		creationFlags |= CREATE_NEW_CONSOLE;
+	}
+
 	if (CreateProcessW(
 		exe.wstring().c_str(),
 		arguments.data(),
 		nullptr,
 		nullptr,
 		FALSE,
-		CREATE_NEW_PROCESS_GROUP | CREATE_NEW_CONSOLE,
+		creationFlags,
 		nullptr,
 		wd.empty() ? nullptr : wd.wstring().c_str(),
 		&si,

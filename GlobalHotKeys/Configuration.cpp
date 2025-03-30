@@ -545,11 +545,11 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 				if (argsEl)
 				{
 					YamlSequence::Ptr argsSeq = std::dynamic_pointer_cast<YamlSequence>(argsEl);
-					if (!argsSeq) throw YamlElementReferenceException{ argsSeq, std::invalid_argument("`globalhotkeys.args` must be a sequence") };
+					if (!argsSeq) throw YamlElementReferenceException{ argsEl, std::invalid_argument("`globalhotkeys.args` must be a sequence") };
 					for (YamlElement::Ptr argEl : argsSeq->Value())
 					{
 						YamlScalar::Ptr argScalar = std::dynamic_pointer_cast<YamlScalar>(argEl);
-						if (!argScalar) throw YamlElementReferenceException{ argEl, std::invalid_argument("Entry in`globalhotkeys.args` must be a scalar values") };
+						if (!argScalar) throw YamlElementReferenceException{ argEl, std::invalid_argument("Entry in `globalhotkeys.args` must be a scalar value") };
 						key.arguments.push_back(argScalar->Value());
 					}
 				}
@@ -558,6 +558,38 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 			key.isRelExePath = FindOptionalBool(keyEl, L"isrelexepath", false);
 			key.noFileCheck = FindOptionalBool(keyEl, L"nofilecheck", false);
 			key.createNoWindow = FindOptionalBool(keyEl, L"createnowindow", true);
+
+			{
+				YamlElement::Ptr resolveArgsPathsEl = keyEl->Find(L"resolveargspaths");
+				if (resolveArgsPathsEl)
+				{
+					YamlSequence::Ptr resolveArgsPathsSeq = std::dynamic_pointer_cast<YamlSequence>(resolveArgsPathsEl);
+					if (!resolveArgsPathsSeq) throw YamlElementReferenceException{ resolveArgsPathsEl, std::invalid_argument("`globalhotkeys.resolveargspaths` must be a sequence") };
+					for (YamlElement::Ptr resArgPathEl : resolveArgsPathsSeq->Value())
+					{
+						YamlMapping::Ptr resArgPathMap = std::dynamic_pointer_cast<YamlMapping>(resArgPathEl);
+						if (!resArgPathMap) throw YamlElementReferenceException{ resArgPathEl, std::invalid_argument("Entry in`globalhotkeys.resolveargspaths` must be a mappings") };
+
+						YamlElement::Ptr posEl = resArgPathMap->Find(L"pos");
+						if (!posEl) throw YamlElementReferenceException{ resArgPathMap, std::invalid_argument("Entry in`globalhotkeys.resolveargspaths` must have a `pos` entry") };
+						YamlScalar::Ptr posScalar = std::dynamic_pointer_cast<YamlScalar>(posEl);
+						if (!posScalar) throw YamlElementReferenceException{ posEl, std::invalid_argument("`globalhotkeys.resolveargspaths[].pos` must be a scalar value") };
+						uint32_t pos;
+						{
+							const wchar_t* str = posScalar->Value().c_str();
+							wchar_t* strEnd = nullptr;
+							pos = std::wcstoul(str, &strEnd, 10);
+							if (strEnd == nullptr || strEnd == str) throw YamlElementReferenceException{ posEl, std::invalid_argument("`globalhotkeys.resolveargspaths[].pos` must be a number") };
+						}
+
+						HotKeyConfig::ResolveArgConfig cfg;
+
+						cfg.isRelPath = FindOptionalBool(resArgPathMap, L"isrelexepath", false);
+
+						key.resolveArgsPaths.insert(std::make_pair(pos, std::move(cfg)));
+					}
+				}
+			}
 
 			hotKeysConfig.push_back(std::move(key));
 		}

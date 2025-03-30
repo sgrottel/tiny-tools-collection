@@ -2,10 +2,16 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 struct HotKeyConfig
 {
 	static constexpr const uint32_t c_invalidVirtualKeyCode = 0xffffffffu;
+
+	struct ResolveArgConfig
+	{
+		bool isRelPath{ false };
+	};
 
 	static uint32_t ParseVirtualKeyCode(std::wstring str);
 
@@ -29,6 +35,8 @@ struct HotKeyConfig
 	bool noFileCheck{ false };
 
 	bool createNoWindow{ true };
+
+	std::unordered_map<uint32_t, ResolveArgConfig> resolveArgsPaths{};
 
 	std::wstring GetKeyWString() const;
 };

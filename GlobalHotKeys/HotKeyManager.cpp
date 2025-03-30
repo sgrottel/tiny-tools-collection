@@ -3,6 +3,7 @@
 #include "MainWindow.h"
 #include "SimpleLog/SimpleLog.hpp"
 #include "StringUtils.h"
+#include <stdexcept>
 
 namespace
 {
@@ -139,6 +140,23 @@ namespace
 
 		return std::filesystem::path{ p.begin(), p.begin() + res };
 	}
+
+	std::filesystem::path TryResolve(std::filesystem::path const& base, std::filesystem::path const& rel)
+	{
+		if (!base.is_absolute()) throw std::invalid_argument("`base` must be absolute");
+		if (!std::filesystem::exists(base)) throw std::invalid_argument("`base` must exist");
+		if (!std::filesystem::is_directory(base)) throw std::invalid_argument("`base` must be a directory");
+
+		std::filesystem::path p = base / rel;
+
+		if (!std::filesystem::exists(p))
+		{
+			return rel;
+		}
+
+		return std::filesystem::canonical(p);
+	}
+
 }
 
 void HotKeyManager::HotKeyTriggered(uint32_t id)
@@ -165,12 +183,12 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 	{
 		if (hk->isRelExePath)
 		{
-			std::filesystem::path e2 = std::filesystem::canonical(m_configDir / exe);
+			std::filesystem::path e2 = TryResolve(m_configDir, exe);
 			if (e2.is_absolute() && std::filesystem::exists(e2) && std::filesystem::is_regular_file(e2)) exe = e2;
 
 			if (!exe.is_absolute())
 			{
-				e2 = std::filesystem::canonical(std::filesystem::current_path() / exe);
+				e2 = TryResolve(std::filesystem::current_path(), exe);
 				if (e2.is_absolute() && std::filesystem::exists(e2) && std::filesystem::is_regular_file(e2)) exe = e2;
 			}
 		}
@@ -233,9 +251,35 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 	std::vector<wchar_t> arguments;
 	arguments.push_back(L' ');
 
-	for (auto const& arg : hk->arguments)
+	for (size_t argi = 0; argi < hk->arguments.size(); ++argi)
 	{
-		std::wstring as{ arg };
+		std::wstring as = hk->arguments[argi];
+
+		auto resArg = hk->resolveArgsPaths.find(argi);
+		if (resArg != hk->resolveArgsPaths.end())
+		{
+			std::filesystem::path exe{ as };
+
+			if (resArg->second.isRelPath)
+			{
+				if (!exe.is_absolute())
+				{
+					std::filesystem::path e2 = TryResolve(std::filesystem::current_path(), exe);
+					if (e2.is_absolute() && std::filesystem::exists(e2) && std::filesystem::is_regular_file(e2)) exe = e2;
+				}
+				if (!exe.is_absolute())
+				{
+					std::filesystem::path e2 = TryResolve(m_configDir, exe);
+					if (e2.is_absolute() && std::filesystem::exists(e2) && std::filesystem::is_regular_file(e2)) exe = e2;
+				}
+
+			}
+
+			if (exe.is_absolute())
+			{
+				as = exe;
+			}
+		}
 
 		bool needEsc = false;
 		size_t pos = 0;

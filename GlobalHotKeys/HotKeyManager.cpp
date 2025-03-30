@@ -3,6 +3,7 @@
 #include "MainWindow.h"
 #include "SimpleLog/SimpleLog.hpp"
 #include "StringUtils.h"
+#include <stdexcept>
 
 namespace
 {
@@ -19,7 +20,7 @@ HotKeyManager::~HotKeyManager()
 	DisableAllHotKeys();
 }
 
-void HotKeyManager::SetHotKeys(std::vector<HotKeyConfig> const& hotKeys)
+void HotKeyManager::SetHotKeys(std::vector<HotKeyConfig> const& hotKeys, std::filesystem::path const& configDir)
 {
 	bool allPrevKeysDiabled = false;
 	if (!m_hotKeys.empty())
@@ -42,6 +43,7 @@ void HotKeyManager::SetHotKeys(std::vector<HotKeyConfig> const& hotKeys)
 		m_hotKeys.push_back({ hkc });
 		m_hotKeys.back().m_activeId = 0;
 	}
+	m_configDir = configDir;
 
 	if (!allPrevKeysDiabled)
 	{
@@ -138,6 +140,23 @@ namespace
 
 		return std::filesystem::path{ p.begin(), p.begin() + res };
 	}
+
+	std::filesystem::path TryResolve(std::filesystem::path const& base, std::filesystem::path const& rel)
+	{
+		if (!base.is_absolute()) throw std::invalid_argument("`base` must be absolute");
+		if (!std::filesystem::exists(base)) throw std::invalid_argument("`base` must exist");
+		if (!std::filesystem::is_directory(base)) throw std::invalid_argument("`base` must be a directory");
+
+		std::filesystem::path p = base / rel;
+
+		if (!std::filesystem::exists(p))
+		{
+			return rel;
+		}
+
+		return std::filesystem::canonical(p);
+	}
+
 }
 
 void HotKeyManager::HotKeyTriggered(uint32_t id)
@@ -162,17 +181,32 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 
 	if (!exe.is_absolute())
 	{
-		if (!hk->workingDirectory.empty())
+		if (hk->isRelExePath)
 		{
-			std::filesystem::path e2 = SearchExePath(wd.wstring().c_str(), exe);
-			if (!e2.empty() && e2.is_absolute()) exe = e2;
+			std::filesystem::path e2 = TryResolve(m_configDir, exe);
+			if (e2.is_absolute() && std::filesystem::exists(e2) && std::filesystem::is_regular_file(e2)) exe = e2;
+
+			if (!exe.is_absolute())
+			{
+				e2 = TryResolve(std::filesystem::current_path(), exe);
+				if (e2.is_absolute() && std::filesystem::exists(e2) && std::filesystem::is_regular_file(e2)) exe = e2;
+			}
 		}
+
 		if (!exe.is_absolute())
 		{
-			std::filesystem::path e2 = SearchExePath(nullptr, exe);
-			if (!e2.empty() && e2.is_absolute()) exe = e2;
+			if (!hk->workingDirectory.empty())
+			{
+				std::filesystem::path e2 = SearchExePath(wd.wstring().c_str(), exe);
+				if (!e2.empty() && e2.is_absolute()) exe = e2;
+			}
+			if (!exe.is_absolute())
+			{
+				std::filesystem::path e2 = SearchExePath(nullptr, exe);
+				if (!e2.empty() && e2.is_absolute()) exe = e2;
+			}
+			exe = std::filesystem::absolute(exe);
 		}
-		exe = std::filesystem::absolute(exe);
 	}
 
 	if (exe.empty())
@@ -217,9 +251,35 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 	std::vector<wchar_t> arguments;
 	arguments.push_back(L' ');
 
-	for (auto const& arg : hk->arguments)
+	for (size_t argi = 0; argi < hk->arguments.size(); ++argi)
 	{
-		std::wstring as{ arg };
+		std::wstring as = hk->arguments[argi];
+
+		auto resArg = hk->resolveArgsPaths.find(argi);
+		if (resArg != hk->resolveArgsPaths.end())
+		{
+			std::filesystem::path exe{ as };
+
+			if (resArg->second.isRelPath)
+			{
+				if (!exe.is_absolute())
+				{
+					std::filesystem::path e2 = TryResolve(std::filesystem::current_path(), exe);
+					if (e2.is_absolute() && std::filesystem::exists(e2) && std::filesystem::is_regular_file(e2)) exe = e2;
+				}
+				if (!exe.is_absolute())
+				{
+					std::filesystem::path e2 = TryResolve(m_configDir, exe);
+					if (e2.is_absolute() && std::filesystem::exists(e2) && std::filesystem::is_regular_file(e2)) exe = e2;
+				}
+
+			}
+
+			if (exe.is_absolute())
+			{
+				as = exe;
+			}
+		}
 
 		bool needEsc = false;
 		size_t pos = 0;
@@ -251,13 +311,23 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 	STARTUPINFO si = { sizeof(STARTUPINFO) };
 	PROCESS_INFORMATION pi;
 
+	DWORD creationFlags = CREATE_NEW_PROCESS_GROUP;
+	if (hk->createNoWindow)
+	{
+		creationFlags |= CREATE_NO_WINDOW;
+	}
+	else
+	{
+		creationFlags |= CREATE_NEW_CONSOLE;
+	}
+
 	if (CreateProcessW(
 		exe.wstring().c_str(),
 		arguments.data(),
 		nullptr,
 		nullptr,
 		FALSE,
-		CREATE_NEW_PROCESS_GROUP | CREATE_NEW_CONSOLE,
+		creationFlags,
 		nullptr,
 		wd.empty() ? nullptr : wd.wstring().c_str(),
 		&si,

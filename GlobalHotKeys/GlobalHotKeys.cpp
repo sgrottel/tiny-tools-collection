@@ -111,7 +111,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstan
 		std::unique_ptr<NotifyIcon> notifyIcon = std::make_unique<NotifyIcon>(log, wnd);
 		Menu menu{ log, wnd.GetHInstance() };
 		HotKeyManager keys{ log, wnd };
-		keys.SetHotKeys(config.GetHotKeys());
+		keys.SetHotKeys(config.GetHotKeys(), config.GetFilePath().parent_path());
 		keys.SetBell(config.GetBell());
 
 		menu.SetOnShowAboutCallback([hInstance]() { ShowAboutDlg(hInstance); });
@@ -193,7 +193,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstan
 				files->Release();
 
 				config.SetFilePath(p, configLoadErrorMessageBox);
-				keys.SetHotKeys(config.GetHotKeys());
+				keys.SetHotKeys(config.GetHotKeys(), config.GetFilePath().parent_path());
 				keys.SetBell(config.GetBell());
 			};
 		menu.SetOnSelectConfigCallback(selectConfig);
@@ -208,7 +208,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstan
 				}
 
 				config.SetFilePath(config.GetFilePath(), configLoadErrorMessageBox);
-				keys.SetHotKeys(config.GetHotKeys());
+				keys.SetHotKeys(config.GetHotKeys(), config.GetFilePath().parent_path());
 				keys.SetBell(config.GetBell());
 			});
 

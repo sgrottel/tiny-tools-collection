@@ -10,21 +10,23 @@ struct HotKeyConfig
 	static uint32_t ParseVirtualKeyCode(std::wstring str);
 
 	// https://learn.microsoft.com/en-us/windows/desktop/inputdev/virtual-key-codes
-	uint32_t virtualKeyCode;
+	uint32_t virtualKeyCode{ 0 };
 
-	bool modAlt;
+	bool modAlt{ false };
 
-	bool modCtrl;
+	bool modCtrl{ false };
 
-	bool modShift;
+	bool modShift{ false };
 
-	std::wstring executable;
+	std::wstring executable{};
 
-	std::wstring workingDirectory;
+	std::wstring workingDirectory{};
 
-	std::vector<std::wstring> arguments;
+	std::vector<std::wstring> arguments{};
 
-	bool noFileCheck;
+	bool isRelExePath{ false };
+
+	bool noFileCheck{ false };
 
 	std::wstring GetKeyWString() const;
 };

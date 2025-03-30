@@ -19,7 +19,7 @@ HotKeyManager::~HotKeyManager()
 	DisableAllHotKeys();
 }
 
-void HotKeyManager::SetHotKeys(std::vector<HotKeyConfig> const& hotKeys)
+void HotKeyManager::SetHotKeys(std::vector<HotKeyConfig> const& hotKeys, std::filesystem::path const& configDir)
 {
 	bool allPrevKeysDiabled = false;
 	if (!m_hotKeys.empty())
@@ -42,6 +42,7 @@ void HotKeyManager::SetHotKeys(std::vector<HotKeyConfig> const& hotKeys)
 		m_hotKeys.push_back({ hkc });
 		m_hotKeys.back().m_activeId = 0;
 	}
+	m_configDir = configDir;
 
 	if (!allPrevKeysDiabled)
 	{
@@ -162,17 +163,32 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 
 	if (!exe.is_absolute())
 	{
-		if (!hk->workingDirectory.empty())
+		if (hk->isRelExePath)
 		{
-			std::filesystem::path e2 = SearchExePath(wd.wstring().c_str(), exe);
-			if (!e2.empty() && e2.is_absolute()) exe = e2;
+			std::filesystem::path e2 = std::filesystem::canonical(m_configDir / exe);
+			if (e2.is_absolute() && std::filesystem::exists(e2) && std::filesystem::is_regular_file(e2)) exe = e2;
+
+			if (!exe.is_absolute())
+			{
+				e2 = std::filesystem::canonical(std::filesystem::current_path() / exe);
+				if (e2.is_absolute() && std::filesystem::exists(e2) && std::filesystem::is_regular_file(e2)) exe = e2;
+			}
 		}
+
 		if (!exe.is_absolute())
 		{
-			std::filesystem::path e2 = SearchExePath(nullptr, exe);
-			if (!e2.empty() && e2.is_absolute()) exe = e2;
+			if (!hk->workingDirectory.empty())
+			{
+				std::filesystem::path e2 = SearchExePath(wd.wstring().c_str(), exe);
+				if (!e2.empty() && e2.is_absolute()) exe = e2;
+			}
+			if (!exe.is_absolute())
+			{
+				std::filesystem::path e2 = SearchExePath(nullptr, exe);
+				if (!e2.empty() && e2.is_absolute()) exe = e2;
+			}
+			exe = std::filesystem::absolute(exe);
 		}
-		exe = std::filesystem::absolute(exe);
 	}
 
 	if (exe.empty())

@@ -555,6 +555,7 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 				}
 			}
 
+			key.isRelExePath = FindOptionalBool(keyEl, L"isrelexepath", false);
 			key.noFileCheck = FindOptionalBool(keyEl, L"nofilecheck", false);
 
 			hotKeysConfig.push_back(std::move(key));

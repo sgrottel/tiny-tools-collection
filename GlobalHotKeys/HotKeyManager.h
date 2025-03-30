@@ -13,7 +13,7 @@ public:
 	HotKeyManager(sgrottel::ISimpleLog& log, MainWindow& wnd);
 	~HotKeyManager();
 
-	void SetHotKeys(std::vector<HotKeyConfig> const& hotKeys);
+	void SetHotKeys(std::vector<HotKeyConfig> const& hotKeys, std::filesystem::path const& configDir);
 	inline void SetBell(bool bell)
 	{
 		m_bell = bell;
@@ -35,6 +35,7 @@ private:
 	MainWindow& m_wnd;
 	sgrottel::ISimpleLog& m_log;
 	std::vector<HotKey> m_hotKeys;
+	std::filesystem::path m_configDir;
 	bool m_bell;
 };
 

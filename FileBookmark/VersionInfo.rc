@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 #include <WinVer.h>
-#include "../Version.h"
+#include "Version.h"
 
 #ifdef APSTUDIO_INVOKED
 // This will prevent the VC++ Resource Editor user from saving this file
@@ -25,7 +25,7 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-100 ICON "../images/bookmark.ico"
+100 ICON "images/bookmark.ico"
 
 #define _str(a) _inner_str(a)
 #define _inner_str(a) #a

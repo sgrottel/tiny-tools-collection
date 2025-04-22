@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-name: Build Native
+name: FileBookmark Build Native
 
 on:
   push:
@@ -41,7 +41,7 @@ jobs:
       shell: pwsh
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
-        $vf = get-content "Version.h" -Raw
+        $vf = get-content "FileBookmark\Version.h" -Raw
 
         $vf -match '\n#define\s+FILEBOOKMARK_VER_MAJOR\s+(\d+)\s*\n' | Out-Null
         $major = $Matches[1]
@@ -52,7 +52,7 @@ jobs:
 
         $nvf = $vf -replace '(\n#define\s+FILEBOOKMARK_VER_BUILD\s+)(\d+)(\s*\n)',"`${1}$env:GITHUB_RUN_NUMBER`$3"
 
-        set-content "Version.h" $nvf -force -nonewline
+        set-content "FileBookmark\Version.h" $nvf -force -nonewline
 
         $version = New-Object System.Version @( $major, $minor, $patch, $env:GITHUB_RUN_NUMBER )
         Write-Host "Version number: $version"

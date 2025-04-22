@@ -160,13 +160,13 @@
     <ClCompile Include="utility.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Version.h" />
     <ClInclude Include="Bookmark.h" />
     <ClInclude Include="CallElevated.h" />
     <ClInclude Include="CmdLineOptions.h" />
     <ClInclude Include="DialogWindowPlacer.h" />
     <ClInclude Include="Registation.h" />
     <ClInclude Include="utility.h" />
+    <ClInclude Include="Version.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="VersionInfo.rc" />

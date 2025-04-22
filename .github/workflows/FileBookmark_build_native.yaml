@@ -17,7 +17,7 @@ name: FileBookmark Build Native
 
 on:
   push:
-    branches: [ "main", "integrate-filebookmark" ]
+    branches: [ "main" ]
     paths:
     - .github/workflows/FileBookmark_build_native.yaml
     - FileBookmark/**

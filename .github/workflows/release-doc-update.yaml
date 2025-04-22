@@ -31,7 +31,7 @@ jobs:
     - name: Update Release Doc
       shell: pwsh
       run: |
-        .\Scripts\update-tiny-tools-release-summary.ps1 .\temp-wiki\releases
+        .\Scripts\update-tiny-tools-release-summary.ps1 .\temp-wiki\releases -token ${{ secrets.GITHUB_TOKEN }}
 
     - name: Commit Wiki Repo
       shell: pwsh

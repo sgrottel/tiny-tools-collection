@@ -34,6 +34,13 @@ Desktop Icon Backup
 C# app to dim monitors by displaying an transparent black overlaying window.
 The idea is to dim "other" monitors when watching a video or playing a game one only one of the monitors.
 
+## FileBookmark  <img align="left" src="./FileBookmark/images/FileBookmark_x48.png" style="height:1em" alt="FileBookmark">
+[![Last Release](https://raw.githubusercontent.com/wiki/sgrottel/tiny-tools-collection/releases/FileBookmark-ver.svg)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)
+[![Release Date](https://raw.githubusercontent.com/wiki/sgrottel/tiny-tools-collection/releases/FileBookmark-date.svg)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)
+[![FolderSummary Build Action](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/FileBookmark_build_native.yaml/badge.svg)](https://github.com/sgrottel/tiny-tools-collection/actions/workflows/FileBookmark_build_native.yaml)
+
+A simply way to bookmark a file in a directory.
+
 ## FolderSummary  <img align="left" src="./FolderSummary/FolderSummary_x48.png" style="height:1em" alt="FolderSummary">
 [![Last Release](https://raw.githubusercontent.com/wiki/sgrottel/tiny-tools-collection/releases/FolderSummary-ver.svg)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)
 [![Release Date](https://raw.githubusercontent.com/wiki/sgrottel/tiny-tools-collection/releases/FolderSummary-date.svg)](https://github.com/sgrottel/tiny-tools-collection/releases/latest)

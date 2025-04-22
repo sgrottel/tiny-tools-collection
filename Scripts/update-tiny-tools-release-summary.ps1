@@ -3,7 +3,8 @@
 #
 param (
     [string]$ReportDirectory,
-    [string]$ReleaseTag = $null
+    [string]$ReleaseTag = $null,
+    [string]$token = $null
 )
 $ErrorActionPreference = "Stop"
 
@@ -21,7 +22,15 @@ if (Test-Path $indexJson -PathType Leaf)
 
 $githubApiHeaders = @{
     "Accept"="application/vnd.github+json"
+    "X-GitHub-Api-Version"="2022-11-28"
+    "User-Agent"="release-doc-update-Github-Action-script"
 };
+if ($token)
+{
+    $githubApiHeaders += @{
+        "Authorization"="Bearer $token"
+    }
+}
 
 if ($ReleaseTag)
 {
@@ -39,6 +48,8 @@ if ($releaseInfo.StatusCode -ne 200)
 }
 $releaseInfo = $releaseInfo.Content | ConvertFrom-Json
 
+Write-Host "  Loaded data of Release: '$($releaseInfo.name)'"
+Write-Host "  $($releaseInfo.Assets.length) Assets"
 
 #
 # For all assets, check if the releases are known
@@ -47,14 +58,15 @@ $releaseInfo.Assets | ForEach-Object {
     if ($_.name -match "^(.+)-([\d\.]+)\.zip$") {
         $key = $matches[1]
         $versionStr = $matches[2]
+        Write-Host "    $key  $versionStr"
 
         # Write-Host "$key => $versionStr"
-        if (-not $index.ContainsKey($key)) {
+        if (-not $index.Contains($key)) {
             $index.Add($key, @{})
         }
 
         if (-not ($index[$key]["version"] -eq $versionStr)) {
-            Write-Host "New release: $key $versionStr"
+            Write-Host "      New release: $key $versionStr"
             $index[$key]["version"] = $versionStr;
             $index[$key]["date"] = $null;
             $index[$key]["hash"] = $null;

@@ -47,7 +47,7 @@ namespace Redate
 						{
 							log.Write("Collecting Data");
 							string targetDir = System.IO.Path.GetDirectoryName(cmd.RedateFile) + '\\';
-							FileCollectionInfoData files = new FileCollectionInfoData() { Log = log };
+							FileCollectionInfoData files = new FileCollectionInfoData();
 							files.Collect(cmd.SourceDirs);
 							files.SourceDirsToRelative(targetDir);
 
@@ -73,19 +73,18 @@ namespace Redate
 						{
 							log.Write("Loading " + System.IO.Path.GetFileName(cmd.RedateFile));
 							FileCollectionInfoData knownFiles = JsonConvert.DeserializeObject<FileCollectionInfoData>(System.IO.File.ReadAllText(cmd.RedateFile));
-							knownFiles.Log = log;
 							string targetDir = System.IO.Path.GetDirectoryName(cmd.RedateFile) + '\\';
 							knownFiles.SourceDirsToAbsolute(targetDir);
 							foreach (var f in knownFiles.Files) f.PathToAbsolute(targetDir);
 
 							log.Write("Collecting Data");
-							FileCollectionInfoData files = new FileCollectionInfoData() { Log = log };
+							FileCollectionInfoData files = new FileCollectionInfoData();
 							files.Collect(knownFiles.SourceDirs);
 							log.Write("Compute MD5s");
 							foreach (var f in files.Files) f.ComputeMd5Hash();
 
 							log.Write("Updating");
-							bool isUpdated = knownFiles.Update(files);
+							bool isUpdated = knownFiles.Update(files, log);
 
 							if (isUpdated || cmd.ForceFileDateUpdate)
 							{

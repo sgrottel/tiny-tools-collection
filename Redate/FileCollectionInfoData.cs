@@ -25,8 +25,8 @@ namespace Redate
 
 		public FileInfoData[] Files { get; set; } = null;
 
-		[JsonIgnore]
-		public required ISimpleLog Log { get; set; }
+		// The `Log` member was serialized before.
+		// Therefore, to stay compatible with old files, this member name must never be used again.
 
 		internal void Collect(string[] sourceDirs)
 		{
@@ -69,7 +69,7 @@ namespace Redate
 		/// </summary>
 		/// <param name="files"></param>
 		/// <returns>True if the information of any file has been updated</returns>
-		internal bool Update(FileCollectionInfoData files)
+		internal bool Update(FileCollectionInfoData files, ISimpleLog Log)
 		{
 			bool retval = false;
 			// this is the old/known state

@@ -6,8 +6,8 @@
     <ApplicationIcon>images\redate.ico</ApplicationIcon>
     <Authors>SGrottel</Authors>
     <Description>Rewrite dates of files</Description>
-    <Copyright>Copyright 2021 SGrottel (https://www.sgrottel.de)</Copyright>
-    <Version>1.2.0</Version>
+    <Copyright>Copyright 2021-2025 SGrottel (https://www.sgrottel.de)</Copyright>
+    <Version>1.3.0</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 

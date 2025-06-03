@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\VersionInfo.proj" />
 
   <PropertyGroup>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SGrottel.FindExecutable" Version="0.4.0.5" />
+    <PackageReference Include="SGrottel.FindExecutable" Version="1.0.0" />
     <PackageReference Include="SGrottel.SimpleLog.CSharp" Version="2.4.1" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>

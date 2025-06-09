@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="SGrottel.FindExecutable" Version="1.0.0" />
-    <PackageReference Include="SGrottel.SimpleLog.CSharp" Version="2.4.1" />
+    <PackageReference Include="SGrottel.SimpleLog.CSharp" Version="3.2.0" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 

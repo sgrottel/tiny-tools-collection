@@ -183,7 +183,7 @@ namespace LocalHtmlInterop.Handler
 			{
 				if (cmdDef.ValidationError != null)
 				{
-					Log?.Write(ISimpleLog.FlagError, $"Command '{command.Info.Command}'[=>{command.Info.CallbackId}] did select an invalid command definition: {cmdDef.ValidationError}");
+					Log?.Error($"Command '{command.Info.Command}'[=>{command.Info.CallbackId}] did select an invalid command definition: {cmdDef.ValidationError}");
 					return false;
 				}
 

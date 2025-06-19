@@ -50,7 +50,7 @@ namespace LocalHtmlInterop.Handler
 			}
 			catch (Exception ex)
 			{
-				log?.Write(ISimpleLog.FlagError, $"EXCEPTION handling AppTcpClient: {ex}");
+				log?.Error($"EXCEPTION handling AppTcpClient: {ex}");
 			}
 			try
 			{
@@ -59,7 +59,7 @@ namespace LocalHtmlInterop.Handler
 			}
 			catch (Exception ex)
 			{
-				log?.Write(ISimpleLog.FlagError, $"EXCEPTION closing AppTcpClient: {ex}");
+				log?.Error($"EXCEPTION closing AppTcpClient: {ex}");
 			}
 			try
 			{
@@ -67,7 +67,7 @@ namespace LocalHtmlInterop.Handler
 			}
 			catch (Exception ex)
 			{
-				log?.Write(ISimpleLog.FlagError, $"EXCEPTION FireOnClosed AppTcpClient: {ex}");
+				log?.Error($"EXCEPTION FireOnClosed AppTcpClient: {ex}");
 			}
 		}
 	}

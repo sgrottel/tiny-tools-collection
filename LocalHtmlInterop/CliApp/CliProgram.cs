@@ -112,12 +112,11 @@ namespace LocalHtmlInterop
 			return string.Empty;
 		}
 
-		private static ISimpleLog log
+		private static ISimpleLog log =
 #if DEBUG
-			= new DebugEchoLog<EchoingSimpleLog>();
-#else
-			= new EchoingSimpleLog();
+			new DebugOutputEchoingSimpleLog
 #endif
+				(new EchoingSimpleLog(new SimpleLog()));
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 		private static Option<bool> nologoOption;
@@ -261,7 +260,7 @@ namespace LocalHtmlInterop
 				}
 				else
 				{
-					log.Write(ISimpleLog.FlagError, $"EXCEPTION: {ex}");
+					log.Error($"EXCEPTION: {ex}");
 				}
 			}
 			return rv;
@@ -307,7 +306,7 @@ namespace LocalHtmlInterop
 				if (!waitConnectionTask.IsCompleted)
 				{
 					cancelConnect.Cancel();
-					log.Write(ISimpleLog.FlagError, "Did not connect to handler process before it exited.");
+					log.Error("Did not connect to handler process before it exited.");
 					return;
 				}
 
@@ -321,7 +320,7 @@ namespace LocalHtmlInterop
 					}
 				}
 
-				log.Write(EchoingSimpleLog.FlagDontEcho, "Pipe stream drained. Waiting for process exit.");
+				log.Detail(EchoingSimpleLog.FlagDontEcho, "Pipe stream drained. Waiting for process exit.");
 				p.WaitForExit();
 			}
 		}
@@ -337,7 +336,7 @@ namespace LocalHtmlInterop
 				if (!HandlerPath.Equals(regHanExe, StringComparison.CurrentCultureIgnoreCase))
 				{
 					log.Write(
-						force ? ISimpleLog.FlagWarning : ISimpleLog.FlagError,
+						force ? ISimpleLog.FlagLevelWarning : ISimpleLog.FlagLevelError,
 						$"Registering your handler application will overwrite an existing registration:\n\told: {regHanExe}\n\tnew: {HandlerPath}");
 					if (!force)
 					{
@@ -368,7 +367,7 @@ namespace LocalHtmlInterop
 				if (!HandlerPath.Equals(regHanExe, StringComparison.CurrentCultureIgnoreCase))
 				{
 					log.Write(
-						force ? ISimpleLog.FlagWarning : ISimpleLog.FlagError,
+						force ? ISimpleLog.FlagLevelWarning : ISimpleLog.FlagLevelError,
 						$"To be unregistered handler application does not match your handler application:\n\tregistered: {regHanExe}\n\tyour: {HandlerPath}");
 					if (!force)
 					{
@@ -408,7 +407,7 @@ namespace LocalHtmlInterop
 			if (newPortValue < 1024)
 			{
 				log.Write(
-					force ? ISimpleLog.FlagWarning : ISimpleLog.FlagError,
+					force ? ISimpleLog.FlagLevelWarning : ISimpleLog.FlagLevelError,
 					$"Ports {newPortValue} < 1024 are reserved for system services");
 				if (!force)
 				{
@@ -419,7 +418,7 @@ namespace LocalHtmlInterop
 			if (newPortValue > 49151)
 			{
 				log.Write(
-					force ? ISimpleLog.FlagWarning : ISimpleLog.FlagError,
+					force ? ISimpleLog.FlagLevelWarning : ISimpleLog.FlagLevelError,
 					$"Ports {newPortValue} > 49151 are used for dynamic connections");
 				if (!force)
 				{
@@ -442,7 +441,7 @@ namespace LocalHtmlInterop
 				ServerPortConfig portCfg = new();
 				if (portCfg.GetValue() != newPortValue)
 				{
-					log.Write(ISimpleLog.FlagError, $"FAILED to set port to {newPortValue}. Value remains: {portCfg.GetValue()}");
+					log.Error($"FAILED to set port to {newPortValue}. Value remains: {portCfg.GetValue()}");
 				}
 			}
 		}
@@ -473,7 +472,7 @@ namespace LocalHtmlInterop
 					CommandDefinitionFile cdf = CommandDefinitionFile.Load(file.FullName);
 					if ((cdf.commands?.Length ?? 0) <= 0)
 					{
-						log.Write(ISimpleLog.FlagWarning, "No commands defined in file");
+						log.Warning("No commands defined in file");
 					}
 
 					foreach (var cmd in cdf.commands!)
@@ -486,10 +485,10 @@ namespace LocalHtmlInterop
 				}
 				catch (Exception ex)
 				{
-					log.Write(ISimpleLog.FlagError, $"FAILED: {ex}");
+					log.Error($"FAILED: {ex}");
 					if (ex.InnerException != null)
 					{
-						log.Write(ISimpleLog.FlagError, $"\t{ex.InnerException}");
+						log.Error($"\t{ex.InnerException}");
 					}
 				}
 			}
@@ -521,7 +520,7 @@ namespace LocalHtmlInterop
 				}
 				catch(Exception ex)
 				{
-					log.Write(ISimpleLog.FlagError, $"{fi.FullName}\nFAILED: {ex}");
+					log.Error($"{fi.FullName}\nFAILED: {ex}");
 				}
 			}
 
@@ -564,7 +563,7 @@ namespace LocalHtmlInterop
 			{
 				if (!regFiles.Contains(file.ToLowerInvariant()))
 				{
-					log.Write(ISimpleLog.FlagWarning, $"Skipping file {file} -- is not registered");
+					log.Warning($"Skipping file {file} -- is not registered");
 				}
 
 				toUnreg.Add(file);

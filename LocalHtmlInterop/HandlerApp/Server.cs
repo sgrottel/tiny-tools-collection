@@ -176,7 +176,7 @@ namespace LocalHtmlInterop.Handler
 				else
 				{
 					// unknown data
-					Log?.Write(ISimpleLog.FlagError, "First data did not match a known handshake");
+					Log?.Error("First data did not match a known handshake");
 					Close();
 				}
 

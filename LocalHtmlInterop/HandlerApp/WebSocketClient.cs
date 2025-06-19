@@ -43,7 +43,7 @@ namespace LocalHtmlInterop.Handler
 			FireOnClosed();
 			if (client.Connected)
 			{
-				Log?.Write(ISimpleLog.FlagError, "Client seems connected after close");
+				Log?.Error("Client seems connected after close");
 			}
 		}
 
@@ -119,7 +119,7 @@ namespace LocalHtmlInterop.Handler
 						{
 							if (soex.SocketErrorCode == SocketError.TimedOut)
 							{
-								Log?.Write(ISimpleLog.FlagWarning, "Socket connection timed out");
+								Log?.Warning("Socket connection timed out");
 								break;
 							}
 						}
@@ -179,7 +179,7 @@ namespace LocalHtmlInterop.Handler
 						case 0: // continuation
 							if (openMessage == 0)
 							{
-								Log?.Write(ISimpleLog.FlagWarning, $"Continuation message fragment without start ignored ({msglen} bytes)");
+								Log?.Warning($"Continuation message fragment without start ignored ({msglen} bytes)");
 								break;
 							}
 							messageData = messageData!.Concat(data);
@@ -214,7 +214,7 @@ namespace LocalHtmlInterop.Handler
 							// no response expected
 							break;
 						default:
-							Log?.Write(ISimpleLog.FlagWarning, $"Message of unknown opcode {opcode} ignored ({msglen} bytes)");
+							Log?.Warning($"Message of unknown opcode {opcode} ignored ({msglen} bytes)");
 							break;
 					}
 					if (opcode == 8) break;
@@ -224,7 +224,7 @@ namespace LocalHtmlInterop.Handler
 			{
 				if (!silentExceptions)
 				{
-					Log?.Write(ISimpleLog.FlagError, $"EXCEPTION: Client {Port} closed; {ex}");
+					Log?.Error($"EXCEPTION: Client {Port} closed; {ex}");
 				}
 				Close();
 			}

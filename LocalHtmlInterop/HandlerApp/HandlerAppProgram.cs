@@ -161,11 +161,11 @@ namespace LocalHtmlInterop.Handler
 
 				// main operation
 				Debug.Assert(cmdLine.AppOperation == CmdLineArgs.Operation.InteropCall);
+				log =
 #if DEBUG
-				log = new DebugEchoLog<SimpleLog>();
-#else
-				log = new SimpleLog();
+					new DebugOutputEchoingSimpleLog
 #endif
+					(new SimpleLog());
 				cmdMan.Log = log;
 
 				try
@@ -175,7 +175,7 @@ namespace LocalHtmlInterop.Handler
 					{
 						if (!File.Exists(file))
 						{
-							log.Write(ISimpleLog.FlagWarning, $"Command definition file not found: {file}");
+							log.Warning($"Command definition file not found: {file}");
 							continue;
 						}
 						var cdf = CommandDefinitionFile.Load(file);
@@ -186,13 +186,13 @@ namespace LocalHtmlInterop.Handler
 							{
 								if (cd.ValidationError != null)
 								{
-									log.Write(ISimpleLog.FlagWarning, $"\tCommand '{cd.name}' not valid: {cd.ValidationError}");
+									log.Warning($"\tCommand '{cd.name}' not valid: {cd.ValidationError}");
 									continue;
 								}
 								cd.name = cd.name!.ToLowerInvariant();
 								if (commands.ContainsKey(cd.name))
 								{
-									log.Write(ISimpleLog.FlagWarning, $"\tCommand '{cd.name}' already loaded; ignoring new definition.");
+									log.Warning($"\tCommand '{cd.name}' already loaded; ignoring new definition.");
 									continue;
 								}
 
@@ -202,7 +202,7 @@ namespace LocalHtmlInterop.Handler
 						}
 						else
 						{
-							log.Write(ISimpleLog.FlagWarning, $"Command definition file empty: {file}");
+							log.Warning($"Command definition file empty: {file}");
 						}
 					}
 
@@ -210,7 +210,7 @@ namespace LocalHtmlInterop.Handler
 				}
 				catch (Exception ex)
 				{
-					log.Write(ISimpleLog.FlagError, $"Failed to load command definitions: {ex}");
+					log.Error($"Failed to load command definitions: {ex}");
 				}
 
 				log.Write($"Called:\n\t{string.Join("\n\t", args)}");
@@ -233,7 +233,7 @@ namespace LocalHtmlInterop.Handler
 					if (singleInstance.Failed)
 					{
 						// still not good. giving up
-						log.Write(ISimpleLog.FlagError, "Failed to hand off task to single instance");
+						log.Error("Failed to hand off task to single instance");
 						throw new Exception("Critical Error");
 					}
 					// else, we now are the main instance. continue.
@@ -291,7 +291,7 @@ namespace LocalHtmlInterop.Handler
 			{
 				if (log != null)
 				{
-					log.Write(ISimpleLog.FlagError, $"EXCEPTION: {ex}");
+					log.Error($"EXCEPTION: {ex}");
 				}
 				else
 				{
@@ -395,7 +395,7 @@ namespace LocalHtmlInterop.Handler
 			{
 				log = new SimpleLog();
 				log.Write($"Called {operationName} with pipe {pipeName}");
-				log.Write(ISimpleLog.FlagError, $"EXCEPTION: {ex}");
+				log.Error($"EXCEPTION: {ex}");
 			}
 		}
 
@@ -433,7 +433,7 @@ namespace LocalHtmlInterop.Handler
 			}
 			catch (Exception ex)
 			{
-				log?.Write(ISimpleLog.FlagError, $"EXCEPTION trying to connect for task handoff: {ex}");
+				log?.Error($"EXCEPTION trying to connect for task handoff: {ex}");
 			}
 			return false;
 		}

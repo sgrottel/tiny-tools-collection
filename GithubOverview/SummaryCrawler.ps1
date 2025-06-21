@@ -40,7 +40,8 @@ if (-not (($sum -is [string]) -and ($sum.StartsWith('ERROR:')))) {
     Add-Content -Path log01.txt -Value "Formatting summary"
     $numTotalHotIssues = $sum | Select-Object -ExpandProperty hotIssuesCnt | Measure-Object -Sum | Select-Object -ExpandProperty Sum
     $numTotalPRs = $sum | Select-Object -ExpandProperty prCnt | Measure-Object -Sum | Select-Object -ExpandProperty Sum
-    $title = "Github Summary - $numTotalHotIssues !Issues, $numTotalPRs PRs";
+    $numTotalCIFails = $sum | Where-Object { -not ($_.isFork -or $_.isArchived -or $_.isPrivate) } | Select-Object -ExpandProperty workflowsLastFailed | Measure-Object -Sum | Select-Object -ExpandProperty Sum
+    $title = "Github Summary - $numTotalHotIssues !Issues, $numTotalPRs PRs, $numTotalCIFails CIFails";
     $sum = $sum | .\SummaryHtmlReport.ps1
 } else {
     Add-Content -Path log01.txt -Value "Formatting summary error"

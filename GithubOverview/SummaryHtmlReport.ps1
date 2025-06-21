@@ -81,11 +81,15 @@ end {
         }
 
         $strong = ($hotIssues[$i] + $pullrequests[$i] + $ciFails) -gt 0;
+        $txt += "<details><summary>";
         if ($strong) { $txt += "<strong>"; }
         $txt += "<code>$ico</code> <code><a href=`"$url`">$name</a>$namePad</code> &nbsp; <code>Issues:&nbsp;$iCnt</code> &nbsp; <code>PRs:&nbsp;$prCnt</code> &nbsp; <code>CI:&nbsp;$ciCnt</code>";
         if ($strong) { $txt += "</strong>"; }
+        $txt += "</summary>
+  <p>TODO</p>
+</details>";
 
-        $txt += "<br>`n";
+        #$txt += "<br>`n";
     }
     $txt += "</small>"
     $txt

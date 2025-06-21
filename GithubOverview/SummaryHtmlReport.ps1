@@ -10,6 +10,7 @@ begin {
     $issues = @();
     $hotIssues = @();
     $pullrequests = @();
+    $ci = @();
 }
 process {
     $o = $Targets[0];
@@ -25,9 +26,18 @@ process {
     }
     $icons += $ico;
 
+    if ($o.isPrivate -or $o.isArchived -or $o.isFork) { $ciCnts = "-" }
+    else {
+        $ciCnts = "$($o.workflowsCnt - $o.workflowsLastFailed)/$($o.workflowsCnt)"
+        if ($o.workflowsLastFailed -gt 0) {
+            $ciCnts = "!" + $ciCnts
+        }
+    }
+
     $issues += $o.issuesCnt
     $hotIssues += $o.hotIssuesCnt
     $pullrequests += $o.prCnt
+    $ci += $ciCnts
 }
 end {
     $iconPadLen = ($icons | ForEach-Object { ($_ | Select-String -Pattern "<span" -AllMatches).Matches.Count } | Measure-Object -Maximum).Maximum
@@ -36,6 +46,7 @@ end {
     $hiPadLen = ($hotIssues | ForEach-Object { "$_".Length } | Measure-Object -Maximum).Maximum
     if ($hiPadLen -gt 0) { $hiPadLen += 2; }
     $prPadLen = ($pullrequests | ForEach-Object { "$_".Length } | Measure-Object -Maximum).Maximum
+    $ciPadLen = ($ci | ForEach-Object { "$_".Length } | Measure-Object -Maximum).Maximum
 
     $txt = "<small>`n";
     for ($i = 0; $i -lt $icons.Length; $i++) {
@@ -60,9 +71,18 @@ end {
         $prCnt = $pullrequests[$i].ToString().PadLeft($prPadLen, '_') -replace '_',"&nbsp;"
         if ($prCnt -ne "0") { $prCnt = "<mark>$prCnt</mark>"; }
 
-        $strong = ($hotIssues[$i] + $pullrequests[$i]) -gt 0;
+        $ciCnt = $ci[$i].ToString().PadLeft($ciPadLen, '_') -replace '_',"&nbsp;"
+        $ciFails = ($ci[$i][0] -eq "!");
+        if ($ciFails) {
+            $ciCnt = "<mark>$ciCnt</mark>";
+            $ciFails = 1;
+        } else {
+            $ciFails = 0;
+        }
+
+        $strong = ($hotIssues[$i] + $pullrequests[$i] + $ciFails) -gt 0;
         if ($strong) { $txt += "<strong>"; }
-        $txt += "<code>$ico</code> <code><a href=`"$url`">$name</a>$namePad</code> &nbsp; <code>Issues:&nbsp;$iCnt</code> &nbsp; <code>PRs:&nbsp;$prCnt</code>";
+        $txt += "<code>$ico</code> <code><a href=`"$url`">$name</a>$namePad</code> &nbsp; <code>Issues:&nbsp;$iCnt</code> &nbsp; <code>PRs:&nbsp;$prCnt</code> &nbsp; <code>CI:&nbsp;$ciCnt</code>";
         if ($strong) { $txt += "</strong>"; }
 
         $txt += "<br>`n";

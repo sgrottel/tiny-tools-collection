@@ -8,6 +8,7 @@
 # Example:
 #   .\Summary.ps1 | Format-Table
 #   .\Summary.ps1 | Format-Table name,url,issuesCnt,@{Name="hotIssuesCnt";Expression={$esc=[char]27;($_.hotIssuesCnt -gt 0) ? "$esc[31m$($_.hotIssuesCnt)$esc[0m": "0"};Alignment='Right'},@{Name="prCnt";Expression={$esc=[char]27;($_.prCnt -gt 0) ? "$esc[31m$($_.prCnt)$esc[0m": "0"};Alignment='Right'},isFork,isArchived,isPrivate,isForkBehind
+#   .\Summary.ps1 | ConvertTo-Json -depth 20 | Set-Content .\Summary.json
 #
 param(
     [switch]$scripting
@@ -64,6 +65,10 @@ $repos = $repos | ForEach-Object {
         isPrivate=$_.isPrivate;
         isForkBehind=$false;
         updatedAt=($_.pushedAt -gt $_.updatedAt) ? $_.pushedAt : $_.updatedAt;
+        issues=$null;
+        workflowsCnt=0;
+        workflowsLastFailed=0;
+        workflows=$null;
     }
 
     if ($sum.isFork) {
@@ -75,12 +80,35 @@ $repos = $repos | ForEach-Object {
     }
 
     if ($sum.issuesCnt -gt 0) {
-        $issues = (gh issue list -L 10000 --json "comments,updatedAt,author" --repo $sum.name) | ConvertFrom-Json
+        $issues = (gh issue list -L 10000 --json "title,comments,updatedAt,author" --repo $sum.name) | ConvertFrom-Json
         $hotIssues = $issues | ForEach-Object {
             return (($_.comments.length -gt 0) ? $_.comments[-1].author.login : $_.author.login)
         } | Where-Object {$_ -ne $defaultUser}
         $sum.hotIssuesCnt = $hotIssues.count
+        $sum.issues = ($issues | Select-Object title,@{Name="author";Expression={$_.Author.login}},updatedAt)
     }
+
+    $workflows = (gh workflow list --limit 10000 --json "name,id" --repo $sum.name) | ConvertFrom-Json
+    $sum.workflowsCnt = $workflows.count
+    $workflows = $workflows | ForEach-Object {
+        $runs = (gh run list --workflow ($_.id) --limit 10 --json "name,status,conclusion,startedAt" --repo $sum.name) | ConvertFrom-Json | Where-Object status -eq "completed"
+        $status = "unknown";
+        $desc = "";
+        $lastTime = "";
+        if ($runs.length -gt 0) {
+            $status = $runs[0].conclusion;
+            $desc = $runs[0].name;
+            $lastTime = $runs[0].startedAt;
+        }
+        return [PSCustomObject]@{
+            name=$_.name;
+            status=$status;
+            desc=$desc;
+            lastTime=$lastTime;
+        }
+    }
+    $sum.workflowsLastFailed = ($workflows | Where-Object status -ne "success").count
+    $sum.workflows = $workflows;
 
     $sum
 } | Sort-Object -Property @{Expression="isArchived";Descending=$false},@{Expression="isFork";Descending=$false},@{Expression="name";Descending=$false}

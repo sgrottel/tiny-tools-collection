@@ -60,6 +60,7 @@ $repos = $repos | ForEach-Object {
         issuesCnt=$_.issues.totalCount;
         hotIssuesCnt=0;
         prCnt=$_.pullRequests.totalCount;
+        prs=$null; # TODO IMPLEMENT!
         isFork=$_.isFork;
         isArchived=$_.isArchived;
         isPrivate=$_.isPrivate;

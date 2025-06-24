@@ -1,13 +1,10 @@
 ﻿using SGrottel;
 using System.CommandLine;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Pipes;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
-using System.CommandLine.Invocation;
 
 namespace LocalHtmlInterop
 {
@@ -125,9 +122,9 @@ namespace LocalHtmlInterop
 
 		private static bool printBye = true;
 
-		private static void PrintLogoIfNotSuppressed(InvocationContext context)
+		private static void PrintLogoIfNotSuppressed(ParseResult parseResult)
 		{
-			if (!context.ParseResult.GetValueForOption(nologoOption))
+			if (!parseResult.GetValue(nologoOption))
 			{
 				PrintGreeting();
 				PrintVersions();
@@ -142,32 +139,31 @@ namespace LocalHtmlInterop
 			try
 			{
 
-				nologoOption = new Option<bool>("--nologo", "Hide the application's startup logo");
+				nologoOption = new Option<bool>("--nologo", "Hide the application's startup logo") { Recursive = true };
 
-				forceOption = new Option<bool>("--force", "Forces an operation");
-				forceOption.AddAlias("-f");
+				forceOption = new Option<bool>("--force", "Forces an operation") { Recursive = true, Aliases = { "-f" } };
 
 				var registerCommand = new Command("register", "Registers the handler application matching this CLI application for the custom protocol");
-				registerCommand.AddAlias("reg");
-				registerCommand.SetHandler(RunRegisterCommand);
+				registerCommand.Aliases.Add("reg");
+				registerCommand.SetAction(RunRegisterCommand);
 
 				var unregisterCommand = new Command("unregister", "Unregisters the handler application matching this CLI application for the custom protocol");
-				unregisterCommand.AddAlias("unreg");
-				unregisterCommand.SetHandler(RunUnregisterCommand);
+				unregisterCommand.Aliases.Add("unreg");
+				unregisterCommand.SetAction(RunUnregisterCommand);
 
 				var getPortCommand = new Command("getport", "Prints the WS port used by the handler application");
 				var getDefaultPortOption = new Option<bool>("--default", "Returns the default port configured by the application, instead of the currently configured port");
-				getPortCommand.AddAlias("port");
+				getPortCommand.Aliases.Add("port");
 				getPortCommand.Add(getDefaultPortOption);
-				getPortCommand.SetHandler((c) =>
+				getPortCommand.SetAction((c) =>
 				{
 					RunGetPortCommand(c, getDefaultPortOption);
 				});
 
 				var setPortCommand = new Command("setport", "Sets the WS port number to be used by the handler application");
-				var newPortValueArgument = new Argument<ushort>("port", "The new port value to be used");
+				var newPortValueArgument = new Argument<ushort>("port") { Description = "The new port value to be used" };
 				setPortCommand.Add(newPortValueArgument);
-				setPortCommand.SetHandler((c) =>
+				setPortCommand.SetAction((c) =>
 				{
 					RunSetPortCommand(c, newPortValueArgument);
 				});
@@ -175,38 +171,38 @@ namespace LocalHtmlInterop
 				var getJSCodeCommand = new Command("getjscode", "Prints the JavaScript code of the 'CallbackReceiver' class (cf. demo.html)");
 				var getJSMinifiedCodeOption = new Option<bool>("--mini", "Returns the minified version of the JavaScript code");
 				getJSCodeCommand.Add(getJSMinifiedCodeOption);
-				getJSCodeCommand.SetHandler((c) =>
+				getJSCodeCommand.SetAction((c) =>
 				{
 					RunGetJavaScriptCode(c, getJSMinifiedCodeOption);
 				});
 
-				var commandsFileArgument = new Argument<IEnumerable<string>>("file", "The commands file to be processed");
+				var commandsFileArgument = new Argument<IEnumerable<string>>("file") { Description = "The commands file to be processed" };
 				commandsFileArgument.Arity = ArgumentArity.OneOrMore;
 
-				var commandsFileExistingArgument = new Argument<IEnumerable<FileInfo>>("file", "The commands file to be processed").ExistingOnly();
+				var commandsFileExistingArgument = new Argument<IEnumerable<FileInfo>>("file") { Description = "The commands file to be processed" }.AcceptExistingOnly();
 				commandsFileExistingArgument.Arity = ArgumentArity.OneOrMore;
 
 				var listCommandsCommand = new Command("list", "Lists all registered commands");
-				listCommandsCommand.AddAlias("ls");
-				listCommandsCommand.SetHandler(RunListCommandsCommand);
+				listCommandsCommand.Aliases.Add("ls");
+				listCommandsCommand.SetAction(RunListCommandsCommand);
 
 				var validateCommandsFileCommand = new Command("validate", "Validates a commands file")
 				{
 					commandsFileExistingArgument
 				};
-				validateCommandsFileCommand.SetHandler((c) =>
+				validateCommandsFileCommand.SetAction((c) =>
 				{
 					RunValidateCommandsFileCommand(c, commandsFileExistingArgument);
 				});
 
 				var addCommandsFileToLocalMaschineOption = new Option<bool>("--localmachine", "Adds the command file ot the 'local machine' registry, instead of the 'current user' registry (default)");
-				addCommandsFileToLocalMaschineOption.AddAlias("-m");
+				addCommandsFileToLocalMaschineOption.Aliases.Add("-m");
 				var addCommandsFileCommand = new Command("add", "Adds a commands file to the registered commands")
 				{
 					addCommandsFileToLocalMaschineOption,
 					commandsFileExistingArgument
 				};
-				addCommandsFileCommand.SetHandler((c) =>
+				addCommandsFileCommand.SetAction((c) =>
 				{
 					RunAddCommandsFileCommand(c, commandsFileExistingArgument, addCommandsFileToLocalMaschineOption);
 				});
@@ -215,8 +211,8 @@ namespace LocalHtmlInterop
 				{
 					commandsFileArgument
 				};
-				removeCommandsFileCommand.AddAlias("rm");
-				removeCommandsFileCommand.SetHandler((c) =>
+				removeCommandsFileCommand.Aliases.Add("rm");
+				removeCommandsFileCommand.SetAction((c) =>
 				{
 					RunRemoveCommandsFileCommand(c, commandsFileArgument);
 				});
@@ -228,7 +224,7 @@ namespace LocalHtmlInterop
 					addCommandsFileCommand,
 					removeCommandsFileCommand
 				};
-				commandsCommand.AddAlias("cmd");
+				commandsCommand.Aliases.Add("cmd");
 
 				var rootCommand = new RootCommand("SGR Local Html Interop CLI Application")
 				{
@@ -237,12 +233,12 @@ namespace LocalHtmlInterop
 					getPortCommand,
 					setPortCommand,
 					getJSCodeCommand,
-					commandsCommand
+					commandsCommand,
+					nologoOption,
+					forceOption
 				};
-				rootCommand.AddGlobalOption(nologoOption);
-				rootCommand.AddGlobalOption(forceOption);
 
-				rv = rootCommand.Invoke(args);
+				rv = rootCommand.Parse(args).Invoke();
 
 				if (printBye)
 				{
@@ -325,10 +321,10 @@ namespace LocalHtmlInterop
 			}
 		}
 
-		private static void RunRegisterCommand(InvocationContext context)
+		private static void RunRegisterCommand(ParseResult parseResult)
 		{
-			PrintLogoIfNotSuppressed(context);
-			bool force = context.ParseResult.GetValueForOption(forceOption);
+			PrintLogoIfNotSuppressed(parseResult);
+			bool force = parseResult.GetValue(forceOption);
 
 			string? regHanExe = CustomUrlProtocol.GetRegisteredHandlerExe();
 			if (regHanExe != null)
@@ -356,10 +352,10 @@ namespace LocalHtmlInterop
 			}
 		}
 
-		private static void RunUnregisterCommand(InvocationContext context)
+		private static void RunUnregisterCommand(ParseResult parseResult)
 		{
-			PrintLogoIfNotSuppressed(context);
-			bool force = context.ParseResult.GetValueForOption(forceOption);
+			PrintLogoIfNotSuppressed(parseResult);
+			bool force = parseResult.GetValue(forceOption);
 
 			string? regHanExe = CustomUrlProtocol.GetRegisteredHandlerExe();
 			if (regHanExe != null)
@@ -387,23 +383,23 @@ namespace LocalHtmlInterop
 			}
 		}
 
-		private static void RunGetPortCommand(InvocationContext context, Option<bool> getDefaultPortOption)
+		private static void RunGetPortCommand(ParseResult parseResult, Option<bool> getDefaultPortOption)
 		{
-			PrintLogoIfNotSuppressed(context);
+			PrintLogoIfNotSuppressed(parseResult);
 			ServerPortConfig portCfg = new();
 			Console.WriteLine(
-				context.ParseResult.GetValueForOption(getDefaultPortOption)
+				parseResult.GetValue(getDefaultPortOption)
 				? ServerPortConfig.DefaultPort
 				: portCfg.GetValue());
 			printBye = false;
 		}
 
-		private static void RunSetPortCommand(InvocationContext context, Argument<ushort> newPortValueArgument)
+		private static void RunSetPortCommand(ParseResult parseResult, Argument<ushort> newPortValueArgument)
 		{
-			PrintLogoIfNotSuppressed(context);
-			bool force = context.ParseResult.GetValueForOption(forceOption);
+			PrintLogoIfNotSuppressed(parseResult);
+			bool force = parseResult.GetValue(forceOption);
 
-			ushort newPortValue = context.ParseResult.GetValueForArgument(newPortValueArgument);
+			ushort newPortValue = parseResult.GetValue(newPortValueArgument);
 			if (newPortValue < 1024)
 			{
 				log.Write(
@@ -446,9 +442,9 @@ namespace LocalHtmlInterop
 			}
 		}
 
-		private static void RunListCommandsCommand(InvocationContext context)
+		private static void RunListCommandsCommand(ParseResult parseResult)
 		{
-			PrintLogoIfNotSuppressed(context);
+			PrintLogoIfNotSuppressed(parseResult);
 
 			var files = RegistryUtility.LoadFilePaths();
 			log.Write($"Registry contains {files.Count} files:");
@@ -460,10 +456,17 @@ namespace LocalHtmlInterop
 			log.Write("");
 		}
 
-		private static void RunValidateCommandsFileCommand(InvocationContext context, Argument<IEnumerable<FileInfo>> fileArgument)
+		private static void RunValidateCommandsFileCommand(ParseResult parseResult, Argument<IEnumerable<FileInfo>> fileArgument)
 		{
-			PrintLogoIfNotSuppressed(context);
-			var files = context.ParseResult.GetValueForArgument(fileArgument);
+			PrintLogoIfNotSuppressed(parseResult);
+
+			var files = parseResult.GetValue(fileArgument);
+			if (files == null)
+			{
+				log.Error($"No files specified");
+				return;
+			}
+
 			foreach (var file in files)
 			{
 				log.Write($"Validating: {file.FullName}");
@@ -494,13 +497,20 @@ namespace LocalHtmlInterop
 			}
 		}
 
-		private static void RunAddCommandsFileCommand(InvocationContext context, Argument<IEnumerable<FileInfo>> fileArgument, Option<bool> addToLocalMachineOption)
+		private static void RunAddCommandsFileCommand(ParseResult parseResult, Argument<IEnumerable<FileInfo>> fileArgument, Option<bool> addToLocalMachineOption)
 		{
-			PrintLogoIfNotSuppressed(context);
-			bool addToLocalMachine = context.ParseResult.GetValueForOption(addToLocalMachineOption);
+			PrintLogoIfNotSuppressed(parseResult);
+			bool addToLocalMachine = parseResult.GetValue(addToLocalMachineOption);
+
+			var files = parseResult.GetValue(fileArgument);
+			if (files == null)
+			{
+				log.Error($"No files specified");
+				return;
+			}
 
 			HashSet<FileInfo> cdfs = new();
-			foreach (var fi in context.ParseResult.GetValueForArgument(fileArgument))
+			foreach (var fi in files)
 			{
 				try
 				{
@@ -544,11 +554,16 @@ namespace LocalHtmlInterop
 			}
 		}
 
-		private static void RunRemoveCommandsFileCommand(InvocationContext context, Argument<IEnumerable<string>> fileArgument)
+		private static void RunRemoveCommandsFileCommand(ParseResult parseResult, Argument<IEnumerable<string>> fileArgument)
 		{
-			PrintLogoIfNotSuppressed(context);
+			PrintLogoIfNotSuppressed(parseResult);
 
-			var files = context.ParseResult.GetValueForArgument(fileArgument);
+			var files = parseResult.GetValue(fileArgument);
+			if (files == null)
+			{
+				log.Error($"No files specified");
+				return;
+			}
 
 			HashSet<string> regFilesLM = new(RegistryUtility.LoadFilePathsFromLocalMachine().Select((s) => s.ToLowerInvariant()));
 			// if one of the `files` entries is in here, admin rights will be required
@@ -590,11 +605,11 @@ namespace LocalHtmlInterop
 			}
 		}
 
-		private static void RunGetJavaScriptCode(InvocationContext context, Option<bool> getJSMinifiedCodeOption)
+		private static void RunGetJavaScriptCode(ParseResult parseResult, Option<bool> getJSMinifiedCodeOption)
 		{
-			PrintLogoIfNotSuppressed(context);
+			PrintLogoIfNotSuppressed(parseResult);
 
-			bool getMini = context.ParseResult.GetValueForOption(getJSMinifiedCodeOption);
+			bool getMini = parseResult.GetValue(getJSMinifiedCodeOption);
 
 			string str = ResourceLoader.LoadString(
 				getMini

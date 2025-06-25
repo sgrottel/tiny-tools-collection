@@ -4,6 +4,8 @@
 # $csprojs | Foreach-Object { C:\dev\tiny-tools\Scripts\Get-NugetInfo.ps1 $_ } | C:\dev\tiny-tools\Scripts\Merge-NugetInfo.ps1 | ConvertTo-Yaml
 # $csprojs | Foreach-Object { C:\dev\tiny-tools\Scripts\Get-NugetInfo.ps1 $_ } | C:\dev\tiny-tools\Scripts\Merge-NugetInfo.ps1 -AddNewestVersions | ConvertTo-Yaml -OutFile C:\Downloads\csproj-nuget.yaml -Force
 #
+# Get-Content "C:\temp\nuget-use-report\all-csproj.txt" | Foreach-Object { C:\dev\tiny-tools\Scripts\Get-NugetInfo.ps1 $_ } | C:\dev\tiny-tools\Scripts\Merge-NugetInfo.ps1 -AddNewestVersions | ConvertTo-Yaml -OutFile "C:\temp\nuget-use-report\csproj-nuget.yaml" -Force
+#
 param (
     [parameter(Position=1, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
     [array]$NugetInfo,
@@ -42,5 +44,14 @@ end {
             }
         }
     }
-    $nugets    
+    $output = [ordered]@{}
+    $nugets.Keys | Sort-Object | ForEach-Object {
+        $nuget = $_
+        $versions = [ordered]@{}
+        $nugets[$nuget].Keys | Sort-Object | ForEach-Object {
+            $versions[$_] = $nugets[$nuget][$_]
+        }
+        $output[$_] = $versions
+    }
+    $output
 }

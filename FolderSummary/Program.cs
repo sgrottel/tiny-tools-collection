@@ -9,60 +9,68 @@ internal class Program
 		var rootCommand = new RootCommand("Folder Summary Application");
 		rootCommand.TreatUnmatchedTokensAsErrors = true;
 
-		var jsonFileArgument = new Argument<FileInfo>("json", description: "The summary json file");
-		var folderArgument = new Argument<DirectoryInfo>("dir", description: "The directory referenced").ExistingOnly();
+		var jsonFileArgument = new Argument<FileInfo>("json") { Description = "The summary json file" };
+		var folderArgument = new Argument<DirectoryInfo>("dir") { Description = "The directory referenced" }.AcceptExistingOnly();
 
-		var createCommand = new Command("create", description: "Creating a summary file from a folder");
-		createCommand.AddArgument(jsonFileArgument);
-		createCommand.AddArgument(folderArgument);
-		var overwriteOption = new Option<bool>("--force", description: "Overwrite existing an json file");
-		createCommand.AddOption(overwriteOption);
-		createCommand.AddValidator(result =>
+		var createCommand = new Command("create", description: "Creating a summary file from a folder")
 		{
-			var json = result.GetValueForArgument(jsonFileArgument);
+			jsonFileArgument,
+			folderArgument
+		};
+
+		var overwriteOption = new Option<bool>("--force") { Description = "Overwrite existing an json file" };
+		createCommand.Options.Add(overwriteOption);
+		createCommand.Validators.Add(result =>
+		{
+			var json = result.GetRequiredValue(jsonFileArgument);
 			if (json.Exists)
 			{
-				bool? o = result.GetValueForOption(overwriteOption);
+				bool? o = result.GetValue(overwriteOption);
 				if (o == null || !o.HasValue || o.Value == false)
 				{
-					result.ErrorMessage = $"Cannot overwrite existing file without '--force' specified: '{json.FullName}'.";
+					result.AddError($"Cannot overwrite existing file without '--force' specified: '{json.FullName}'.");
 				}
 			}
 		});
-		createCommand.SetHandler((json, folder) =>
+		createCommand.SetAction((result) =>
 		{
-			var data = Summary.Scan(folder);
-			Summary.SaveJson(data, json);
+			var data = Summary.Scan(result.GetRequiredValue(folderArgument));
+			Summary.SaveJson(data, result.GetRequiredValue(jsonFileArgument));
 
-		}, jsonFileArgument, folderArgument);
-		rootCommand.AddCommand(createCommand);
+		});
+		rootCommand.Subcommands.Add(createCommand);
 
-		var compareCommand = new Command("compare", description: "Compares a summary to a folder");
-		compareCommand.AddArgument(jsonFileArgument);
-		compareCommand.AddArgument(folderArgument);
-		var ignoreDateOption = new Option<bool>("--ignore-date", description: "Does not report differences in file dates");
-		compareCommand.AddOption(ignoreDateOption);
-		compareCommand.AddValidator(result =>
+		var compareCommand = new Command("compare", description: "Compares a summary to a folder")
 		{
-			var json = result.GetValueForArgument(jsonFileArgument);
+			jsonFileArgument,
+			folderArgument
+		};
+		var ignoreDateOption = new Option<bool>("--ignore-date") { Description = "Does not report differences in file dates" };
+		compareCommand.Options.Add(ignoreDateOption);
+		compareCommand.Validators.Add(result =>
+		{
+			var json = result.GetRequiredValue(jsonFileArgument);
 			if (!json.Exists)
 			{
-				result.ErrorMessage = $"File does not exist: '{json.FullName}'.";
+				result.AddError($"File does not exist: '{json.FullName}'.");
 			}
 		});
-		compareCommand.SetHandler((json, folder, ignoreDate) =>
+		compareCommand.SetAction((result) =>
 		{
 			Console.OutputEncoding = new UTF8Encoding(false);
 
+			DirectoryInfo folder = result.GetRequiredValue(folderArgument);
+			FileInfo json = result.GetRequiredValue(jsonFileArgument);
 			var found = Summary.Scan(folder);
 			var expected = Summary.LoadJson(json);
 			Comparer comp = new(json, folder);
+			var ignoreDate = result.GetValue(ignoreDateOption);
 			comp.IgnoreDate = ignoreDate;
 			comp.Compare(expected, found);
 
-		}, jsonFileArgument, folderArgument, ignoreDateOption);
-		rootCommand.AddCommand(compareCommand);
+		});
+		rootCommand.Subcommands.Add(compareCommand);
 
-		return rootCommand.Invoke(args);
+		return rootCommand.Parse(args).Invoke();
 	}
 }

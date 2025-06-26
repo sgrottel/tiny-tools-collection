@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>Folder Summary Application</Title>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Authors>SGrottel</Authors>
     <Description>Folder Summary Application</Description>
-    <Copyright>Copyright 2023 SGrottel</Copyright>
+    <Copyright>Copyright 2023-2025 SGrottel</Copyright>
     <PackageProjectUrl>https://github.com/sgrottel/tiny-tools-collection</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sgrottel/tiny-tools-collection</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="EverythingSearchClient" Version="0.8.0.51" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />
   </ItemGroup>
 
 </Project>

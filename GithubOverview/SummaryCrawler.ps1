@@ -40,6 +40,7 @@ gh auth status 2>&1 | Out-Null
 if ($LastExitCode -eq 0) {
     Add-Content -Path log01.txt -Value "Collecting summary"
     $sum = ./Summary.ps1 -scripting -updateForks
+    $sum | ConvertTo-Json -Depth 20 | Set-Content summary.json
     # $sum = Get-Content summary.json | ConvertFrom-Json
     Add-Content -Path log01.txt -Value "Summary collected"
 } else {

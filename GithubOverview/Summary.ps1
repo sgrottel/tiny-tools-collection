@@ -52,6 +52,7 @@ $repoJsonFields = "isArchived,isFork,isPrivate,issues,name,owner,pullRequests,ur
 
 $repos = (gh repo list -L 10000 --json $repoJsonFields) | ConvertFrom-Json
 # $repos = $repos | Where-Object { $_.name -notin $myUserReposToIgnore }
+# $repos = $repos | Where-Object { $_.name -eq "tiny-tools-collection" }
 
 # sort owner, making default user empty name => first in list
 $repos = $repos | ForEach-Object {
@@ -61,7 +62,7 @@ $repos = $repos | ForEach-Object {
         issuesCnt=$_.issues.totalCount;
         hotIssuesCnt=0;
         prCnt=$_.pullRequests.totalCount;
-        prs=$null; # TODO IMPLEMENT!
+        prs=$null;
         isFork=$_.isFork;
         isArchived=$_.isArchived;
         isPrivate=$_.isPrivate;
@@ -85,35 +86,43 @@ $repos = $repos | ForEach-Object {
     }
 
     if ($sum.issuesCnt -gt 0) {
-        $issues = (gh issue list -L 10000 --json "title,comments,updatedAt,author" --repo $sum.name) | ConvertFrom-Json
+        $issues = (gh issue list -L 10000 --json "title,comments,updatedAt,author,number" --repo $sum.name) | ConvertFrom-Json
         $hotIssues = $issues | ForEach-Object {
             return (($_.comments.length -gt 0) ? $_.comments[-1].author.login : $_.author.login)
         } | Where-Object {$_ -ne $defaultUser}
         $sum.hotIssuesCnt = $hotIssues.count
-        $sum.issues = ($issues | Select-Object title,@{Name="author";Expression={$_.Author.login}},updatedAt)
+        $sum.issues = [array]($issues | Select-Object number,title,@{Name="author";Expression={$_.Author.login}},updatedAt)
+    }
+
+    if ($sum.prCnt -gt 0) {
+        $prs = (gh pr list -L 10000 --json "number,title,updatedAt,author,createdAt" --repo $sum.name) | ConvertFrom-Json
+        $sum.prs = [array]($prs | Select-Object number,title,@{Name="author";Expression={$_.Author.login}},createdAt,updatedAt)
     }
 
     $workflows = (gh workflow list --limit 10000 --json "name,id" --repo $sum.name) | ConvertFrom-Json
     $sum.workflowsCnt = $workflows.count
     $workflows = $workflows | ForEach-Object {
-        $runs = (gh run list --workflow ($_.id) --limit 10 --json "name,status,conclusion,startedAt" --repo $sum.name) | ConvertFrom-Json | Where-Object status -eq "completed"
+        $runs = (gh run list --workflow ($_.id) --limit 10 --json "name,status,conclusion,startedAt,databaseId" --repo $sum.name) | ConvertFrom-Json | Where-Object status -eq "completed"
         $status = "unknown";
         $desc = "";
         $lastTime = "";
+        $id = "";
         if ($runs.length -gt 0) {
             $status = $runs[0].conclusion;
             $desc = $runs[0].name;
             $lastTime = $runs[0].startedAt;
+            $id = $runs[0].databaseId;
         }
         return [PSCustomObject]@{
             name=$_.name;
             status=$status;
             desc=$desc;
             lastTime=$lastTime;
+            id=$id;
         }
     }
     $sum.workflowsLastFailed = ($workflows | Where-Object status -ne "success").count
-    $sum.workflows = $workflows;
+    $sum.workflows = [array]($workflows);
 
     $sum
 } | Sort-Object -Property @{Expression="isArchived";Descending=$false},@{Expression="isFork";Descending=$false},@{Expression="name";Descending=$false}

@@ -15,6 +15,18 @@ if (Test-Path log01.txt -PathType Leaf) {
 }
 Add-Content -Path log01.txt -Value ("Start - " + ([DateTime]::Now))
 
+if ($IsLinux) {
+    if (Get-Command apk -ErrorAction SilentlyContinue) {
+        Add-Content -Path log01.txt -Value  "running apk update & upgrade"
+        apk update
+        apk upgrade --no-cache
+    } else {
+        Add-Content -Path log01.txt -Value  "apk not found"
+    }
+} else {
+    Add-Content -Path log01.txt -Value "Not Linux - skipping apk update"
+}
+
 gh auth status 2>&1 | Out-Null
 if ($LastExitCode -ne 0) {
     Add-Content -Path log01.txt -Value "Not logged in gh"
@@ -27,7 +39,7 @@ if ($LastExitCode -ne 0) {
 gh auth status 2>&1 | Out-Null
 if ($LastExitCode -eq 0) {
     Add-Content -Path log01.txt -Value "Collecting summary"
-    $sum = ./Summary.ps1 -scripting
+    $sum = ./Summary.ps1 -scripting -updateForks
     # $sum = Get-Content summary.json | ConvertFrom-Json
     Add-Content -Path log01.txt -Value "Summary collected"
 } else {

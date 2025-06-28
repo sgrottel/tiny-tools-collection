@@ -11,7 +11,8 @@
 #   .\Summary.ps1 | ConvertTo-Json -depth 20 | Set-Content .\Summary.json
 #
 param(
-    [switch]$scripting
+    [switch]$scripting,
+    [switch]$updateForks
 )
 
 $ErrorActionPreference = "Stop"
@@ -74,6 +75,9 @@ $repos = $repos | ForEach-Object {
 
     if ($sum.isFork) {
         $forkRepo = "https://github.com/$($_.owner.login)/$($_.name).git";
+        if ($updateForks) {
+            gh repo sync "$($_.owner.login)/$($_.name)"
+        }
         $forkHeadCommit = (git ls-remote $forkRepo HEAD)
         $parentRepo = "https://github.com/$($_.parent.owner.login)/$($_.parent.name).git";
         $parentHeadCommit = (git ls-remote $parentRepo HEAD)

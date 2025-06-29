@@ -255,7 +255,7 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 	{
 		std::wstring as = hk->arguments[argi];
 
-		auto resArg = hk->resolveArgsPaths.find(argi);
+		auto resArg = hk->resolveArgsPaths.find(static_cast<uint32_t>(argi));
 		if (resArg != hk->resolveArgsPaths.end())
 		{
 			std::filesystem::path exe{ as };

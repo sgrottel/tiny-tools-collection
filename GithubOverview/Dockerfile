@@ -3,11 +3,11 @@
 #
 # Test on Windows:
 #   docker build -t sgr/githubsummary .
-#   docker run --rm -v ".:/myapp" -t sgr/githubsummary
+#   docker run -e "TZ=Europe/Berlin" -v ".:/myapp" --rm sgr/githubsummary
 #
 # Deploy on Pi:
 #  sudo docker build -t sgr/githubsummary .
-#  sudo docker run --rm -v ".:/myapp" -t sgr/githubsummary
+#  sudo docker run -e "TZ=Europe/Berlin" -v /data/share/apps/githuboverview:/myapp --rm sgr/githubsummary
 #
 
 FROM alpine:latest
@@ -16,4 +16,4 @@ VOLUME /myapp
 
 RUN apk add powershell github-cli
 
-CMD ["pwsh","-File","/myapp/SummaryCrawler.ps1","-WorkingDirectory","/myapp","-NoLogo","-NonInteractive","-NoProfile"]
+CMD ["/myapp/SummaryCrawler.sh"]

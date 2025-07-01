@@ -11,7 +11,6 @@
 #   .\Summary.ps1 | ConvertTo-Json -depth 20 | Set-Content .\Summary.json
 #
 param(
-    [switch]$scripting,
     [switch]$updateForks
 )
 
@@ -21,11 +20,7 @@ $ErrorActionPreference = "Stop"
 # check github.cli authentication status
 $authStat = (gh auth status 2>&1) | Out-String
 if ($LastExitCode -ne 0) {
-    if ($scripting) {
-        "ERROR: gh not logged in"
-    } else {
-        Write-Error "You are not logged in with the github.cli 'gh'`nPlease, run: gh auth login"
-    }
+    Write-Error "You are not logged in with the github.cli 'gh'`nPlease, run: gh auth login"
     exit
 }
 if ($authStat -match 'Logged in to github.com account (\w+)')
@@ -38,11 +33,7 @@ elseif ($authStat -match 'Logged in to github.com as (\w+)')
 }
 else
 {
-    if ($scripting) {
-        "ERROR: gh user detection failed"
-    } else {
-        Write-Error "Failed to identify default user from 'gh auth status'"
-    }
+    Write-Error "Failed to identify default user from 'gh auth status'"
     exit
 }
 

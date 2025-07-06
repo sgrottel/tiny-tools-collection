@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
-using System.CommandLine.Parsing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LoginWhen
 {
@@ -16,25 +11,30 @@ namespace LoginWhen
 
         public bool Parse(string[] args)
         {
-            RootCommand root = new("Info about user session login/logout times");
-            Option<int> historyMaxDays = new("--days", "Number of days to show");
+            RootCommand root = new(description: "Info about user session login/logout times");
+            Option<int> historyMaxDays = new(name: "--days") { Description = "Number of days to show" };
             root.Add(historyMaxDays);
 
-            bool ok = false;
-
-            root.SetHandler((InvocationContext ctxt) =>
+            var res = root.Parse(args);
+            if (res.Errors.Any())
             {
-                if (ctxt.ParseResult.HasOption(historyMaxDays))
-                {
-                    HistoryMaxDays = ctxt.ParseResult.GetValueForOption(historyMaxDays);
-                }
+                Console.Error.WriteLine("Cmd line parsing failed:\n\t" + string.Join("\n\t", res.Errors));
+                return false;
+            }
+            if (res.Action != null)
+            {
+                // version or help
+                res.Invoke();
+                return false;
+            }
 
-                ok = true;
-            });
+            var hmdr = res.GetResult(historyMaxDays);
+            if (hmdr != null && !hmdr.Errors.Any())
+            {
+                HistoryMaxDays = res.GetValue(historyMaxDays);
+            }
 
-            root.Invoke(args);
-
-            return ok;
+            return true;
         }
 
     }

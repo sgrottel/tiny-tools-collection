@@ -115,10 +115,20 @@ namespace LocalHtmlInterop
 #endif
 				(new EchoingSimpleLog(new SimpleLog()));
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-		private static Option<bool> nologoOption;
-		private static Option<bool> forceOption;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+		private static readonly Option<bool> nologoOption
+			= new Option<bool>(name: "--nologo")
+			{
+				Description = "Hide the application's startup logo",
+				Recursive = true
+			};
+
+		private static readonly Option<bool> forceOption
+			= new Option<bool>(name: "--force")
+			{
+				Description = "Forces an operation",
+				Aliases = { "-f" },
+				Recursive = true
+			};
 
 		private static bool printBye = true;
 
@@ -138,55 +148,87 @@ namespace LocalHtmlInterop
 
 			try
 			{
-
-				nologoOption = new Option<bool>("--nologo", "Hide the application's startup logo") { Recursive = true };
-
-				forceOption = new Option<bool>("--force", "Forces an operation") { Recursive = true, Aliases = { "-f" } };
-
-				var registerCommand = new Command("register", "Registers the handler application matching this CLI application for the custom protocol");
-				registerCommand.Aliases.Add("reg");
+				var registerCommand = new Command(
+					name: "register",
+					description: "Registers the handler application matching this CLI application for the custom protocol")
+				{
+					Aliases = { "reg" }
+				};
 				registerCommand.SetAction(RunRegisterCommand);
 
-				var unregisterCommand = new Command("unregister", "Unregisters the handler application matching this CLI application for the custom protocol");
-				unregisterCommand.Aliases.Add("unreg");
+				var unregisterCommand = new Command(
+					name: "unregister",
+					description: "Unregisters the handler application matching this CLI application for the custom protocol")
+				{
+					Aliases = { "unreg" }
+				};
 				unregisterCommand.SetAction(RunUnregisterCommand);
 
-				var getPortCommand = new Command("getport", "Prints the WS port used by the handler application");
-				var getDefaultPortOption = new Option<bool>("--default", "Returns the default port configured by the application, instead of the currently configured port");
-				getPortCommand.Aliases.Add("port");
+				var getPortCommand = new Command(
+					name: "getport",
+					description: "Prints the WS port used by the handler application")
+				{
+					Aliases = { "port" }
+				};
+				var getDefaultPortOption = new Option<bool>(name: "--default")
+				{
+					Description = "Returns the default port configured by the application, instead of the currently configured port"
+				};
 				getPortCommand.Add(getDefaultPortOption);
 				getPortCommand.SetAction((c) =>
 				{
 					RunGetPortCommand(c, getDefaultPortOption);
 				});
 
-				var setPortCommand = new Command("setport", "Sets the WS port number to be used by the handler application");
-				var newPortValueArgument = new Argument<ushort>("port") { Description = "The new port value to be used" };
+				var setPortCommand = new Command(
+					name: "setport",
+					description: "Sets the WS port number to be used by the handler application");
+				var newPortValueArgument = new Argument<ushort>(name: "port")
+				{
+					Description = "The new port value to be used"
+				};
 				setPortCommand.Add(newPortValueArgument);
 				setPortCommand.SetAction((c) =>
 				{
 					RunSetPortCommand(c, newPortValueArgument);
 				});
 
-				var getJSCodeCommand = new Command("getjscode", "Prints the JavaScript code of the 'CallbackReceiver' class (cf. demo.html)");
-				var getJSMinifiedCodeOption = new Option<bool>("--mini", "Returns the minified version of the JavaScript code");
+				var getJSCodeCommand = new Command(
+					name: "getjscode",
+					description: "Prints the JavaScript code of the 'CallbackReceiver' class (cf. demo.html)");
+				var getJSMinifiedCodeOption = new Option<bool>(name: "--mini")
+				{
+					Description = "Returns the minified version of the JavaScript code"
+				};
 				getJSCodeCommand.Add(getJSMinifiedCodeOption);
 				getJSCodeCommand.SetAction((c) =>
 				{
 					RunGetJavaScriptCode(c, getJSMinifiedCodeOption);
 				});
 
-				var commandsFileArgument = new Argument<IEnumerable<string>>("file") { Description = "The commands file to be processed" };
-				commandsFileArgument.Arity = ArgumentArity.OneOrMore;
+				var commandsFileArgument = new Argument<IEnumerable<string>>("file")
+				{
+					Description = "The commands file to be processed",
+					Arity = ArgumentArity.OneOrMore
+				};
 
-				var commandsFileExistingArgument = new Argument<IEnumerable<FileInfo>>("file") { Description = "The commands file to be processed" }.AcceptExistingOnly();
-				commandsFileExistingArgument.Arity = ArgumentArity.OneOrMore;
+				var commandsFileExistingArgument = new Argument<IEnumerable<FileInfo>>("file")
+				{
+					Description = "The commands file to be processed",
+					Arity = ArgumentArity.OneOrMore
+				}.AcceptExistingOnly();
 
-				var listCommandsCommand = new Command("list", "Lists all registered commands");
-				listCommandsCommand.Aliases.Add("ls");
+				var listCommandsCommand = new Command(
+					name: "list",
+					description: "Lists all registered commands")
+				{
+					Aliases = { "ls" }
+				};
 				listCommandsCommand.SetAction(RunListCommandsCommand);
 
-				var validateCommandsFileCommand = new Command("validate", "Validates a commands file")
+				var validateCommandsFileCommand = new Command(
+					name: "validate",
+					description: "Validates a commands file")
 				{
 					commandsFileExistingArgument
 				};
@@ -195,9 +237,14 @@ namespace LocalHtmlInterop
 					RunValidateCommandsFileCommand(c, commandsFileExistingArgument);
 				});
 
-				var addCommandsFileToLocalMaschineOption = new Option<bool>("--localmachine", "Adds the command file ot the 'local machine' registry, instead of the 'current user' registry (default)");
-				addCommandsFileToLocalMaschineOption.Aliases.Add("-m");
-				var addCommandsFileCommand = new Command("add", "Adds a commands file to the registered commands")
+				var addCommandsFileToLocalMaschineOption = new Option<bool>(name: "--localmachine")
+				{
+					Description = "Adds the command file ot the 'local machine' registry, instead of the 'current user' registry (default)",
+					Aliases = { "-m" }
+				};
+				var addCommandsFileCommand = new Command(
+					name: "add",
+					description: "Adds a commands file to the registered commands")
 				{
 					addCommandsFileToLocalMaschineOption,
 					commandsFileExistingArgument
@@ -207,7 +254,9 @@ namespace LocalHtmlInterop
 					RunAddCommandsFileCommand(c, commandsFileExistingArgument, addCommandsFileToLocalMaschineOption);
 				});
 
-				var removeCommandsFileCommand = new Command("remove", "Removes a commands file from the registered commands")
+				var removeCommandsFileCommand = new Command(
+					name: "remove",
+					description: "Removes a commands file from the registered commands")
 				{
 					commandsFileArgument
 				};
@@ -217,7 +266,9 @@ namespace LocalHtmlInterop
 					RunRemoveCommandsFileCommand(c, commandsFileArgument);
 				});
 
-				var commandsCommand = new Command("command", "Query and manage commands registered to the application")
+				var commandsCommand = new Command(
+					name: "command",
+					description: "Query and manage commands registered to the application")
 				{
 					listCommandsCommand,
 					validateCommandsFileCommand,
@@ -226,7 +277,7 @@ namespace LocalHtmlInterop
 				};
 				commandsCommand.Aliases.Add("cmd");
 
-				var rootCommand = new RootCommand("SGR Local Html Interop CLI Application")
+				var rootCommand = new RootCommand(description: "SGR Local Html Interop CLI Application")
 				{
 					registerCommand,
 					unregisterCommand,
@@ -238,7 +289,9 @@ namespace LocalHtmlInterop
 					forceOption
 				};
 
-				rv = rootCommand.Parse(args).Invoke();
+				var parseResult = rootCommand.Parse(args);
+				parseResult.Configuration.EnableDefaultExceptionHandler = false;
+				rv = parseResult.Invoke();
 
 				if (printBye)
 				{
@@ -399,7 +452,7 @@ namespace LocalHtmlInterop
 			PrintLogoIfNotSuppressed(parseResult);
 			bool force = parseResult.GetValue(forceOption);
 
-			ushort newPortValue = parseResult.GetValue(newPortValueArgument);
+			ushort newPortValue = parseResult.GetRequiredValue(newPortValueArgument);
 			if (newPortValue < 1024)
 			{
 				log.Write(

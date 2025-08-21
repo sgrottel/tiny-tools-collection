@@ -11,7 +11,8 @@
 #   .\Summary.ps1 | ConvertTo-Json -depth 20 | Set-Content .\Summary.json
 #
 param(
-    [switch]$updateForks
+    [switch]$updateForks,
+    [switch]$runEmptyWorkflows
 )
 
 $ErrorActionPreference = "Stop"
@@ -90,7 +91,7 @@ $repos = $repos | ForEach-Object {
         $sum.prs = [array]($prs | Select-Object number,title,@{Name="author";Expression={$_.Author.login}},createdAt,updatedAt)
     }
 
-    $workflows = (gh workflow list --limit 10000 --json "name,id" --repo $sum.name) | ConvertFrom-Json
+    $workflows = (gh workflow list --limit 10000 --json "name,id,path" --repo $sum.name) | ConvertFrom-Json
     $sum.workflowsCnt = $workflows.count
     $workflows = $workflows | ForEach-Object {
         $runs = (gh run list --workflow ($_.id) --limit 10 --json "name,status,conclusion,startedAt,databaseId" --repo $sum.name) | ConvertFrom-Json | Where-Object status -eq "completed"
@@ -98,6 +99,13 @@ $repos = $repos | ForEach-Object {
         $desc = "";
         $lastTime = "";
         $id = "";
+
+        if (($runs.length -eq 0) -and ($runEmptyWorkflows))
+        {
+            # workflow has no runs, so trigger dispatch runs (if possible) for the next update to get info (auto-healing)
+            gh workflow run ($_.id) --repo ($sum.name)
+        }
+
         if ($runs.length -gt 0) {
             $status = $runs[0].conclusion;
             $desc = $runs[0].name;
@@ -112,7 +120,7 @@ $repos = $repos | ForEach-Object {
             id=$id;
         }
     }
-    $sum.workflowsLastFailed = ($workflows | Where-Object status -ne "success").count
+    $sum.workflowsLastFailed = ($workflows | Where-Object { (($_.status -ne "success") -and ($_.status -ne "unknown")) }).count
     $sum.workflows = [array]($workflows);
 
     $sum

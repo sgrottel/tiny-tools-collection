@@ -59,7 +59,7 @@ end {
         $namePad = $namePadLen - $name.Length;
         if ($namePad -le 0) { $namePad = ""; }
         elseif ($namePad -eq 1) { $namePad = "&nbsp;"; }
-        elseif ($namePad -gt 1) { $namePad = " " + "&nbsp;" * ($namePad - 1); }
+        elseif ($namePad -gt 1) { $namePad = "&nbsp;" * ($namePad); }
         $url = $urls[$i];
 
         $iCnt = $issues[$i].ToString().PadLeft($iPadLen, '_') -replace '_',"&nbsp;"

@@ -63,7 +63,7 @@ jobs:
 
     - name: Upload Artifacts
       if: ${{ matrix.configuration == 'Release' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: Redate-${{env.FULL_VERSION_NUMBER}}
         path: |

@@ -12,13 +12,13 @@ jobs:
     runs-on: windows-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
         path: p
 
     - name: Checkout sgrottel/native-nuget-dependabot
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: sgrottel/native-nuget-dependabot
         path: nnd

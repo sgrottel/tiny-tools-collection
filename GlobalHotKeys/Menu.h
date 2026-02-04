@@ -16,6 +16,8 @@ class Menu
 	static constexpr int MI_EXPLORE_LOG_DIR = 1005;
 	static constexpr int MI_EXIT = 1006;
 	static constexpr int MI_SHOW_ABOUT = 1007;
+	static constexpr int MI_REG_AUTOSTART = 1008;
+	static constexpr int MI_UNREG_AUTOSTART = 1009;
 
 public:
 	Menu(sgrottel::ISimpleLog& log, HINSTANCE hInstance);
@@ -36,6 +38,10 @@ public:
 	inline void SetReloadConfigurationEnabled(bool enabled)
 	{
 		SetMenuItemEnabled(MI_RELOAD_CONFIG, enabled);
+	}
+	inline void SetUnregAutostartEnabled(bool enabled)
+	{
+		SetMenuItemEnabled(MI_UNREG_AUTOSTART, enabled);
 	}
 
 	inline void SetOnEnableAllHotKeysCallback(std::function<void()> callback)
@@ -58,6 +64,14 @@ public:
 	{
 		m_onShowAbout = std::move(callback);
 	}
+	inline void SetOnRegAutostartCallback(std::function<void()> callback)
+	{
+		m_onRegAutostart = std::move(callback);
+	}
+	inline void SetOnUnregAutostartCallback(std::function<void()> callback)
+	{
+		m_onUnregAutostart = std::move(callback);
+	}
 
 private:
 	sgrottel::ISimpleLog& m_log;
@@ -72,5 +86,7 @@ private:
 	std::function<void()> m_onSelectConfig;
 	std::function<void()> m_onReloadConfig;
 	std::function<void()> m_onShowAbout;
+	std::function<void()> m_onRegAutostart;
+	std::function<void()> m_onUnregAutostart;
 };
 

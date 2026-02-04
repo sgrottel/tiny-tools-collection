@@ -71,6 +71,9 @@ END
 		MENUITEM "Select Configuration...", 1002
 		MENUITEM "Reload Configuration", 1003, GRAYED
 		MENUITEM SEPARATOR
+		MENUITEM "Register in Startup", 1008
+		MENUITEM "Unregister from Startup", 1009, GRAYED
+		MENUITEM SEPARATOR
 		MENUITEM "Open Log", 1004
 		MENUITEM "Explore Log Directory", 1005
 		MENUITEM SEPARATOR

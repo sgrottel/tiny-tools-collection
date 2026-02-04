@@ -127,6 +127,14 @@ void Menu::Call(WORD menuItemID)
 		m_onShowAbout();
 		break;
 
+	case MI_REG_AUTOSTART:
+		m_onRegAutostart();
+		break;
+
+	case MI_UNREG_AUTOSTART:
+		m_onUnregAutostart();
+		break;
+
 	default:
 		m_log.Warning("Triggered menu item call of not-implemented id %d", static_cast<int>(menuItemID));
 		break;

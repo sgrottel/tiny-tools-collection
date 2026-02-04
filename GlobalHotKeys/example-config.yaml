@@ -1,6 +1,8 @@
-bell: true
-globalhotkeys:
-- code: Ä
+bell: true     # accustic feedback when hotkey is triggered
+
+globalhotkeys: # all hotkeys are configured in this list
+
+- code: Ä      # character check for system encoding; change on non-DE systems
   shift: true
   alt: true
   ctrl: true
@@ -10,8 +12,11 @@ globalhotkeys:
   - -NoExit
   - "-c"
   - "Write-Host \"Hello World.\""
+  createnowindow: false  # by default a window of the command line triggered by the hotkey is suppressed
+                         # With this setting, the window will be shown
+
 - code: n
   shift: true
   alt: true
   ctrl: true
-  exec: "notepad++.exe"
+  exec: "notepad.exe"

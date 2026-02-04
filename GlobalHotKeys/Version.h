@@ -21,11 +21,11 @@
 
 #define GLOBALHOTKEYS_VER_MAJOR	1
 #define GLOBALHOTKEYS_VER_MINOR	2
-#define GLOBALHOTKEYS_VER_PATCH	0
+#define GLOBALHOTKEYS_VER_PATCH	1
 #define GLOBALHOTKEYS_VER_BUILD	0
 
-#define GLOBALHOTKEYS_VER_YEARSTR	"2024-2025"
+#define GLOBALHOTKEYS_VER_YEARSTR	"2024-2026"
 
-#define GLOBALHOTKEYS_VER_DESCIPTION	"Utility to launch processes based on global hot keys."
+#define GLOBALHOTKEYS_VER_DESCIPTION	"Global hotkeys launch utility"
 
 #endif

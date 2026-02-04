@@ -71,6 +71,7 @@ jobs:
       run: |
         copy .\LICENSE ./GlobalHotKeys/bin/${{matrix.platform}}-${{matrix.configuration}}
         .\Scripts\makeProjReadme.ps1 GlobalHotKeys ./GlobalHotKeys/bin/${{matrix.platform}}-${{matrix.configuration}}/README.md
+        copy ./GlobalHotKeys/example-config.yaml ./GlobalHotKeys/bin/${{matrix.platform}}-${{matrix.configuration}}
 
     - name: Upload Artifacts
       if: ${{ matrix.configuration == 'Release' && matrix.platform == 'x64' }}

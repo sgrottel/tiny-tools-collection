@@ -1,7 +1,7 @@
 // Version.h
 // GlobalHotKeys, Tiny Tools Collection
 //
-// Copyright 2025 SGrottel
+// Copyright 2025-2026 SGrottel
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 
 #define GLOBALHOTKEYS_VER_MAJOR	1
 #define GLOBALHOTKEYS_VER_MINOR	2
-#define GLOBALHOTKEYS_VER_PATCH	1
+#define GLOBALHOTKEYS_VER_PATCH	2
 #define GLOBALHOTKEYS_VER_BUILD	0
 
 #define GLOBALHOTKEYS_VER_YEARSTR	"2024-2026"

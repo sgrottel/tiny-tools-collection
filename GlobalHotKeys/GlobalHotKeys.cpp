@@ -19,6 +19,7 @@
 
 #include "SimpleLog/SimpleLog.hpp"
 
+#include "AutostartRegistry.h"
 #include "MainWindow.h"
 #include "NotifyIcon.h"
 #include "Menu.h"
@@ -104,6 +105,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstan
 		log.Warning("CoInitialize failed. Some functions might not work.");
 	}
 	Configuration config{ log };
+
+	AutostartRegistry autostart{ log };
 
 	MainWindow wnd{ hInstance, log };
 	if (wnd.GetHandle() != NULL)
@@ -211,15 +214,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstan
 				keys.SetHotKeys(config.GetHotKeys(), config.GetFilePath().parent_path());
 				keys.SetBell(config.GetBell());
 			});
+		menu.SetOnRegAutostartCallback(std::bind(&AutostartRegistry::Register, &autostart));
+		menu.SetOnUnregAutostartCallback(std::bind(&AutostartRegistry::Unregister, &autostart));
 
 		wnd.SetNotifyCallback(
-			[&wnd, &menu, &notifyIcon, &config, &keys]()
+			[&wnd, &menu, &notifyIcon, &config, &keys, &autostart]()
 			{
 				menu.SetEnableAllHotkeysEnabled(keys.CanEnableAllHotKeys());
 				menu.SetDisableAllHotkeysEnabled(keys.CanDisableAllHotKeys());
 				menu.SetReloadConfigurationEnabled(
 					!config.GetFilePath().empty()
 					&& std::filesystem::is_regular_file(config.GetFilePath()));
+				menu.SetUnregAutostartEnabled(autostart.CanUnregister());
 
 				POINT p = notifyIcon->GetPoint();
 				menu.Popup(wnd, p);

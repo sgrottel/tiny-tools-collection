@@ -44,6 +44,8 @@ public:
 private:
 	static LRESULT CALLBACK wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+	void ReloadEnvironment();
+
 	HINSTANCE m_hInstance;
 	sgrottel::ISimpleLog& m_log;
 	HWND m_hWnd;

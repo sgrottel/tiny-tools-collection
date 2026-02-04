@@ -41,10 +41,18 @@ Menu::~Menu()
 
 void Menu::Popup(const MainWindow& wnd, const POINT& p)
 {
+	static bool scopeLock{ false };
+
 	if (m_hSubMenu == NULL)
 	{
 		return;
 	}
+	if (scopeLock)
+	{
+		return;
+	}
+
+	scopeLock = true;
 
 	SetForegroundWindow(wnd.GetHandle());
 	BOOL rv = TrackPopupMenuEx(m_hSubMenu, TPM_RIGHTBUTTON, p.x, p.y, wnd.GetHandle(), NULL);
@@ -52,6 +60,8 @@ void Menu::Popup(const MainWindow& wnd, const POINT& p)
 	{
 		m_log.Error("Failed to TrackPopupMenuEx: %d", static_cast<int>(GetLastError()));
 	}
+
+	scopeLock = false;
 }
 
 void Menu::Call(WORD menuItemID)
@@ -115,6 +125,14 @@ void Menu::Call(WORD menuItemID)
 
 	case MI_SHOW_ABOUT:
 		m_onShowAbout();
+		break;
+
+	case MI_REG_AUTOSTART:
+		m_onRegAutostart();
+		break;
+
+	case MI_UNREG_AUTOSTART:
+		m_onUnregAutostart();
 		break;
 
 	default:

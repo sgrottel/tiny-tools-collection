@@ -171,6 +171,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AutostartRegistry.cpp" />
     <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="GlobalHotKeys.cpp" />
     <ClCompile Include="HotKeyConfig.cpp" />
@@ -191,6 +192,7 @@
     <ResourceCompile Include="GlobalHotKeys.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AutostartRegistry.h" />
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="HotKeyConfig.h" />
     <ClInclude Include="HotKeyManager.h" />

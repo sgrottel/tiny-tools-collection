@@ -68,7 +68,7 @@ jobs:
 
     - name: Upload Artifacts
       if: ${{ matrix.configuration == 'Release' && matrix.platform == 'x64' }}
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: KeePassHotKey-${{env.FULL_VERSION_NUMBER}}
         path: |

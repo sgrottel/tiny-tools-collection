@@ -1,10 +1,9 @@
-# Dockerfile
-FROM debian:bullseye
+FROM alpine:3.19
 
-RUN apt-get update && \
-    apt-get install -y ghostscript && \
-    apt-get clean
+# Install ghostscript and poppler-utils (for pdfinfo)
+RUN apk add --no-cache ghostscript poppler-utils
 
 WORKDIR /pdfs
 
-ENTRYPOINT [ "bash" ]
+# Default command prints versions so you know it works
+CMD ["sh", "-c", "gs --version && pdfinfo -v"]

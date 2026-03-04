@@ -4,9 +4,38 @@ Use Ghostscript, hosted in a docker, to merge multiple PDF files into one PDF.
 
 ## Build Docker
 
-docker build -t ghostscript-pdf .
+docker build -t pdf-tools .
+
 
 ## Run Docker
+
+build:
+```
+docker build -t pdf-tools .
+```
+
+run:
+```
+docker run --rm \
+  -v "$(pwd)":/pdfs \
+  pdf-tools \
+  gs -sDEVICE=pdfwrite \
+     -o /pdfs/output.pdf \
+     -sPAPERSIZE=a4 \
+     -dFIXEDMEDIA \
+     -dPDFFitPage \
+     /pdfs/file1.pdf /pdfs/file2.pdf /pdfs/file3.pdf
+```
+
+check:
+```
+docker run --rm \
+  -v "$(pwd)":/pdfs \
+  pdf-tools \
+  pdfinfo /pdfs/output.pdf | grep "Page size"
+```
+
+### Old info:
 
 Let’s say your PDFs are in:
 

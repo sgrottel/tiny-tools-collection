@@ -115,7 +115,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstan
 		Menu menu{ log, wnd.GetHInstance() };
 		HotKeyManager keys{ log, wnd };
 		keys.SetHotKeys(config.GetHotKeys(), config.GetFilePath().parent_path());
-		keys.SetBell(config.GetBell());
+		keys.SetBell(config.GetBell(), config.GetCustomBellFile());
 
 		menu.SetOnShowAboutCallback([hInstance]() { ShowAboutDlg(hInstance); });
 
@@ -197,7 +197,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstan
 
 				config.SetFilePath(p, configLoadErrorMessageBox);
 				keys.SetHotKeys(config.GetHotKeys(), config.GetFilePath().parent_path());
-				keys.SetBell(config.GetBell());
+				keys.SetBell(config.GetBell(), config.GetCustomBellFile());
 			};
 		menu.SetOnSelectConfigCallback(selectConfig);
 		menu.SetOnReloadConfigCallback(
@@ -212,7 +212,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE /*hPrevInstan
 
 				config.SetFilePath(config.GetFilePath(), configLoadErrorMessageBox);
 				keys.SetHotKeys(config.GetHotKeys(), config.GetFilePath().parent_path());
-				keys.SetBell(config.GetBell());
+				keys.SetBell(config.GetBell(), config.GetCustomBellFile());
 			});
 		menu.SetOnRegAutostartCallback(std::bind(&AutostartRegistry::Register, &autostart));
 		menu.SetOnUnregAutostartCallback(std::bind(&AutostartRegistry::Unregister, &autostart));

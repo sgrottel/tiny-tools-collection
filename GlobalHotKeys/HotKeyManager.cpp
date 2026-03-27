@@ -1,9 +1,15 @@
 #include "pch.h"
+
 #include "HotKeyManager.h"
+
 #include "MainWindow.h"
-#include "SimpleLog/SimpleLog.hpp"
 #include "StringUtils.h"
+
+#include "SimpleLog/SimpleLog.hpp"
+
 #include <stdexcept>
+
+#include <Mmsystem.h>
 
 namespace
 {
@@ -11,7 +17,7 @@ namespace
 }
 
 HotKeyManager::HotKeyManager(sgrottel::ISimpleLog& log, MainWindow& wnd)
-	: m_wnd{ wnd }, m_log{ log }, m_bell{ false }
+	: m_wnd{ wnd }, m_log{ log }
 {
 }
 
@@ -169,7 +175,7 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 		m_log.Error("HotKey(%u) not found", id);
 		if (m_bell)
 		{
-			MessageBeep(MB_ICONERROR);
+			SoundBellError();
 		}
 		return;
 	}
@@ -214,7 +220,7 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 		m_log.Error(L"HotKey(%u) executable %s not found", id, hk->executable.c_str());
 		if (m_bell)
 		{
-			MessageBeep(MB_ICONERROR);
+			SoundBellError();
 		}
 		return;
 	}
@@ -234,7 +240,7 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 			}
 			if (m_bell)
 			{
-				MessageBeep(MB_ICONERROR);
+				SoundBellError();
 			}
 			return;
 		}
@@ -305,7 +311,7 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 
 	if (m_bell)
 	{
-		MessageBeep(MB_ICONINFORMATION);
+		SoundBell();
 	}
 
 	STARTUPINFO si = { sizeof(STARTUPINFO) };
@@ -342,9 +348,31 @@ void HotKeyManager::HotKeyTriggered(uint32_t id)
 		m_log.Error(L"HotKey(%u) executable could not be started: %d", id, static_cast<int>(GetLastError()));
 		if (m_bell)
 		{
-			MessageBeep(MB_ICONERROR);
+			SoundBellError();
 		}
 		return;
 	}
 
+}
+
+void HotKeyManager::SoundBell()
+{
+	if (!m_customBellFile.empty())
+	{
+		if (std::filesystem::is_regular_file(m_customBellFile))
+		{
+			PlaySoundW(m_customBellFile.wstring().c_str(), 0, SND_FILENAME | SND_ASYNC | SND_SYSTEM);
+			return;
+		}
+		else
+		{
+			m_log.Warning(L"Custom bell file is not a regular file: %s", m_customBellFile.wstring().c_str());
+		}
+	}
+	MessageBeep(MB_ICONINFORMATION);
+}
+
+void HotKeyManager::SoundBellError()
+{
+	MessageBeep(MB_ICONERROR);
 }

@@ -1,5 +1,7 @@
 #pragma once
 #include "HotKeyConfig.h"
+
+#include <filesystem>
 #include <vector>
 
 namespace sgrottel {
@@ -14,9 +16,10 @@ public:
 	~HotKeyManager();
 
 	void SetHotKeys(std::vector<HotKeyConfig> const& hotKeys, std::filesystem::path const& configDir);
-	inline void SetBell(bool bell)
+	inline void SetBell(bool bell, std::filesystem::path const& customFile)
 	{
 		m_bell = bell;
+		m_customBellFile = customFile;
 	}
 
 	bool CanEnableAllHotKeys();
@@ -32,10 +35,14 @@ private:
 		uint32_t m_activeId;
 	};
 
+	void SoundBell();
+	void SoundBellError();
+
 	MainWindow& m_wnd;
 	sgrottel::ISimpleLog& m_log;
-	std::vector<HotKey> m_hotKeys;
-	std::filesystem::path m_configDir;
-	bool m_bell;
+	std::vector<HotKey> m_hotKeys{};
+	std::filesystem::path m_configDir{};
+	bool m_bell{false};
+	std::filesystem::path m_customBellFile{};
 };
 

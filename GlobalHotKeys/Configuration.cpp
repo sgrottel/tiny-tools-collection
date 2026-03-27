@@ -487,6 +487,13 @@ bool Configuration::SetFilePath(std::filesystem::path const& path, std::optional
 
 		bool bell = FindOptionalBool(root, L"bell", true);
 
+		const auto cbf = root->Find(L"custom-bell-file");
+		if (cbf)
+		{
+			YamlScalar::Ptr cbfScalar = std::dynamic_pointer_cast<YamlScalar>(cbf);
+			m_customBellFile = cbfScalar->Value();
+		}
+
 		YamlElement::Ptr ghkeys = root->Find(L"globalhotkeys");
 		if (!ghkeys) throw std::invalid_argument("Entry `globalhotkeys` not found");
 

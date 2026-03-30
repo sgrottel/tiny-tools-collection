@@ -32,7 +32,7 @@ jobs:
       uses: microsoft/setup-msbuild@v3
 
     - name: Setup Nuget
-      uses: Nuget/setup-nuget@v2
+      uses: Nuget/setup-nuget@v3
 
     - name: Restore nuget packages
       run: nuget restore GlobalHotKeys\GlobalHotKeys.sln

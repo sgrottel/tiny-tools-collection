@@ -30,7 +30,7 @@ jobs:
       uses: microsoft/setup-msbuild@v3
 
     - name: Setup Nuget
-      uses: Nuget/setup-nuget@v3
+      uses: Nuget/setup-nuget@v4
 
     - name: Restore nuget packages
       run: nuget restore scfeu\scfeu.sln

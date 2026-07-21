@@ -92,7 +92,7 @@ The icon `KeePass_Square_BW.ico` is based on the original icon image files from 
 
 The project is freely available under the [Apache 2 License](./LICENSE).
 
-> Copyright 2022 SGrottel (https://www.sgrottel.de)
+> Copyright 2022-2026 SGrottel (https://www.sgrottel.de)
 >
 > Licensed under the Apache License, Version 2.0 (the "License");
 > you may not use this file except in compliance with the License.

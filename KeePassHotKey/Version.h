@@ -2,7 +2,7 @@
 // KeePassHotKey
 // Application version definition
 //
-// Copyright 2022 SGrottel (https://www.sgrottel.de)
+// Copyright 2022-2026 SGrottel (https://www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 #define KEEPASS_HOTKEY_VER_MAJOR	1
 #define KEEPASS_HOTKEY_VER_MINOR	1
-#define KEEPASS_HOTKEY_VER_PATCH	0
+#define KEEPASS_HOTKEY_VER_PATCH	1
 #define KEEPASS_HOTKEY_VER_BUILD	0
 
-#define KEEPASS_HOTKEY_VER_YEARSTR	"2022"
+#define KEEPASS_HOTKEY_VER_YEARSTR	"2022-2026"

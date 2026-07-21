@@ -290,8 +290,10 @@ namespace LocalHtmlInterop
 				};
 
 				var parseResult = rootCommand.Parse(args);
-				parseResult.Configuration.EnableDefaultExceptionHandler = false;
-				rv = parseResult.Invoke();
+				rv = parseResult.Invoke(configuration: new()
+				{
+					EnableDefaultExceptionHandler = false
+				});
 
 				if (printBye)
 				{

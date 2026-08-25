@@ -53,7 +53,7 @@ jobs:
     - name: Test
       shell: pwsh
       run: |
-        Write-Host "To be implemented..."
+        .\Redate\test\run-test.ps1
 
     - name: Publish
       if: ${{ matrix.configuration == 'Release' }}

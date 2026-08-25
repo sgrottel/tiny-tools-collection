@@ -126,7 +126,7 @@ function Compare-JsonFiles {
     }
 }
 
-.\generate-data.ps1
+& (Join-Path $PSScriptRoot "generate-data.ps1")
 $dataDir = Join-Path $PSScriptRoot "data"
 Assert-FileDates "Initial file time setup"
 
@@ -163,5 +163,3 @@ Assert-FileDates3 "Edited & restored File's time stamps"
 Compare-JsonFiles $genRedate (Join-Path $PSScriptRoot "reference2.redate")
 
 Write-Host "✅ done."
-
-throw "TEST"

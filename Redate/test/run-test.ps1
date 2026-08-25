@@ -148,11 +148,11 @@ Assert-FileDates "File time stamps unchanged after init"
 Compare-JsonFiles $genRedate (Join-Path $PSScriptRoot "reference1.redate")
 
 Remove-Item (Join-Path $dataDir "2.txt") -Force
-(Get-Item (Join-Path $dir "b\c\5.txt")).LastWriteTimeUtc = [DateTime]::Parse("2026-08-25T13:05:00Z").ToUniversalTime()
-Set-Content -Path (Join-Path $dir "a\3.txt") -Value "Now new 3"
-(Get-Item (Join-Path $dir "a\3.txt")).LastWriteTimeUtc = [DateTime]::Parse("2026-08-25T13:06:00Z").ToUniversalTime()
-Set-Content -Path (Join-Path $dir "b\4.txt") -Value "This is 4 edited"
-(Get-Item (Join-Path $dir "b\4.txt")).LastWriteTimeUtc = [DateTime]::Parse("2026-08-25T13:07:00Z").ToUniversalTime()
+(Get-Item (Join-Path $dataDir "b\c\5.txt")).LastWriteTimeUtc = [DateTime]::Parse("2026-08-25T13:05:00Z").ToUniversalTime()
+Set-Content -Path (Join-Path $dataDir "a\3.txt") -Value "Now new 3"
+(Get-Item (Join-Path $dataDir "a\3.txt")).LastWriteTimeUtc = [DateTime]::Parse("2026-08-25T13:06:00Z").ToUniversalTime()
+Set-Content -Path (Join-Path $dataDir "b\4.txt") -Value "This is 4 edited"
+(Get-Item (Join-Path $dataDir "b\4.txt")).LastWriteTimeUtc = [DateTime]::Parse("2026-08-25T13:07:00Z").ToUniversalTime()
 
 Assert-FileDates2 "Edited File's time stamps"
 

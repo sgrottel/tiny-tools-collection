@@ -53,7 +53,8 @@ jobs:
     - name: Test
       shell: pwsh
       run: |
-        .\Redate\test\run-test.ps1
+        $exe = (Get-ChildItem -Recurse -Include "Redate.exe" -Path ".\Redate\bin\${{ matrix.configuration }}" | Sort-Object LastWriteTimeUtc)[0].FullName
+        .\Redate\test\run-test.ps1 $exe
 
     - name: Publish
       if: ${{ matrix.configuration == 'Release' }}

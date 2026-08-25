@@ -2,7 +2,7 @@ name: Redate Build Action
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "redate/update" ]
     paths:
     - .github/workflows/Redate.yaml
     - Redate/**
@@ -32,7 +32,7 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Install dependencies
-      run: dotnet restore --arch x64 ./Redate/Redate.sln
+      run: dotnet restore --arch x64 ./Redate/Redate.csproj
 
     - name: Inject build number
       shell: pwsh
@@ -49,6 +49,11 @@ jobs:
 
     - name: Build
       run: dotnet build --configuration ${{ matrix.configuration }} --arch x64 --no-restore ./Redate/Redate.csproj
+
+    - name: Test
+      shell: pwsh
+      run: |
+        Write-Host "To be implemented..."
 
     - name: Publish
       if: ${{ matrix.configuration == 'Release' }}

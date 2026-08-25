@@ -32,7 +32,7 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Install dependencies
-      run: dotnet restore --arch x64 ./Redate/Redate.sln
+      run: dotnet restore --arch x64 ./Redate/Redate.csproj
 
     - name: Inject build number
       shell: pwsh
@@ -49,6 +49,12 @@ jobs:
 
     - name: Build
       run: dotnet build --configuration ${{ matrix.configuration }} --arch x64 --no-restore ./Redate/Redate.csproj
+
+    - name: Test
+      shell: pwsh
+      run: |
+        $exe = (Get-ChildItem -Recurse -Include "Redate.exe" -Path ".\Redate\bin\${{ matrix.configuration }}" | Sort-Object LastWriteTimeUtc)[0].FullName
+        .\Redate\test\run-test.ps1 $exe
 
     - name: Publish
       if: ${{ matrix.configuration == 'Release' }}

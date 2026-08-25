@@ -1,0 +1,44 @@
+{
+  "FileType": "REDATE-1-0",
+  "FileDate": "2026-08-25T14:19:36.6162738+02:00",
+  "SourceDirs": [
+    "data"
+  ],
+  "Files": [
+    {
+      "Path": "data\\1.txt",
+      "Length": 11,
+      "WriteTime": "2026-08-25T11:30:00Z",
+      "Attributes": 32,
+      "Md5Hash": "34939f2ccb0abd225b68e78616952356"
+    },
+    {
+      "Path": "data\\2.txt",
+      "Length": 11,
+      "WriteTime": "2026-08-25T11:40:00Z",
+      "Attributes": 32,
+      "Md5Hash": "a74950522fc020cecaa9dc69ee9863f0"
+    },
+    {
+      "Path": "data\\a\\3.txt",
+      "Length": 11,
+      "WriteTime": "2026-08-25T11:50:00Z",
+      "Attributes": 32,
+      "Md5Hash": "4d4373b1a80d7ef851c078df72801b35"
+    },
+    {
+      "Path": "data\\b\\4.txt",
+      "Length": 11,
+      "WriteTime": "2026-08-25T12:00:00Z",
+      "Attributes": 32,
+      "Md5Hash": "3fa4cf0c6c6587113ba84dcebe4cd9cf"
+    },
+    {
+      "Path": "data\\b\\c\\5.txt",
+      "Length": 11,
+      "WriteTime": "2026-08-25T12:10:00Z",
+      "Attributes": 32,
+      "Md5Hash": "dbfe1c6ba281200e3003261b422360c1"
+    }
+  ]
+}

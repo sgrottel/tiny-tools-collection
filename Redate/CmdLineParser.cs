@@ -1,87 +1,81 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.CommandLine;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Redate
+namespace Redate;
+
+class CmdLineParser
 {
 
-	class CmdLineParser
+	public Program.RunMode RunMode { get; private set; } = Program.RunMode.None;
+
+	public string? RedateFile { get; private set; } = null;
+
+	public string[]? SourceDirs { get; private set; } = null;
+
+	public bool ForceFileDateUpdate { get; private set; } = false;
+
+	public CmdLineParser(string[] args)
 	{
+		Argument<string> redateFileNameArgument = new(name: "file.redate");
+		Argument<string[]> inputPathsArgument = new(name: "input");
 
-		public Program.RunMode RunMode { get; private set; } = Program.RunMode.Run;
-
-		public string RedateFile { get; private set; } = null;
-
-		public string[] SourceDirs { get; private set; } = null;
-
-		public bool ForceFileDateUpdate { get; private set; } = false;
-
-		public CmdLineParser(string[] args)
+		Command initCommand = new(name: "init", description: "Specify redate file to be created, and one or multiple input source directories.")
 		{
-
-			if (args.Length < 1) throw new ArgumentException("You need to specify a run mode");
-
-			switch (args[0].ToLowerInvariant())
-			{
-				case "init": RunMode = Program.RunMode.Init; break;
-				case "run": RunMode = Program.RunMode.Run; break;
-				case "reg": RunMode = Program.RunMode.FileReg; return; // no more args
-				case "unreg": RunMode = Program.RunMode.FileUnreg; return; // no more args
-				default: throw new ArgumentException("Run mode must be 'init' or 'run'. Found: " + args[0]);
-			}
-
-			if (args.Length < 2) throw new ArgumentException("You need to specify a 'redate' file");
-			if (RunMode == Program.RunMode.Run && args[1].ToLowerInvariant() == "-forcefiledateupdate")
-			{
-				ForceFileDateUpdate = true;
-
-				if (args.Length < 3) throw new ArgumentException("You need to specify a 'redate' file");
-				RedateFile = args[2];
-			}
-			else
-			{
-				RedateFile = args[1];
-			}
-
-			SourceDirs = args.AsSpan(2).ToArray();
-			if (SourceDirs.Length == 0 && RunMode == Program.RunMode.Init) throw new ArgumentException("You need to specify source directories information for 'init'");
-
-			if (!string.IsNullOrEmpty(RedateFile))
-			{
-				if (System.IO.File.Exists(RedateFile))
-				{
-					if (!System.IO.Path.IsPathRooted(RedateFile))
-					{
-						RedateFile = System.IO.Path.GetFullPath(RedateFile);
-					}
-				}
-			}
-		}
-
-		static public void PrintHelp()
+			redateFileNameArgument,
+			inputPathsArgument,
+		};
+		initCommand.SetAction((pr) =>
 		{
-			Console.WriteLine("Syntax:");
-			Console.WriteLine("\tredate.exe init <file.redate> <input ...>");
-			Console.WriteLine("\tredate.exe run <file.redate>");
-			Console.WriteLine("\tredate.exe reg");
-			Console.WriteLine("\tredate.exe unreg");
-			Console.WriteLine();
-			Console.WriteLine("Init");
-			Console.WriteLine("Specify redate file to be created, and one or multiple input source directories.");
-			Console.WriteLine();
-			Console.WriteLine("Run");
-			Console.WriteLine("Specify redate file to run.");
-			Console.WriteLine("You can specify `-ForceFileDateUpdate` before <file.redate> to activate the legacy behavior:");
-			Console.WriteLine("The field `FileDate` will be updated, even if the remaining content stays the same.");
-			Console.WriteLine();
-			Console.WriteLine("Reg/Unreg");
-			Console.WriteLine("Registers redate file type in windows registry, or unregisters the redate file type.");
-			Console.WriteLine("This must likely be run with elevated priviliges.");
-			Console.WriteLine();
-		}
+			RedateFile = pr.GetRequiredValue(redateFileNameArgument);
+			SourceDirs = pr.GetRequiredValue(inputPathsArgument);
+			RunMode = Program.RunMode.Init;
+		});
 
+		Option<bool> forceFileDateUpdateOption = new(name: "-forcefiledateupdate")
+		{
+			Description = "Activates the legacy behavior: The field `FileDate` will be updated, even if the remaining content stays the same"
+		};
+
+		Command runCommand = new(name: "run", description: "Updated file dates and redate file content")
+		{
+			redateFileNameArgument,
+			forceFileDateUpdateOption
+		};
+		runCommand.SetAction((pr) =>
+		{
+			RedateFile = pr.GetRequiredValue(redateFileNameArgument);
+			ForceFileDateUpdate = pr.GetValue(forceFileDateUpdateOption);
+			RunMode = Program.RunMode.Run;
+		});
+
+		Command regCommand = new(name: "reg", description: "Registers redate file type in windows registry. This must likely be run with elevated priviliges.");
+		regCommand.SetAction((pr) =>
+		{
+			RunMode = Program.RunMode.FileReg;
+		});
+
+		Command unregCommand = new(name: "unreg", description: "Unregisters redate file type from the windows registry. This must likely be run with elevated priviliges.");
+		unregCommand.SetAction((pr) =>
+		{
+			RunMode = Program.RunMode.FileUnreg;
+		});
+
+		RootCommand root = new(description: "Rewrite dates of files")
+		{
+			initCommand,
+			runCommand,
+			regCommand,
+			unregCommand,
+		};
+
+		var parseResult = root.Parse(args, configuration: new ParserConfiguration() { EnablePosixBundling = false });
+		parseResult.Invoke(configuration: new InvocationConfiguration() { EnableDefaultExceptionHandler = false });
 	}
 
+	[MemberNotNull(nameof(RedateFile))]
+	internal void AssertRedateFile()
+	{
+		if (string.IsNullOrWhiteSpace(RedateFile)) throw new InvalidOperationException("Redate file not specified");
+	}
 }

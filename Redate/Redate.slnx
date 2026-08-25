@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Solution Files/">
+    <File Path="../.github/dependabot.yml" />
+    <File Path="../.github/workflows/Redate.yaml" />
+  </Folder>
+  <Project Path="Redate.csproj" />
+</Solution>

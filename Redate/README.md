@@ -97,16 +97,12 @@ The entries will always be removed.
 
 ## How to build
 
-Redate is written in CSharp, and set up as a Visual Studio project for DotNet 5.0.
+Redate is written in CSharp, and set up as a Visual Studio project for DotNet 10.0.
 
-Open the `Redate.sln` Visual Studio solution file, e.g., in Visual Studio Community Edition.
+Open the `Redate.slnx` Visual Studio solution file, e.g., in Visual Studio Community Edition.
 
 
 ### Dependencies
-
-* Microsoft.Win32.Registry -- is used to implement the commands `reg` and `unreg`.
-As a result, Redate is platform-specific to Microsoft Windows.
-* Newtonsoft.Json -- is used to serialize and deserialize the `.redate` files, which are in JSON format.
 
 All dependencies are installed via Nuget packages.
 When building the application from within Visual Studio, those packages should be restored automatically.
@@ -117,7 +113,7 @@ If not, trigger _Restore Nuget Packages_ on the solution, e.g. by right-clicking
 ## License
 This project is dual licensed. You choose either the terms of the [MIT LICENSE](../LICENSE) or the [Apache LICENSE v2.0](./LICENSE).
 
-> Copyright 2021-2025 SGrottel (https://www.sgrottel.de)
+> Copyright 2021-2026 SGrottel (https://www.sgrottel.de)
 > 
 > Licensed under the Apache License, Version 2.0 (the "License");
 > you may not use this file except in compliance with the License.

@@ -1,4 +1,6 @@
-﻿using System.CommandLine;
+﻿using System;
+using System.CommandLine;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Redate;
 
@@ -7,9 +9,9 @@ class CmdLineParser
 
 	public Program.RunMode RunMode { get; private set; } = Program.RunMode.None;
 
-	public string RedateFile { get; private set; } = null;
+	public string? RedateFile { get; private set; } = null;
 
-	public string[] SourceDirs { get; private set; } = null;
+	public string[]? SourceDirs { get; private set; } = null;
 
 	public bool ForceFileDateUpdate { get; private set; } = false;
 
@@ -69,5 +71,11 @@ class CmdLineParser
 
 		var parseResult = root.Parse(args, configuration: new ParserConfiguration() { EnablePosixBundling = false });
 		parseResult.Invoke(configuration: new InvocationConfiguration() { EnableDefaultExceptionHandler = false });
+	}
+
+	[MemberNotNull(nameof(RedateFile))]
+	internal void AssertRedateFile()
+	{
+		if (string.IsNullOrWhiteSpace(RedateFile)) throw new InvalidOperationException("Redate file not specified");
 	}
 }

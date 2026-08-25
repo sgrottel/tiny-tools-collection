@@ -10,10 +10,10 @@
     <Copyright>Copyright 2021-2026 SGrottel (https://www.sgrottel.de)</Copyright>
     <Version>1.4.0</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="SGrottel.SimpleLog.CSharp" Version="3.3.3" />
     <PackageReference Include="System.CommandLine" Version="2.0.11" />
   </ItemGroup>

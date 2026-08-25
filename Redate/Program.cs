@@ -1,7 +1,5 @@
-﻿using Newtonsoft.Json;
-using SGrottel;
+﻿using SGrottel;
 using System;
-using System.Globalization;
 using System.Text;
 
 namespace Redate;
@@ -35,13 +33,14 @@ class Program
 					log.Write("Init");
 					{
 						log.Write("Collecting Data");
+						cmd.AssertRedateFile();
 						string targetDir = System.IO.Path.GetDirectoryName(cmd.RedateFile) + '\\';
 						FileCollectionInfoData files = new FileCollectionInfoData();
-						files.Collect(cmd.SourceDirs);
+						files.Collect(cmd.SourceDirs ?? []);
 						files.SourceDirsToRelative(targetDir);
 
 						log.Write("Compute MD5s");
-						foreach (var f in files.Files)
+						foreach (var f in files.Files ?? [])
 						{
 							f.ComputeMd5Hash();
 							f.PathToRelative(targetDir);
@@ -49,10 +48,14 @@ class Program
 
 						log.Write("Saving " + System.IO.Path.GetFileName(cmd.RedateFile));
 						files.FileDate = DateTime.Now;
-						JsonSerializerSettings s = new JsonSerializerSettings();
-						s.Culture = CultureInfo.InvariantCulture;
-						s.Formatting = Formatting.Indented;
-						System.IO.File.WriteAllText(cmd.RedateFile, JsonConvert.SerializeObject(files, s), new UTF8Encoding(false));
+						System.IO.File.WriteAllText(
+							cmd.RedateFile,
+							System.Text.Json.JsonSerializer.Serialize(
+								files,
+								options: new System.Text.Json.JsonSerializerOptions() { WriteIndented = true }
+							),
+							new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)
+							);
 					}
 					log.Write("Done");
 					break;
@@ -61,16 +64,20 @@ class Program
 					log.Write("Run");
 					{
 						log.Write("Loading " + System.IO.Path.GetFileName(cmd.RedateFile));
-						FileCollectionInfoData knownFiles = JsonConvert.DeserializeObject<FileCollectionInfoData>(System.IO.File.ReadAllText(cmd.RedateFile));
+						cmd.AssertRedateFile();
+						FileCollectionInfoData knownFiles
+							= System.Text.Json.JsonSerializer.Deserialize<FileCollectionInfoData>(
+								json: System.IO.File.ReadAllText(cmd.RedateFile))
+							?? throw new InvalidOperationException("Failed to parse redate file");
 						string targetDir = System.IO.Path.GetDirectoryName(cmd.RedateFile) + '\\';
 						knownFiles.SourceDirsToAbsolute(targetDir);
-						foreach (var f in knownFiles.Files) f.PathToAbsolute(targetDir);
+						foreach (var f in knownFiles.Files ?? []) f.PathToAbsolute(targetDir);
 
 						log.Write("Collecting Data");
 						FileCollectionInfoData files = new FileCollectionInfoData();
-						files.Collect(knownFiles.SourceDirs);
+						files.Collect(knownFiles.SourceDirs ?? []);
 						log.Write("Compute MD5s");
-						foreach (var f in files.Files) f.ComputeMd5Hash();
+						foreach (var f in files.Files ?? []) f.ComputeMd5Hash();
 
 						log.Write("Updating");
 						bool isUpdated = knownFiles.Update(files, log);
@@ -79,12 +86,16 @@ class Program
 						{
 							log.Write("Saving " + System.IO.Path.GetFileName(cmd.RedateFile));
 							knownFiles.SourceDirsToRelative(targetDir);
-							foreach (var f in knownFiles.Files) f.PathToRelative(targetDir);
+							foreach (var f in knownFiles.Files ?? []) f.PathToRelative(targetDir);
 							knownFiles.FileDate = DateTime.Now;
-							JsonSerializerSettings s = new JsonSerializerSettings();
-							s.Culture = CultureInfo.InvariantCulture;
-							s.Formatting = Formatting.Indented;
-							System.IO.File.WriteAllText(cmd.RedateFile, JsonConvert.SerializeObject(knownFiles, s), new UTF8Encoding(false));
+							System.IO.File.WriteAllText(
+								cmd.RedateFile,
+								System.Text.Json.JsonSerializer.Serialize(
+									knownFiles,
+									options: new System.Text.Json.JsonSerializerOptions() { WriteIndented = true }
+								),
+								new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)
+								);
 						}
 						else
 						{
@@ -115,58 +126,11 @@ class Program
 		catch (Exception ex)
 		{
 			log.Critical("Fatal error: " + ex);
-			WaitBeforeClosingConsole();
+			ConsoleUtil.WaitBeforeClosingConsole();
 			return -1;
 		}
 
-		WaitBeforeClosingConsole();
+		ConsoleUtil.WaitBeforeClosingConsole();
 		return 0;
 	}
-
-	private static void WaitBeforeClosingConsole()
-	{
-		if (!IsSelfhostedConsole) return;
-		Wait(defaultTimeoutSeconds);
-	}
-
-	const int defaultTimeoutSeconds = 20;
-
-	[System.Runtime.InteropServices.DllImport("kernel32.dll")]
-	private static extern int GetConsoleProcessList(int[] buffer, int size);
-
-	public static bool IsSelfhostedConsole {
-		get {
-			return GetConsoleProcessList(new int[2], 2) <= 1;
-		}
-	}
-
-	public static void Wait(int timeoutSeconds)
-	{
-		if (timeoutSeconds == 0) return;
-		if (Console.IsOutputRedirected) return;
-
-		while (Console.KeyAvailable) Console.ReadKey();
-
-		Console.Write("Hit any key to continue...");
-
-		if (timeoutSeconds < 0)
-		{
-			Console.ReadKey();
-		}
-		else
-		{
-			DateTime start = DateTime.Now;
-			while (((int)(DateTime.Now - start).TotalSeconds) < timeoutSeconds)
-			{
-				Console.Write("\rHit any key to continue... {0} ", timeoutSeconds - (int)(DateTime.Now - start).TotalSeconds);
-				if (Console.KeyAvailable) break;
-				System.Threading.Thread.Sleep(10);
-			}
-			Console.Write("\rHit any key to continue...     ");
-		}
-
-		while (Console.KeyAvailable) Console.ReadKey();
-		Console.WriteLine();
-	}
-
 }

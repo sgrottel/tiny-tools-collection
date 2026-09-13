@@ -46,7 +46,7 @@ void AutostartRegistry::Register()
 	std::wstring exe = GetExecutablePath();
 	m_log.Write(L"Registering in Startup: %s", exe.c_str());
 
-	const auto stat = RegSetKeyValueW(HKEY_CURRENT_USER, c_keypath, c_name, REG_SZ, exe.c_str(), (exe.size() + 1) * sizeof(wchar_t));
+	const auto stat = RegSetKeyValueW(HKEY_CURRENT_USER, c_keypath, c_name, REG_SZ, exe.c_str(), static_cast<DWORD>((exe.size() + 1) * sizeof(wchar_t)));
 	if (stat == ERROR_SUCCESS)
 	{
 		std::wstring msg{ L"Application registered for auto Startup: " + exe + L"\nCheck in 'Task Manager' if the application might be disabled" };

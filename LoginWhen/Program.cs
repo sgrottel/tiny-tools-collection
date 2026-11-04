@@ -53,6 +53,14 @@ class Program
                     RunNormal(cmdLineArgs, output, errorOutput);
                     break;
 
+                case CmdLineArgs.Operation.LogLock:
+                    new LockLog().LogLock();
+                    break;
+
+                case CmdLineArgs.Operation.LogUnlock:
+                    new LockLog().LogUnlock();
+                    break;
+
                 case CmdLineArgs.Operation.None:
                     break;
 
@@ -147,6 +155,23 @@ class Program
             }
         }
 
+        try
+        {
+            events = LockLog.MergeEvents(events, new LockLog().Query(cmdLineArgs.HistoryMaxDays));
+        }
+        catch (Exception ex)
+        {
+            string err = $"Failed to collect lock log events: {ex}";
+            if (errors == null)
+            {
+                errorOutput.WriteLine($"{err}\n");
+            }
+            else
+            {
+                errors.Add(err);
+            }
+        }
+
         if (cmdLineArgs.DoJsonOutput)
         {
             PrintJson(events, errors!, output);
@@ -162,15 +187,16 @@ class Program
         if (events.Count == 0) return;
 
         IFormatProvider form = System.Globalization.CultureInfo.CreateSpecificCulture("de-de");
-        int lld = events.First().Timestamp.Day;
+        int lld = events.First().Timestamp.ToLocalTime().Day;
         foreach (var e in events)
         {
-            if (lld != e.Timestamp.Day)
+            DateTimeOffset timestamp = e.Timestamp.ToLocalTime();
+            if (lld != timestamp.Day)
             {
-                lld = e.Timestamp.Day;
+                lld = timestamp.Day;
                 output.WriteLine();
             }
-            output.WriteLine(e.Timestamp.ToString("ddd, dd.MM.    HH:mm    ", form) + EventTypeName(e.Type));
+            output.WriteLine(timestamp.ToString("ddd, dd.MM.    HH:mm    ", form) + EventTypeName(e.Type));
         }
     }
 

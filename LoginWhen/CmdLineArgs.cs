@@ -86,19 +86,15 @@ internal class CmdLineArgs
             logUnlockCommand,
             registerLogTasksCommand,
         };
+        root.SetAction(_  => {
+            selectedOperation = Operation.Normal;
+        });
 
         var res = root.Parse(args);
         if (res.Errors.Any())
         {
             Console.Error.WriteLine("Cmd line parsing failed:\n\t" + string.Join("\n\t", res.Errors));
             return Operation.None;
-        }
-        if (res.Action != null)
-        {
-            // version, help, or log actions
-            res.Invoke();
-
-            return selectedOperation;
         }
 
         var hmdr = res.GetResult(historyMaxDaysOption);
@@ -114,7 +110,10 @@ internal class CmdLineArgs
         DoJsonOutput = res.GetValue(DoJsonOutputOption);
         OutputPipeName = res.GetValue(OutputPipeNameOption);
 
-        return Operation.Normal;
+        // version, help, or log actions
+        res.Invoke();
+
+        return selectedOperation;
     }
 
 }

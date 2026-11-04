@@ -16,7 +16,7 @@ internal class EventCollector
         Shutdown
     }
 
-    public record Event(DateTime Timestamp, EventType Type);
+    public record Event(DateTimeOffset Timestamp, EventType Type);
 
     private List<Event> _events = new();
 
@@ -68,7 +68,7 @@ internal class EventCollector
 
             if (entry.TimeCreated is not DateTime date) continue;
 
-            _events.Add(new(date.ToLocalTime(), ev));
+            _events.Add(new(new DateTimeOffset(date), ev));
         }
         SortEvents(_events);
     }
@@ -96,7 +96,7 @@ internal class EventCollector
 
             if (entry.TimeCreated is not DateTime date) continue;
 
-            _events.Add(new(date.ToLocalTime(), ev));
+            _events.Add(new(new DateTimeOffset(date), ev));
         }
         SortEvents(_events);
     }

@@ -6,14 +6,50 @@ namespace LoginWhen;
 
 internal class CmdLineArgs
 {
-
     public int HistoryMaxDays { get; set; } = 7;
+
+    public bool CollectSystemEvents { get; set; } = true;
+
+    public bool CollectSecurityEvents { get; set; } = true;
+
+    public bool AllowElevation { get; set; } = true;
+
+    public bool DoJsonOutput { get; set; }
 
     public bool Parse(string[] args)
     {
-        RootCommand root = new(description: "Info about user session login/logout times");
-        Option<int> historyMaxDays = new(name: "--days") { Description = "Number of days to show" };
-        root.Add(historyMaxDays);
+        Option<int> historyMaxDaysOption = new(name: "--days")
+        {
+            Description = "Number of days to show",
+        };
+        Option<bool> DisableCollectSystemEventsOption = new(name: "--no-system-events")
+        {
+            Description = "Do not collect system events",
+            Hidden = true,
+        };
+        Option<bool> DisableCollectSecurityEventsOption = new(name: "--no-security-events")
+        {
+            Description = "Do not collect security events",
+            Hidden = true,
+        };
+        Option<bool> DisableElevationOption = new(name: "--no-elevation")
+        {
+            Description = "Do not automatically rerun the tool with elevated access rights",
+        };
+        Option<bool> DoJsonOutputOption = new(name: "--json")
+        {
+            Description = "Print result as json",
+            Hidden = true,
+        };
+
+        RootCommand root = new(description: "Info about user session login/logout times")
+        {
+            historyMaxDaysOption,
+            DisableCollectSystemEventsOption,
+            DisableCollectSecurityEventsOption,
+            DisableElevationOption,
+            DoJsonOutputOption,
+        };
 
         var res = root.Parse(args);
         if (res.Errors.Any())
@@ -28,11 +64,17 @@ internal class CmdLineArgs
             return false;
         }
 
-        var hmdr = res.GetResult(historyMaxDays);
+        var hmdr = res.GetResult(historyMaxDaysOption);
         if (hmdr != null && !hmdr.Errors.Any())
         {
-            HistoryMaxDays = res.GetValue(historyMaxDays);
+            HistoryMaxDays = res.GetValue(historyMaxDaysOption);
         }
+
+        CollectSystemEvents = !res.GetValue(DisableCollectSystemEventsOption);
+        CollectSecurityEvents = !res.GetValue(DisableCollectSecurityEventsOption);
+        AllowElevation = !res.GetValue(DisableElevationOption);
+
+        DoJsonOutput = res.GetValue(DoJsonOutputOption);
 
         return true;
     }

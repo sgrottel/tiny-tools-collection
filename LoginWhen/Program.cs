@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Versioning;
+using System.Text.Json;
 using static LoginWhen.EventCollector;
 
 namespace LoginWhen;
@@ -10,7 +11,7 @@ class Program
 {
     static string EventTypeName(EventType et)
     {
-        switch(et)
+        switch (et)
         {
             case EventType.Logon:
                 return "[  ==>] Log On";
@@ -37,33 +38,80 @@ class Program
         {
             HistoryMaxDays = cmdLineArgs.HistoryMaxDays,
         };
-        try
+
+        List<string>? errors = null;
+        if (cmdLineArgs.DoJsonOutput)
         {
-            eventCollector.CollectSystem();
+            errors = new();
         }
-        catch(Exception ex)
-        {
-            Console.Error.WriteLine($"Failed to collect system events: {ex}\n");
-        }
-        try
+
+        if (cmdLineArgs.CollectSystemEvents)
         {
             try
             {
-                eventCollector.CollectSecurity();
+                eventCollector.CollectSystem();
             }
-            catch (UnauthorizedAccessException)
+            catch (Exception ex)
             {
-                throw;
+                string err = $"Failed to collect system events: {ex}";
+                if (errors == null)
+                {
+                    Console.Error.WriteLine($"{err}\n");
+                }
+                else
+                {
+                    errors.Add(err);
+                }
             }
-        }
-        catch(Exception ex)
-        {
-            Console.Error.WriteLine($"Failed to collect security events: {ex}\n");
         }
 
+        if (cmdLineArgs.CollectSecurityEvents)
+        {
+            try
+            {
+                try
+                {
+                    eventCollector.CollectSecurity();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    if (cmdLineArgs.AllowElevation)
+                    {
+                        // TODO: Implement
+                    }
+
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                string err = $"Failed to collect security events: {ex}";
+                if (errors == null)
+                {
+                    Console.Error.WriteLine($"{err}\n");
+                }
+                else
+                {
+                    errors.Add(err);
+                }
+            }
+        }
+
+        if (cmdLineArgs.DoJsonOutput)
+        {
+            PrintJson(eventCollector.Events, errors);
+        }
+        else
+        {
+            Print(eventCollector.Events);
+        }
+    }
+
+    private static void Print(IReadOnlyCollection<Event> events)
+    {
         IFormatProvider form = System.Globalization.CultureInfo.CreateSpecificCulture("de-de");
-        int lld = eventCollector.Events.First().Timestamp.Day;
-        foreach (var e in eventCollector.Events)
+        int lld = events.First().Timestamp.Day;
+        foreach (var e in events)
         {
             if (lld != e.Timestamp.Day)
             {
@@ -72,6 +120,15 @@ class Program
             }
             Console.WriteLine(e.Timestamp.ToString("ddd, dd.MM.    HH:mm    ", form) + EventTypeName(e.Type));
         }
+    }
 
+    private static void PrintJson(IReadOnlyCollection<Event> events, List<string> errors)
+    {
+        Console.WriteLine(
+            JsonSerializer.Serialize(new
+            {
+                events,
+                errors
+            }));
     }
 }

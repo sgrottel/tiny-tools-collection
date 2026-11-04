@@ -5,7 +5,6 @@ using static LoginWhen.EventCollector;
 
 namespace LoginWhen;
 
-
 [SupportedOSPlatform("Windows")]
 class Program
 {

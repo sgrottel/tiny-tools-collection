@@ -27,6 +27,33 @@ internal static class ElevationUtility
 
     public static async Task<Event[]> CollectSecurityEventsAsync(int historyMaxDays)
     {
+        string json = await RunElevatedAsync(
+        [
+            "--days", historyMaxDays.ToString(CultureInfo.InvariantCulture),
+            "--no-system-events", "--with-security-events", "--no-elevation", "--json",
+        ]);
+        using JsonDocument result = JsonDocument.Parse(json);
+        string[] errors = result.RootElement.GetProperty("errors").Deserialize<string[]>()
+            ?? throw new InvalidDataException("The elevated worker did not return errors.");
+        if (errors.Length != 0)
+        {
+            throw new InvalidOperationException(string.Join(Environment.NewLine, errors));
+        }
+        return result.RootElement.GetProperty("events").Deserialize<Event[]>()
+            ?? throw new InvalidDataException("The elevated worker did not return events.");
+    }
+
+    public static Task<string> RegisterLogTasksAsync(string userSid, string userName, string logFilePath)
+    {
+        return RunElevatedAsync(
+        [
+            "register-log-tasks", "--user-sid", userSid, "--user-name", userName,
+            "--log-file", logFilePath,
+        ]);
+    }
+
+    private static async Task<string> RunElevatedAsync(string[] arguments)
+    {
         if (IsElevated)
         {
             throw new InvalidOperationException("The process is already elevated.");
@@ -58,12 +85,10 @@ internal static class ElevationUtility
         {
             startInfo.ArgumentList.Add(Path.GetFullPath(Environment.GetCommandLineArgs()[0]));
         }
-        startInfo.ArgumentList.Add("--days");
-        startInfo.ArgumentList.Add(historyMaxDays.ToString(CultureInfo.InvariantCulture));
-        startInfo.ArgumentList.Add("--no-system-events");
-        startInfo.ArgumentList.Add("--with-security-events");
-        startInfo.ArgumentList.Add("--no-elevation");
-        startInfo.ArgumentList.Add("--json");
+        foreach (string argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
         startInfo.ArgumentList.Add("--output-pipe");
         startInfo.ArgumentList.Add(pipeName);
 
@@ -87,18 +112,10 @@ internal static class ElevationUtility
             await exit;
             if (worker.ExitCode != 0)
             {
-                throw new IOException($"The elevated worker failed (exit code {worker.ExitCode}).");
+                throw new IOException($"The elevated worker failed (exit code {worker.ExitCode}): {json}");
             }
 
-            using JsonDocument result = JsonDocument.Parse(json);
-            string[] errors = result.RootElement.GetProperty("errors").Deserialize<string[]>()
-                ?? throw new InvalidDataException("The elevated worker did not return errors.");
-            if (errors.Length != 0)
-            {
-                throw new InvalidOperationException(string.Join(Environment.NewLine, errors));
-            }
-            return result.RootElement.GetProperty("events").Deserialize<Event[]>()
-                ?? throw new InvalidDataException("The elevated worker did not return events.");
+            return json;
         }
         catch (OperationCanceledException ex) when (cancellation.IsCancellationRequested)
         {

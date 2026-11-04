@@ -11,6 +11,7 @@ internal class CmdLineArgs
         None,
         LogLock,
         LogUnlock,
+        LogSecurityEvents,
         RegisterLogTasks,
     }
 
@@ -25,6 +26,12 @@ internal class CmdLineArgs
     public bool DoJsonOutput { get; set; }
 
     public string? OutputPipeName { get; set; }
+
+    public string? UserSid { get; set; }
+
+    public string? UserName { get; set; }
+
+    public string? LogFilePath { get; set; }
 
     public Operation Parse(string[] args)
     {
@@ -55,6 +62,22 @@ internal class CmdLineArgs
         {
             Description = "Write output to the named pipe",
             Hidden = true,
+            Recursive = true,
+        };
+        Option<string> userSidOption = new(name: "--user-sid")
+        {
+            Hidden = true,
+            Recursive = true,
+        };
+        Option<string> userNameOption = new(name: "--user-name")
+        {
+            Hidden = true,
+            Recursive = true,
+        };
+        Option<string> logFilePathOption = new(name: "--log-file")
+        {
+            Hidden = true,
+            Recursive = true,
         };
 
         Operation selectedOperation = Operation.None;
@@ -71,6 +94,12 @@ internal class CmdLineArgs
         };
         logUnlockCommand.SetAction(_ => { selectedOperation = Operation.LogUnlock; });
 
+        Command logSecurityEventsCommand = new(name: "log-security-events", description: "Captures Security logon and logoff events")
+        {
+            Hidden = true,
+        };
+        logSecurityEventsCommand.SetAction(_ => { selectedOperation = Operation.LogSecurityEvents; });
+
         Command registerLogTasksCommand = new(name: "register-log-tasks", description: "Registers the log commands with the windows task scheduler");
         registerLogTasksCommand.SetAction(_ => { selectedOperation = Operation.RegisterLogTasks; });
 
@@ -82,8 +111,12 @@ internal class CmdLineArgs
             DisableElevationOption,
             DoJsonOutputOption,
             OutputPipeNameOption,
+            userSidOption,
+            userNameOption,
+            logFilePathOption,
             logLockCommand,
             logUnlockCommand,
+            logSecurityEventsCommand,
             registerLogTasksCommand,
         };
         root.SetAction(_  => {
@@ -109,6 +142,9 @@ internal class CmdLineArgs
 
         DoJsonOutput = res.GetValue(DoJsonOutputOption);
         OutputPipeName = res.GetValue(OutputPipeNameOption);
+        UserSid = res.GetValue(userSidOption);
+        UserName = res.GetValue(userNameOption);
+        LogFilePath = res.GetValue(logFilePathOption);
 
         // version, help, or log actions
         res.Invoke();

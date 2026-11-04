@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
+using System.Security.Principal;
 
 namespace LoginWhen;
 
@@ -73,7 +74,7 @@ internal class EventCollector
         SortEvents(_events);
     }
 
-    public void CollectSecurity()
+    public void CollectSecurityLock()
     {
         EventLogQuery securityQuery = new("Security", PathType.LogName, $"""
             *[System[
@@ -97,6 +98,33 @@ internal class EventCollector
             if (entry.TimeCreated is not DateTime date) continue;
 
             _events.Add(new(new DateTimeOffset(date), ev));
+        }
+        SortEvents(_events);
+    }
+
+    public void CollectSecurityLogons(string userSid)
+    {
+        userSid = new SecurityIdentifier(userSid).Value;
+        EventLogQuery query = new("Security", PathType.LogName, $"""
+            *[System[
+                Provider[@Name='Microsoft-Windows-Security-Auditing']
+                and (EventID=4624 or EventID=4634)
+                and {TimeFilter}
+            ]]
+            and *[EventData[
+                Data[@Name='TargetUserSid']='{userSid}'
+                and (Data[@Name='LogonType']='2' or Data[@Name='LogonType']='10' or Data[@Name='LogonType']='11')
+            ]]
+            """);
+        using EventLogReader log = new(query);
+
+        while (true)
+        {
+            using EventRecord entry = log.ReadEvent();
+            if (entry == null) break;
+            if (entry.TimeCreated is not DateTime date) continue;
+
+            _events.Add(new(new DateTimeOffset(date), entry.Id == 4624 ? EventType.Logon : EventType.Logoff));
         }
         SortEvents(_events);
     }

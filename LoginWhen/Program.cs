@@ -30,8 +30,9 @@ class Program
         return "";
     }
 
-    static void Main(string[] args)
+    static int Main(string[] args)
     {
+        int exitCode = 0;
         CmdLineArgs cmdLineArgs = new();
         CmdLineArgs.Operation op = cmdLineArgs.Parse(args);
 
@@ -62,7 +63,15 @@ class Program
                     break;
 
                 case CmdLineArgs.Operation.RegisterLogTasks:
-                    LockLog.RegisterLogTasks(output);
+                    if (!cmdLineArgs.AllowElevation && !ElevationUtility.IsElevated)
+                    {
+                        throw new UnauthorizedAccessException("Registering log tasks requires administrator privileges.");
+                    }
+                    LockLog.RegisterLogTasks(output, cmdLineArgs.UserSid, cmdLineArgs.UserName, cmdLineArgs.LogFilePath);
+                    break;
+
+                case CmdLineArgs.Operation.LogSecurityEvents:
+                    new LockLog(cmdLineArgs.LogFilePath, cmdLineArgs.UserSid).LogSecurityEvents();
                     break;
 
                 case CmdLineArgs.Operation.None:
@@ -74,6 +83,7 @@ class Program
         }
         catch (Exception ex)
         {
+            exitCode = 1;
             string err = $"Failed with exception: {ex}";
             if (cmdLineArgs.DoJsonOutput)
             {
@@ -88,6 +98,7 @@ class Program
                 errorOutput.WriteLine(err);
             }
         }
+        return exitCode;
     }
 
     private static void RunNormal(CmdLineArgs cmdLineArgs, TextWriter output, TextWriter errorOutput)
@@ -130,7 +141,7 @@ class Program
             {
                 try
                 {
-                    eventCollector.CollectSecurity();
+                    eventCollector.CollectSecurityLock();
                 }
                 catch (UnauthorizedAccessException)
                 when (cmdLineArgs.AllowElevation && !ElevationUtility.IsElevated)

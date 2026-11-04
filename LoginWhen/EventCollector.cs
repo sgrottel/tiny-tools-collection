@@ -5,29 +5,43 @@ using System.Runtime.Versioning;
 
 namespace LoginWhen;
 
-[SupportedOSPlatform("Windows")]
 internal class EventCollector
 {
     public enum EventType
     {
         Logon,
-        Logoff
+        Logoff,
+        Lock,
+        Unlock,
+        Startup,
+        Shutdown
     }
 
-    public List<KeyValuePair<DateTime, EventType>> Collect(int historyMaxDays)
+    public record Event(DateTime Timestamp, EventType Type);
+
+    public List<Event> Collect(int historyMaxDays)
     {
         DateTime now = DateTime.Now;
-        EventLog systemLog = new("System");
+        using EventLog systemLog = new("System");
+        using EventLog securityLog = new("Security");
 
-        List<KeyValuePair<DateTime, EventType>> events = new();
+        List<Event> events = new();
 
         foreach (EventLogEntry entry in systemLog.Entries)
         {
-            if (entry.Source != "Microsoft-Windows-Winlogon") continue;
-
             EventType ev;
-            if (entry.InstanceId == 7001) ev = EventType.Logon;
-            else if (entry.InstanceId == 7002) ev = EventType.Logoff;
+            if (entry.Source == "Microsoft-Windows-Winlogon")
+            {
+                if (entry.InstanceId == 7001) ev = EventType.Logon;
+                else if (entry.InstanceId == 7002) ev = EventType.Logoff;
+                else continue;
+            }
+            else if (entry.Source == "Microsoft-Windows-Kernel-General")
+            {
+                if (entry.InstanceId == 12) ev = EventType.Startup;
+                else if (entry.InstanceId == 13) ev = EventType.Shutdown;
+                else continue;
+            }
             else continue;
 
             DateTime date = entry.TimeGenerated;
@@ -37,7 +51,23 @@ internal class EventCollector
             events.Add(new(date, ev));
         }
 
-        events.Sort((KeyValuePair<DateTime, EventType> a, KeyValuePair<DateTime, EventType> b) => { return a.Key.CompareTo(b.Key); });
+        foreach (EventLogEntry entry in securityLog.Entries)
+        {
+            if (entry.Source != "Microsoft-Windows-Security-Auditing") continue;
+
+            EventType ev;
+            if (entry.InstanceId == 4800) ev = EventType.Lock;
+            else if (entry.InstanceId == 4801) ev = EventType.Unlock;
+            else continue;
+
+            DateTime date = entry.TimeGenerated;
+
+            if ((now - date).TotalDays > historyMaxDays) continue;
+
+            events.Add(new(date, ev));
+        }
+
+        events.Sort((Event a, Event b) => { return a.Timestamp.CompareTo(b.Timestamp); });
 
         return events;
     }

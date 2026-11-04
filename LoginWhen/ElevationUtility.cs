@@ -61,6 +61,7 @@ internal static class ElevationUtility
         startInfo.ArgumentList.Add("--days");
         startInfo.ArgumentList.Add(historyMaxDays.ToString(CultureInfo.InvariantCulture));
         startInfo.ArgumentList.Add("--no-system-events");
+        startInfo.ArgumentList.Add("--with-security-events");
         startInfo.ArgumentList.Add("--no-elevation");
         startInfo.ArgumentList.Add("--json");
         startInfo.ArgumentList.Add("--output-pipe");

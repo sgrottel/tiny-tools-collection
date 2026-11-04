@@ -10,7 +10,7 @@ internal class CmdLineArgs
 
     public bool CollectSystemEvents { get; set; } = true;
 
-    public bool CollectSecurityEvents { get; set; } = true;
+    public bool CollectSecurityEvents { get; set; } = false;
 
     public bool AllowElevation { get; set; } = true;
 
@@ -29,9 +29,9 @@ internal class CmdLineArgs
             Description = "Do not collect system events",
             Hidden = true,
         };
-        Option<bool> DisableCollectSecurityEventsOption = new(name: "--no-security-events")
+        Option<bool> EnableCollectSecurityEventsOption = new(name: "--with-security-events")
         {
-            Description = "Do not collect security events",
+            Description = "Collect security events",
             Hidden = true,
         };
         Option<bool> DisableElevationOption = new(name: "--no-elevation")
@@ -53,7 +53,7 @@ internal class CmdLineArgs
         {
             historyMaxDaysOption,
             DisableCollectSystemEventsOption,
-            DisableCollectSecurityEventsOption,
+            EnableCollectSecurityEventsOption,
             DisableElevationOption,
             DoJsonOutputOption,
             OutputPipeNameOption,
@@ -79,7 +79,7 @@ internal class CmdLineArgs
         }
 
         CollectSystemEvents = !res.GetValue(DisableCollectSystemEventsOption);
-        CollectSecurityEvents = !res.GetValue(DisableCollectSecurityEventsOption);
+        CollectSecurityEvents = res.GetValue(EnableCollectSecurityEventsOption);
         AllowElevation = !res.GetValue(DisableElevationOption);
 
         DoJsonOutput = res.GetValue(DoJsonOutputOption);

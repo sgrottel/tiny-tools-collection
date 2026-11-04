@@ -16,6 +16,8 @@ internal class CmdLineArgs
 
     public bool DoJsonOutput { get; set; }
 
+    public string? OutputPipeName { get; set; }
+
     public bool Parse(string[] args)
     {
         Option<int> historyMaxDaysOption = new(name: "--days")
@@ -41,6 +43,11 @@ internal class CmdLineArgs
             Description = "Print result as json",
             Hidden = true,
         };
+        Option<string> OutputPipeNameOption = new(name: "--output-pipe")
+        {
+            Description = "Write output to the named pipe",
+            Hidden = true,
+        };
 
         RootCommand root = new(description: "Info about user session login/logout times")
         {
@@ -49,6 +56,7 @@ internal class CmdLineArgs
             DisableCollectSecurityEventsOption,
             DisableElevationOption,
             DoJsonOutputOption,
+            OutputPipeNameOption,
         };
 
         var res = root.Parse(args);
@@ -75,6 +83,7 @@ internal class CmdLineArgs
         AllowElevation = !res.GetValue(DisableElevationOption);
 
         DoJsonOutput = res.GetValue(DoJsonOutputOption);
+        OutputPipeName = res.GetValue(OutputPipeNameOption);
 
         return true;
     }

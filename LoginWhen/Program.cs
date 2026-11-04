@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Pipes;
 using System.Linq;
-using System.Runtime.Versioning;
 using System.Text.Json;
 using static LoginWhen.EventCollector;
 
@@ -34,6 +35,16 @@ class Program
         CmdLineArgs cmdLineArgs = new();
         if (!cmdLineArgs.Parse(args)) return;
 
+        using NamedPipeClientStream? outputPipe = cmdLineArgs.OutputPipeName != null
+            ? new(".", cmdLineArgs.OutputPipeName, PipeDirection.Out)
+            : null;
+        outputPipe?.Connect();
+        using StreamWriter? pipeWriter = outputPipe != null
+            ? new(outputPipe) { AutoFlush = true }
+            : null;
+        TextWriter output = pipeWriter ?? Console.Out;
+        TextWriter errorOutput = pipeWriter ?? Console.Error;
+
         EventCollector eventCollector = new()
         {
             HistoryMaxDays = cmdLineArgs.HistoryMaxDays,
@@ -56,7 +67,7 @@ class Program
                 string err = $"Failed to collect system events: {ex}";
                 if (errors == null)
                 {
-                    Console.Error.WriteLine($"{err}\n");
+                    errorOutput.WriteLine($"{err}\n");
                 }
                 else
                 {
@@ -88,7 +99,7 @@ class Program
                 string err = $"Failed to collect security events: {ex}";
                 if (errors == null)
                 {
-                    Console.Error.WriteLine($"{err}\n");
+                    errorOutput.WriteLine($"{err}\n");
                 }
                 else
                 {
@@ -99,15 +110,15 @@ class Program
 
         if (cmdLineArgs.DoJsonOutput)
         {
-            PrintJson(eventCollector.Events, errors);
+            PrintJson(eventCollector.Events, errors!, output);
         }
         else
         {
-            Print(eventCollector.Events);
+            Print(eventCollector.Events, output);
         }
     }
 
-    private static void Print(IReadOnlyCollection<Event> events)
+    private static void Print(IReadOnlyCollection<Event> events, TextWriter output)
     {
         IFormatProvider form = System.Globalization.CultureInfo.CreateSpecificCulture("de-de");
         int lld = events.First().Timestamp.Day;
@@ -116,15 +127,15 @@ class Program
             if (lld != e.Timestamp.Day)
             {
                 lld = e.Timestamp.Day;
-                Console.WriteLine();
+                output.WriteLine();
             }
-            Console.WriteLine(e.Timestamp.ToString("ddd, dd.MM.    HH:mm    ", form) + EventTypeName(e.Type));
+            output.WriteLine(e.Timestamp.ToString("ddd, dd.MM.    HH:mm    ", form) + EventTypeName(e.Type));
         }
     }
 
-    private static void PrintJson(IReadOnlyCollection<Event> events, List<string> errors)
+    private static void PrintJson(IReadOnlyCollection<Event> events, List<string> errors, TextWriter output)
     {
-        Console.WriteLine(
+        output.WriteLine(
             JsonSerializer.Serialize(new
             {
                 events,

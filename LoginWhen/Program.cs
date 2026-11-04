@@ -12,9 +12,17 @@ class Program
         switch(et)
         {
             case EventType.Logon:
-                return "[  -->] Log On";
+                return "[  ==>] Log On";
             case EventType.Logoff:
-                return "[<--  ] Log Off";
+                return "[<==  ] Log Off";
+            case EventType.Unlock:
+                return "[  -->] Unlock";
+            case EventType.Lock:
+                return "[<--  ] Lock";
+            case EventType.Startup:
+                return "[  ==>] Startup";
+            case EventType.Shutdown:
+                return "[<==  ] Shutdown";
         }
         return "";
     }

@@ -70,7 +70,7 @@ internal class EventCollector
 
             _events.Add(new(date.ToLocalTime(), ev));
         }
-        SortEvents();
+        SortEvents(_events);
     }
 
     public void CollectSecurity()
@@ -98,11 +98,11 @@ internal class EventCollector
 
             _events.Add(new(date.ToLocalTime(), ev));
         }
-        SortEvents();
+        SortEvents(_events);
     }
 
-    private void SortEvents()
+    public static void SortEvents(List<Event> events)
     {
-        _events.Sort((Event a, Event b) => { return a.Timestamp.CompareTo(b.Timestamp); });
+        events.Sort((Event a, Event b) => { return a.Timestamp.CompareTo(b.Timestamp); });
     }
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using static LoginWhen.EventCollector;
 
 namespace LoginWhen;
@@ -30,7 +31,7 @@ class Program
         return "";
     }
 
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
         CmdLineArgs cmdLineArgs = new();
         if (!cmdLineArgs.Parse(args)) return;
@@ -38,7 +39,7 @@ class Program
         using NamedPipeClientStream? outputPipe = cmdLineArgs.OutputPipeName != null
             ? new(".", cmdLineArgs.OutputPipeName, PipeDirection.Out)
             : null;
-        outputPipe?.Connect();
+        outputPipe?.Connect(ElevationUtility.CommunicationTimeoutMilliseconds);
         using StreamWriter? pipeWriter = outputPipe != null
             ? new(outputPipe) { AutoFlush = true }
             : null;
@@ -49,6 +50,7 @@ class Program
         {
             HistoryMaxDays = cmdLineArgs.HistoryMaxDays,
         };
+        IReadOnlyCollection<Event> events = eventCollector.Events;
 
         List<string>? errors = null;
         if (cmdLineArgs.DoJsonOutput)
@@ -85,13 +87,16 @@ class Program
                     eventCollector.CollectSecurity();
                 }
                 catch (UnauthorizedAccessException)
+                when (cmdLineArgs.AllowElevation && !ElevationUtility.IsElevated)
                 {
-                    if (cmdLineArgs.AllowElevation)
-                    {
-                        // TODO: Implement
-                    }
+                    var securityEvents = await ElevationUtility.CollectSecurityEventsAsync(cmdLineArgs.HistoryMaxDays);
 
-                    throw;
+                    List<Event> allEvents = new();
+                    events = allEvents;
+                    allEvents.AddRange(eventCollector.Events);
+                    allEvents.AddRange(securityEvents);
+                    SortEvents(allEvents);
+                    events = allEvents;
                 }
             }
             catch (Exception ex)
@@ -110,16 +115,18 @@ class Program
 
         if (cmdLineArgs.DoJsonOutput)
         {
-            PrintJson(eventCollector.Events, errors!, output);
+            PrintJson(events, errors!, output);
         }
         else
         {
-            Print(eventCollector.Events, output);
+            Print(events, output);
         }
     }
 
     private static void Print(IReadOnlyCollection<Event> events, TextWriter output)
     {
+        if (events.Count == 0) return;
+
         IFormatProvider form = System.Globalization.CultureInfo.CreateSpecificCulture("de-de");
         int lld = events.First().Timestamp.Day;
         foreach (var e in events)

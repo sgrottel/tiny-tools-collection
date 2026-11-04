@@ -61,6 +61,10 @@ class Program
                     new LockLog().LogUnlock();
                     break;
 
+                case CmdLineArgs.Operation.RegisterLogTasks:
+                    LockLog.RegisterLogTasks(output);
+                    break;
+
                 case CmdLineArgs.Operation.None:
                     break;
 

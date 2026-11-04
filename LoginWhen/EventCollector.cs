@@ -19,16 +19,30 @@ internal class EventCollector
 
     public record Event(DateTime Timestamp, EventType Type);
 
-    public List<Event> Collect(int historyMaxDays)
-    {
-        string timeFilter = FormattableString.Invariant($"TimeCreated[timediff(@SystemTime) <= {(long)historyMaxDays * 86400000}]");
-        List<Event> events = new();
+    private List<Event> _events = new();
 
+    public required int HistoryMaxDays { get; set; }
+
+    public IReadOnlyCollection<Event> Events { get => _events; }
+
+    public void Clear()
+    {
+        _events.Clear();
+    }
+
+    private string TimeFilter {
+        get {
+            return FormattableString.Invariant($"TimeCreated[timediff(@SystemTime) <= {(long)HistoryMaxDays * 86400000}]");
+        }
+    }
+
+    public void CollectSystem()
+    {
         EventLogQuery systemQuery = new("System", PathType.LogName, $"""
             *[System[
                 ((Provider[@Name='Microsoft-Windows-Winlogon'] and (EventID=7001 or EventID=7002))
                 or (Provider[@Name='Microsoft-Windows-Kernel-General'] and (EventID=12 or EventID=13)))
-                and {timeFilter}
+                and {TimeFilter}
             ]]
             """);
         using EventLogReader systemLog = new(systemQuery);
@@ -55,14 +69,18 @@ internal class EventCollector
 
             if (entry.TimeCreated is not DateTime date) continue;
 
-            events.Add(new(date.ToLocalTime(), ev));
+            _events.Add(new(date.ToLocalTime(), ev));
         }
+        SortEvents();
+    }
 
+    public void CollectSecurity()
+    {
         EventLogQuery securityQuery = new("Security", PathType.LogName, $"""
             *[System[
                 Provider[@Name='Microsoft-Windows-Security-Auditing']
                 and (EventID=4800 or EventID=4801)
-                and {timeFilter}
+                and {TimeFilter}
             ]]
             """);
         using EventLogReader securityLog = new(securityQuery);
@@ -79,11 +97,13 @@ internal class EventCollector
 
             if (entry.TimeCreated is not DateTime date) continue;
 
-            events.Add(new(date.ToLocalTime(), ev));
+            _events.Add(new(date.ToLocalTime(), ev));
         }
+        SortEvents();
+    }
 
-        events.Sort((Event a, Event b) => { return a.Timestamp.CompareTo(b.Timestamp); });
-
-        return events;
+    private void SortEvents()
+    {
+        _events.Sort((Event a, Event b) => { return a.Timestamp.CompareTo(b.Timestamp); });
     }
 }

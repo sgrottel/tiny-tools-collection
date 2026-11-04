@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Versioning;
 using static LoginWhen.EventCollector;
 
@@ -32,12 +33,37 @@ class Program
         CmdLineArgs cmdLineArgs = new();
         if (!cmdLineArgs.Parse(args)) return;
 
-        EventCollector eventCollector = new();
-        List<Event> events = eventCollector.Collect(cmdLineArgs.HistoryMaxDays);
+        EventCollector eventCollector = new()
+        {
+            HistoryMaxDays = cmdLineArgs.HistoryMaxDays,
+        };
+        try
+        {
+            eventCollector.CollectSystem();
+        }
+        catch(Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to collect system events: {ex}\n");
+        }
+        try
+        {
+            try
+            {
+                eventCollector.CollectSecurity();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+        }
+        catch(Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to collect security events: {ex}\n");
+        }
 
         IFormatProvider form = System.Globalization.CultureInfo.CreateSpecificCulture("de-de");
-        int lld = events[0].Timestamp.Day;
-        foreach (var e in events)
+        int lld = eventCollector.Events.First().Timestamp.Day;
+        foreach (var e in eventCollector.Events)
         {
             if (lld != e.Timestamp.Day)
             {

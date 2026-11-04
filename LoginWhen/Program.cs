@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using static LoginWhen.EventCollector;
 
 namespace LoginWhen;
@@ -31,10 +30,10 @@ class Program
         return "";
     }
 
-    static async Task Main(string[] args)
+    static void Main(string[] args)
     {
         CmdLineArgs cmdLineArgs = new();
-        if (!cmdLineArgs.Parse(args)) return;
+        CmdLineArgs.Operation op = cmdLineArgs.Parse(args);
 
         using NamedPipeClientStream? outputPipe = cmdLineArgs.OutputPipeName != null
             ? new(".", cmdLineArgs.OutputPipeName, PipeDirection.Out)
@@ -46,6 +45,41 @@ class Program
         TextWriter output = pipeWriter ?? Console.Out;
         TextWriter errorOutput = pipeWriter ?? Console.Error;
 
+        try
+        {
+            switch (op)
+            {
+                case CmdLineArgs.Operation.Normal:
+                    RunNormal(cmdLineArgs, output, errorOutput);
+                    break;
+
+                case CmdLineArgs.Operation.None:
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Operation {op} not implemented");
+            }
+        }
+        catch (Exception ex)
+        {
+            string err = $"Failed with exception: {ex}";
+            if (cmdLineArgs.DoJsonOutput)
+            {
+                errorOutput.WriteLine(
+                    JsonSerializer.Serialize(new
+                    {
+                        errors = new string[] { err },
+                    }));
+            }
+            else
+            {
+                errorOutput.WriteLine(err);
+            }
+        }
+    }
+
+    private static void RunNormal(CmdLineArgs cmdLineArgs, TextWriter output, TextWriter errorOutput)
+    {
         EventCollector eventCollector = new()
         {
             HistoryMaxDays = cmdLineArgs.HistoryMaxDays,
@@ -89,7 +123,7 @@ class Program
                 catch (UnauthorizedAccessException)
                 when (cmdLineArgs.AllowElevation && !ElevationUtility.IsElevated)
                 {
-                    var securityEvents = await ElevationUtility.CollectSecurityEventsAsync(cmdLineArgs.HistoryMaxDays);
+                    var securityEvents = ElevationUtility.CollectSecurityEventsAsync(cmdLineArgs.HistoryMaxDays).Result;
 
                     List<Event> allEvents = new();
                     events = allEvents;

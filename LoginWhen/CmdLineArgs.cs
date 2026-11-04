@@ -6,6 +6,14 @@ namespace LoginWhen;
 
 internal class CmdLineArgs
 {
+    public enum Operation {
+        Normal,
+        None,
+        LogLock,
+        LogUnlock,
+        RegisterLogTasks,
+    }
+
     public int HistoryMaxDays { get; set; } = 7;
 
     public bool CollectSystemEvents { get; set; } = true;
@@ -18,7 +26,7 @@ internal class CmdLineArgs
 
     public string? OutputPipeName { get; set; }
 
-    public bool Parse(string[] args)
+    public Operation Parse(string[] args)
     {
         Option<int> historyMaxDaysOption = new(name: "--days")
         {
@@ -49,6 +57,23 @@ internal class CmdLineArgs
             Hidden = true,
         };
 
+        Operation selectedOperation = Operation.None;
+
+        Command logLockCommand = new(name: "log-lock", description: "Logs a lock event")
+        {
+            Hidden = true,
+        };
+        logLockCommand.SetAction(_ => { selectedOperation = Operation.LogLock; });
+
+        Command logUnlockCommand = new(name: "log-unlock", description: "Logs an unlock event")
+        {
+            Hidden = true,
+        };
+        logUnlockCommand.SetAction(_ => { selectedOperation = Operation.LogUnlock; });
+
+        Command registerLogTasksCommand = new(name: "register-log-tasks", description: "Registers the log commands with the windows task scheduler");
+        registerLogTasksCommand.SetAction(_ => { selectedOperation = Operation.RegisterLogTasks; });
+
         RootCommand root = new(description: "Info about user session login/logout times")
         {
             historyMaxDaysOption,
@@ -57,19 +82,23 @@ internal class CmdLineArgs
             DisableElevationOption,
             DoJsonOutputOption,
             OutputPipeNameOption,
+            logLockCommand,
+            logUnlockCommand,
+            registerLogTasksCommand,
         };
 
         var res = root.Parse(args);
         if (res.Errors.Any())
         {
             Console.Error.WriteLine("Cmd line parsing failed:\n\t" + string.Join("\n\t", res.Errors));
-            return false;
+            return Operation.None;
         }
         if (res.Action != null)
         {
-            // version or help
+            // version, help, or log actions
             res.Invoke();
-            return false;
+
+            return selectedOperation;
         }
 
         var hmdr = res.GetResult(historyMaxDaysOption);
@@ -85,7 +114,7 @@ internal class CmdLineArgs
         DoJsonOutput = res.GetValue(DoJsonOutputOption);
         OutputPipeName = res.GetValue(OutputPipeNameOption);
 
-        return true;
+        return Operation.Normal;
     }
 
 }

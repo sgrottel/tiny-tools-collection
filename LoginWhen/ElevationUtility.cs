@@ -27,12 +27,16 @@ internal static class ElevationUtility
 
     public static async Task<Event[]> CollectSecurityEventsAsync(int historyMaxDays)
     {
-        string json = await RunElevatedAsync(
+        string jsonString = await RunElevatedAsync(
         [
-            "--days", historyMaxDays.ToString(CultureInfo.InvariantCulture),
-            "--no-system-events", "--with-security-events", "--no-elevation", "--json",
+            "--days",
+            historyMaxDays.ToString(CultureInfo.InvariantCulture),
+            "--no-system-events",
+            "--with-security-events",
+            "--no-elevation",
+            "--json",
         ]);
-        using JsonDocument result = JsonDocument.Parse(json);
+        using JsonDocument result = JsonDocument.Parse(jsonString);
         string[] errors = result.RootElement.GetProperty("errors").Deserialize<string[]>()
             ?? throw new InvalidDataException("The elevated worker did not return errors.");
         if (errors.Length != 0)
@@ -47,8 +51,13 @@ internal static class ElevationUtility
     {
         return RunElevatedAsync(
         [
-            "register-log-tasks", "--user-sid", userSid, "--user-name", userName,
-            "--log-file", logFilePath,
+            "register-log-tasks",
+            "--user-sid",
+            userSid,
+            "--user-name",
+            userName,
+            "--log-file",
+            logFilePath,
         ]);
     }
 
@@ -108,14 +117,14 @@ internal static class ElevationUtility
             await connection;
 
             using StreamReader reader = new(pipe);
-            string json = await reader.ReadToEndAsync(cancellation.Token);
+            string jsonString = await reader.ReadToEndAsync(cancellation.Token);
             await exit;
             if (worker.ExitCode != 0)
             {
-                throw new IOException($"The elevated worker failed (exit code {worker.ExitCode}): {json}");
+                throw new IOException($"The elevated worker failed (exit code {worker.ExitCode}): {jsonString}");
             }
 
-            return json;
+            return jsonString;
         }
         catch (OperationCanceledException ex) when (cancellation.IsCancellationRequested)
         {

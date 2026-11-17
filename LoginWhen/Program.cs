@@ -32,7 +32,6 @@ class Program
 
     static int Main(string[] args)
     {
-        int exitCode = 0;
         CmdLineArgs cmdLineArgs = new();
         CmdLineArgs.Operation op = cmdLineArgs.Parse(args);
 
@@ -83,7 +82,6 @@ class Program
         }
         catch (Exception ex)
         {
-            exitCode = 1;
             string err = $"Failed with exception: {ex}";
             if (cmdLineArgs.DoJsonOutput)
             {
@@ -97,8 +95,9 @@ class Program
             {
                 errorOutput.WriteLine(err);
             }
+            return 1;
         }
-        return exitCode;
+        return 0;
     }
 
     private static void RunNormal(CmdLineArgs cmdLineArgs, TextWriter output, TextWriter errorOutput)

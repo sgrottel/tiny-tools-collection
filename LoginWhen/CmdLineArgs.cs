@@ -67,17 +67,14 @@ internal class CmdLineArgs
         Option<string> userSidOption = new(name: "--user-sid")
         {
             Hidden = true,
-            Recursive = true,
         };
         Option<string> userNameOption = new(name: "--user-name")
         {
             Hidden = true,
-            Recursive = true,
         };
         Option<string> logFilePathOption = new(name: "--log-file")
         {
             Hidden = true,
-            Recursive = true,
         };
 
         Operation selectedOperation = Operation.None;
@@ -97,10 +94,19 @@ internal class CmdLineArgs
         Command logSecurityEventsCommand = new(name: "log-security-events", description: "Captures Security logon and logoff events")
         {
             Hidden = true,
+            Options = {
+                userSidOption,
+                logFilePathOption,
+            }
         };
         logSecurityEventsCommand.SetAction(_ => { selectedOperation = Operation.LogSecurityEvents; });
 
-        Command registerLogTasksCommand = new(name: "register-log-tasks", description: "Registers the log commands with the windows task scheduler");
+        Command registerLogTasksCommand = new(name: "register-log-tasks", description: "Registers the log commands with the windows task scheduler")
+        {
+            userSidOption,
+            userNameOption,
+            logFilePathOption,
+        };
         registerLogTasksCommand.SetAction(_ => { selectedOperation = Operation.RegisterLogTasks; });
 
         RootCommand root = new(description: "Info about user session login/logout times")
@@ -111,9 +117,6 @@ internal class CmdLineArgs
             DisableElevationOption,
             DoJsonOutputOption,
             OutputPipeNameOption,
-            userSidOption,
-            userNameOption,
-            logFilePathOption,
             logLockCommand,
             logUnlockCommand,
             logSecurityEventsCommand,

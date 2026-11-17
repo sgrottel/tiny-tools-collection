@@ -187,6 +187,8 @@ class Program
             }
         }
 
+        events = new EventDeduplication().Filter(events);
+
         if (cmdLineArgs.DoJsonOutput)
         {
             PrintJson(events, errors!, output);
